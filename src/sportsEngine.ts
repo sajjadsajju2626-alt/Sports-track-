@@ -82,6 +82,27 @@ export interface HouseStanding {
   rank: number;
 }
 
+export interface HouseWinnerContribution {
+  place: 1 | 2 | 3;
+  chestNo: string;
+  name: string;
+  metric: string;
+  points: number;
+}
+
+export interface HouseEventContribution {
+  eventId: string;
+  eventName: string;
+  category: string;
+  type: EventType;
+  points: number;
+  sharePct: number;
+  gold: number;
+  silver: number;
+  bronze: number;
+  entries: HouseWinnerContribution[];
+}
+
 export interface AthleteTally {
   key: string;
   chestNo: string;
@@ -134,6 +155,21 @@ export function buildInviteMessage(meta: {
     `• Ground Official / Referee: *${meta.officialPin}*`,
     `(Students & parents can view live scores using the School Code without a PIN.)`,
   ].join('\n');
+}
+
+export function buildPublicShareUrl(currentHref: string, schoolCode: string): string {
+  const code = normalizeSchoolCode(schoolCode);
+  try {
+    const url = new URL(currentHref);
+    url.search = '';
+    url.hash = '';
+    if (code) {
+      url.searchParams.set('code', code);
+    }
+    return url.toString();
+  } catch {
+    return code ? `?code=${encodeURIComponent(code)}` : currentHref;
+  }
 }
 
 export function generateCsvTemplate(): string {
@@ -291,6 +327,70 @@ export function computeHouseStandings(state: SportsDayState): HouseStanding[] {
     ...item,
     rank: idx + 1,
   }));
+}
+
+export function computeHousePointBreakdown(
+  state: SportsDayState,
+  houseId: HouseId
+): HouseEventContribution[] {
+  const contributions: HouseEventContribution[] = [];
+  let houseTotalPoints = 0;
+
+  for (const ev of state.events) {
+    if (ev.status !== 'FINISHED') continue;
+    const ruleSet = ev.type === 'team' ? state.pointRules.team : state.pointRules.individual;
+    const entries: HouseWinnerContribution[] = [];
+    let eventPoints = 0;
+    let gold = 0;
+    let silver = 0;
+    let bronze = 0;
+
+    for (const w of ev.winners) {
+      if (w.house !== houseId) continue;
+      const pts = ruleSet[w.place - 1] ?? 0;
+      eventPoints += pts;
+      if (w.place === 1) gold += 1;
+      if (w.place === 2) silver += 1;
+      if (w.place === 3) bronze += 1;
+      entries.push({
+        place: w.place,
+        chestNo: w.chestNo,
+        name: w.name,
+        metric: w.metric,
+        points: pts,
+      });
+    }
+
+    if (entries.length > 0) {
+      entries.sort((a, b) => a.place - b.place);
+      houseTotalPoints += eventPoints;
+      contributions.push({
+        eventId: ev.id,
+        eventName: ev.name,
+        category: ev.category,
+        type: ev.type,
+        points: eventPoints,
+        sharePct: 0,
+        gold,
+        silver,
+        bronze,
+        entries,
+      });
+    }
+  }
+
+  return contributions
+    .map((item) => ({
+      ...item,
+      sharePct: houseTotalPoints > 0 ? Math.round((item.points / houseTotalPoints) * 100) : 0,
+    }))
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gold !== a.gold) return b.gold - a.gold;
+      if (b.silver !== a.silver) return b.silver - a.silver;
+      if (b.bronze !== a.bronze) return b.bronze - a.bronze;
+      return a.eventName.localeCompare(b.eventName);
+    });
 }
 
 export function computeTopAthletes(state: SportsDayState): AthleteTally[] {

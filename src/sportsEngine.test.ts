@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildInviteMessage,
+  buildPublicShareUrl,
+  computeHousePointBreakdown,
   computeHouseStandings,
   computeTopAthletes,
   DEFAULT_POINT_RULES,
@@ -210,4 +212,87 @@ test('formatStopwatch formats milliseconds into MM:SS.CC', () => {
   assert.equal(formatStopwatch(0), '00:00.00');
   assert.equal(formatStopwatch(12450), '00:12.45');
   assert.equal(formatStopwatch(65120), '01:05.12');
+});
+
+test('computeHousePointBreakdown ranks contributing finished events by points descending and aggregates multi-place entries', () => {
+  const state = createBaseState();
+  state.events = [
+    {
+      id: 'ev1',
+      name: '100m Sprint',
+      category: 'Senior Boys',
+      type: 'individual',
+      venue: 'Main Track',
+      status: 'FINISHED',
+      updatedAt: 100,
+      winners: [
+        { place: 1, chestNo: '101', name: 'Aarav', house: 'red', metric: '11.4s' },
+        { place: 2, chestNo: '202', name: 'Rohan', house: 'blue', metric: '11.8s' },
+        { place: 3, chestNo: '109', name: 'Vivaan', house: 'red', metric: '12.0s' },
+      ],
+    },
+    {
+      id: 'ev2',
+      name: 'Football Final',
+      category: 'Senior Boys',
+      type: 'team',
+      venue: 'Main Turf',
+      status: 'FINISHED',
+      updatedAt: 200,
+      winners: [
+        { place: 1, chestNo: '', name: 'Blue House XI', house: 'blue', metric: '2-1' },
+        { place: 2, chestNo: '', name: 'Red House XI', house: 'red', metric: '1-2' },
+      ],
+    },
+    {
+      id: 'ev3',
+      name: 'Long Jump',
+      category: 'Junior Boys',
+      type: 'individual',
+      venue: 'Sand Pit A',
+      status: 'LIVE',
+      updatedAt: 300,
+      winners: [
+        { place: 1, chestNo: '111', name: 'Live Athlete', house: 'red', metric: '5.5m' },
+      ],
+    },
+  ];
+
+  // Red: 100m Sprint (1st=5 + 3rd=1 -> 6 pts) ties Football Final (2nd=6 pts), gold tiebreaker puts 100m Sprint first
+  const redBreakdown = computeHousePointBreakdown(state, 'red');
+  assert.equal(redBreakdown.length, 2);
+  assert.equal(redBreakdown[0].eventName, '100m Sprint');
+  assert.equal(redBreakdown[0].points, 6);
+  assert.equal(redBreakdown[0].sharePct, 50);
+  assert.equal(redBreakdown[0].entries.length, 2);
+  assert.equal(redBreakdown[1].eventName, 'Football Final');
+  assert.equal(redBreakdown[1].points, 6);
+
+  // Blue: Football Final (10 pts) ranks above 100m Sprint (3 pts)
+  const blueBreakdown = computeHousePointBreakdown(state, 'blue');
+  assert.equal(blueBreakdown.length, 2);
+  assert.equal(blueBreakdown[0].eventName, 'Football Final');
+  assert.equal(blueBreakdown[0].points, 10);
+  assert.equal(blueBreakdown[0].sharePct, 77);
+  assert.equal(blueBreakdown[1].eventName, '100m Sprint');
+  assert.equal(blueBreakdown[1].points, 3);
+  assert.equal(blueBreakdown[1].sharePct, 23);
+
+  // Yellow: no points
+  assert.deepEqual(computeHousePointBreakdown(state, 'yellow'), []);
+});
+
+test('buildPublicShareUrl constructs clean public scoreboard URL with normalized school code', () => {
+  assert.equal(
+    buildPublicShareUrl('https://sports.example.com/?autostart=1#top', ' demofest '),
+    'https://sports.example.com/?code=DEMOFEST'
+  );
+  assert.equal(
+    buildPublicShareUrl('https://sports.example.com/meet/?foo=bar', 'stjoseph'),
+    'https://sports.example.com/meet/?code=STJOSEPH'
+  );
+  assert.equal(
+    buildPublicShareUrl('https://sports.example.com/?code=OLD', ''),
+    'https://sports.example.com/'
+  );
 });

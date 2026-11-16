@@ -1,0 +1,6 @@
+{
+  "name": "School Annual Sports & Games Meet",
+  "description": "Single-file live sports day scoreboard, official ground scoring console, admin manager, and full-screen TV display.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

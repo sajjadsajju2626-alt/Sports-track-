@@ -1,0 +1,3455 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Annual Sports &amp; Games Meet — Live Scoreboard</title>
+    <meta
+      name="description"
+      content="Live school sports day scoreboard, official ground scoring, admin controls, and full-screen auditorium TV display."
+    />
+    <meta property="og:title" content="Annual Sports &amp; Games Meet — Live Scoreboard" />
+    <meta
+      property="og:description"
+      content="Live school sports day scoreboard, official ground scoring, admin controls, and full-screen auditorium TV display."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Smooth marquee ticker */
+      @keyframes sportsTicker {
+        0% {
+          transform: translateX(0%);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      .ticker-track {
+        display: flex;
+        width: max-content;
+        animation: sportsTicker 32s linear infinite;
+      }
+
+      .ticker-wrap:hover .ticker-track,
+      .ticker-wrap:focus-within .ticker-track {
+        animation-play-state: paused;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ticker-track {
+          animation: none;
+        }
+      }
+
+      /* Carousel progress bar */
+      @keyframes carouselProgress {
+        from {
+          transform: scaleX(0);
+        }
+        to {
+          transform: scaleX(1);
+        }
+      }
+
+      .carousel-bar {
+        transform-origin: left center;
+        animation: carouselProgress 8s linear infinite;
+      }
+
+      /* Confetti particles */
+      @keyframes confettiFall {
+        0% {
+          transform: translateY(-20px) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(540deg);
+          opacity: 0;
+        }
+      }
+
+      .confetti-piece {
+        position: fixed;
+        top: -12px;
+        width: 10px;
+        height: 16px;
+        border-radius: 2px;
+        pointer-events: none;
+        z-index: 100;
+        animation: confettiFall 3.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+
+      /* A4 Print Stylesheet */
+      @media print {
+        @page {
+          size: A4 portrait;
+          margin: 14mm;
+        }
+        body {
+          background: #ffffff !important;
+          color: #000000 !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+        .print-only {
+          display: block !important;
+        }
+        table {
+          page-break-inside: auto;
+        }
+        tr {
+          page-break-inside: avoid;
+          page-break-after: auto;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 selection:bg-slate-900 selection:text-white">
+    <!-- ===================================================================== -->
+    <!-- MAIN APP SHELL (HIDDEN ON PRINT)                                      -->
+    <!-- ===================================================================== -->
+    <div id="app-shell" class="no-print min-h-screen flex flex-col">
+      <!-- Top Bar -->
+      <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-3">
+          <!-- Brand / School Name -->
+          <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 overflow-hidden">
+            <div
+              class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0"
+              aria-hidden="true"
+            >
+              <i data-lucide="trophy" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h1
+                id="header-school-name"
+                class="text-sm sm:text-lg font-bold tracking-tight text-slate-900 truncate"
+              >
+                Annual Sports &amp; Games Meet
+              </h1>
+              <div class="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 min-w-0 truncate">
+                <span id="sync-status-label" class="truncate">Local Mode</span>
+                <span aria-hidden="true" class="shrink-0">·</span>
+                <span id="header-role-label" class="shrink-0 font-medium text-slate-700"
+                  >Public View</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Header Actions -->
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              id="btn-open-tv"
+              class="min-h-[40px] px-2.5 sm:px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+              <i data-lucide="monitor" class="w-4 h-4" aria-hidden="true"></i>
+              <span>TV Screen</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-print-header"
+              class="hidden sm:inline-flex min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              aria-label="Print Results Sheet"
+            >
+              <i data-lucide="printer" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Print</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-official-login"
+              class="min-h-[40px] px-2.5 sm:px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+              <i data-lucide="shield-check" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Official Login</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-logout"
+              class="hidden min-h-[40px] px-2.5 sm:px-3 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="log-out" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Exit Role</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Role Navigation Strip (Visible when Official or Admin is signed in) -->
+        <nav
+          id="role-nav-bar"
+          aria-label="Console navigation"
+          class="hidden bg-slate-50 border-t border-slate-200"
+        >
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center gap-2 overflow-x-auto">
+            <button
+              type="button"
+              id="btn-nav-home"
+              class="hidden min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="layout-grid" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Public Home</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-nav-scoring"
+              class="hidden min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="clipboard-check" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Official Scoring</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-nav-admin"
+              class="hidden min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="sliders-horizontal" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Admin Controls</span>
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      <!-- Live Announcement Ticker -->
+      <div class="bg-slate-900 text-slate-100 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-10 flex items-center gap-3 overflow-hidden">
+          <span
+            class="text-[11px] font-bold uppercase tracking-wider text-amber-400 whitespace-nowrap shrink-0"
+          >
+            Call Room
+          </span>
+          <span class="h-3.5 w-px bg-slate-700 shrink-0" aria-hidden="true"></span>
+          <div class="ticker-wrap flex-1 overflow-hidden">
+            <div id="ticker-track" class="ticker-track text-xs sm:text-sm font-medium text-slate-100">
+              <span class="pr-16" id="ticker-text-a"
+                >Welcome to Annual Sports &amp; Games Meet — Track &amp; Field events underway</span
+              >
+              <span class="pr-16" id="ticker-text-b" aria-hidden="true"
+                >Welcome to Annual Sports &amp; Games Meet — Track &amp; Field events underway</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Feedback Banner -->
+      <div
+        id="toast-banner"
+        role="status"
+        aria-live="polite"
+        class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-[92vw] rounded-xl bg-slate-900 text-white px-4 py-2.5 shadow-lg border border-slate-700 text-xs sm:text-sm font-medium flex items-center gap-2 whitespace-nowrap"
+      >
+        <span id="toast-message">Updated</span>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 1: PUBLIC HOME SCREEN                                          -->
+      <!-- =================================================================== -->
+      <main id="view-home" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+        <!-- 4-House Live Leaderboard -->
+        <section aria-labelledby="heading-standings">
+          <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+            <div>
+              <h2 id="heading-standings" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                House Championship Standings
+              </h2>
+              <p class="text-sm text-slate-500">
+                Live cumulative points and medal tally across all completed events
+              </p>
+            </div>
+            <div id="home-summary-counts" class="text-xs sm:text-sm text-slate-500 font-mono tabular-nums">
+              0 Events · 0 Completed
+            </div>
+          </div>
+
+          <div
+            id="house-leaderboard-grid"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          ></div>
+        </section>
+
+        <!-- Events & Top Athletes Section -->
+        <section aria-labelledby="heading-events" class="space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <!-- Segmented Filter Tabs -->
+            <div
+              role="tablist"
+              aria-label="Filter sports events and athlete leaderboard"
+              class="inline-flex flex-wrap items-center gap-1 p-1 bg-slate-200/70 rounded-xl"
+            >
+              <button
+                type="button"
+                role="tab"
+                data-filter-tab="all"
+                aria-selected="true"
+                class="filter-tab min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-slate-900 shadow-sm transition-colors whitespace-nowrap"
+              >
+                All Events
+              </button>
+              <button
+                type="button"
+                role="tab"
+                data-filter-tab="active"
+                aria-selected="false"
+                class="filter-tab min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors whitespace-nowrap"
+              >
+                Live &amp; Upcoming
+              </button>
+              <button
+                type="button"
+                role="tab"
+                data-filter-tab="finished"
+                aria-selected="false"
+                class="filter-tab min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors whitespace-nowrap"
+              >
+                Completed Results
+              </button>
+              <button
+                type="button"
+                role="tab"
+                data-filter-tab="athletes"
+                aria-selected="false"
+                class="filter-tab min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors whitespace-nowrap"
+              >
+                Top Athletes
+              </button>
+            </div>
+
+            <!-- Search Input -->
+            <div class="relative w-full md:w-72">
+              <label for="home-search-input" class="sr-only">Search events or athletes</label>
+              <i
+                data-lucide="search"
+                class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                aria-hidden="true"
+              ></i>
+              <input
+                id="home-search-input"
+                type="search"
+                placeholder="Search event, category, or student..."
+                class="w-full min-h-[42px] pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              />
+            </div>
+          </div>
+
+          <!-- Events Grid -->
+          <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+          <!-- Top Athletes Panel (shown when Top Athletes tab active) -->
+          <div id="top-athletes-panel" class="hidden space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h3 class="text-lg font-bold text-slate-900">Individual Champion Standings</h3>
+              <div class="inline-flex items-center gap-1 p-1 bg-slate-200/70 rounded-lg">
+                <button
+                  type="button"
+                  data-division="all"
+                  class="division-tab min-h-[36px] px-3 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm"
+                >
+                  All
+                </button>
+                <button
+                  type="button"
+                  data-division="boys"
+                  class="division-tab min-h-[36px] px-3 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900"
+                >
+                  Boys
+                </button>
+                <button
+                  type="button"
+                  data-division="girls"
+                  class="division-tab min-h-[36px] px-3 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900"
+                >
+                  Girls
+                </button>
+              </div>
+            </div>
+            <div
+              id="top-athletes-table-wrap"
+              class="bg-white rounded-2xl border border-slate-200 overflow-x-auto"
+            ></div>
+          </div>
+        </section>
+      </main>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 2: OFFICIAL SCORING SCREEN (GROUND ENTRY)                      -->
+      <!-- =================================================================== -->
+      <section
+        id="view-scoring"
+        class="hidden flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6"
+        aria-label="Official Ground Scoring"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Official Ground Scoring
+            </h2>
+            <p class="text-sm text-slate-500">
+              Select an event, time races or track live match scores, and publish straight to the board
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-scoring-back-home"
+            class="min-h-[42px] px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-sm font-semibold inline-flex items-center gap-1.5"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4" aria-hidden="true"></i>
+            <span>Back to Home</span>
+          </button>
+        </div>
+
+        <!-- Event Picker Card -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div class="flex-1">
+              <label
+                for="scoring-event-select"
+                class="block text-sm font-semibold text-slate-800 mb-1.5"
+              >
+                Select Event to Score
+              </label>
+              <select
+                id="scoring-event-select"
+                class="w-full min-h-[46px] px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm sm:text-base font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              ></select>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                data-scoring-mode="individual"
+                id="btn-mode-individual"
+                class="min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-slate-900 text-white whitespace-nowrap"
+              >
+                Quick Winner Entry
+              </button>
+              <button
+                type="button"
+                data-scoring-mode="team"
+                id="btn-mode-team"
+                class="min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+              >
+                Live Match Board
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick-Tap Event Pills -->
+          <div>
+            <div class="text-xs font-medium text-slate-500 mb-2">Quick-tap active &amp; upcoming events</div>
+            <div id="scoring-quick-events" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <!-- MODE A: QUICK WINNER ENTRY (INDIVIDUAL / ATHLETICS) -->
+        <div id="scoring-individual-panel" class="space-y-5">
+          <!-- Built-in Digital Stopwatch -->
+          <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Track Stopwatch
+              </div>
+              <div
+                id="stopwatch-display"
+                class="font-mono text-3xl sm:text-4xl font-bold tabular-nums tracking-tight mt-0.5"
+              >
+                00:00.00
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                id="btn-sw-toggle"
+                class="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm inline-flex items-center gap-1.5"
+              >
+                <i data-lucide="play" class="w-4 h-4" aria-hidden="true"></i>
+                <span>Start</span>
+              </button>
+              <button
+                type="button"
+                id="btn-sw-reset"
+                class="min-h-[44px] px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold text-sm"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                data-sw-assign="1"
+                class="sw-assign min-h-[44px] px-3 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/30 font-semibold text-xs"
+              >
+                Copy to 1st
+              </button>
+              <button
+                type="button"
+                data-sw-assign="2"
+                class="sw-assign min-h-[44px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs"
+              >
+                Copy to 2nd
+              </button>
+              <button
+                type="button"
+                data-sw-assign="3"
+                class="sw-assign min-h-[44px] px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs"
+              >
+                Copy to 3rd
+              </button>
+            </div>
+          </div>
+
+          <!-- Podium Rows Form -->
+          <form
+            id="form-individual-winners"
+            class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-5"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-lg font-bold text-slate-900">Podium Winners</h3>
+              <span id="individual-points-hint" class="text-xs font-mono text-slate-500">
+                Points: 1st = 5 · 2nd = 3 · 3rd = 1
+              </span>
+            </div>
+
+            <div id="individual-error" role="alert" class="hidden rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm font-medium text-red-800"></div>
+
+            <!-- 1st, 2nd, 3rd Rows -->
+            <div class="space-y-4" id="podium-rows-container"></div>
+
+            <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <button
+                type="button"
+                id="btn-mark-event-live"
+                class="min-h-[46px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 font-semibold text-sm"
+              >
+                Set Event Status: LIVE
+              </button>
+              <button
+                type="submit"
+                class="min-h-[48px] px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-sm"
+              >
+                <i data-lucide="check-circle-2" class="w-5 h-5" aria-hidden="true"></i>
+                <span>SUBMIT &amp; PUBLISH</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- MODE B: LIVE MATCH SCOREBOARD (TEAM GAMES) -->
+        <div id="scoring-team-panel" class="hidden space-y-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Live Match Scoreboard</h3>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Score taps update the Home Screen and TV Display in real time
+                </p>
+              </div>
+              <div class="w-full sm:w-56">
+                <label for="team-period-input" class="sr-only">Match Period or Half</label>
+                <input
+                  id="team-period-input"
+                  type="text"
+                  placeholder="Period (e.g. 2nd Half)"
+                  value="Live Match"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium text-slate-900"
+                />
+              </div>
+            </div>
+
+            <div id="team-error" role="alert" class="hidden rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm font-medium text-red-800"></div>
+
+            <!-- Team A vs Team B Score Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Team A -->
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                <div>
+                  <label for="team-a-house" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Team A House
+                  </label>
+                  <select
+                    id="team-a-house"
+                    class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900"
+                  ></select>
+                </div>
+                <div class="text-center py-2">
+                  <div
+                    id="team-a-score"
+                    class="font-mono text-6xl font-bold tabular-nums text-slate-900"
+                  >
+                    0
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    id="btn-team-a-minus"
+                    class="min-h-[52px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-xl font-bold text-slate-800"
+                    aria-label="Decrease Team A score by 1"
+                  >
+                    -1
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-team-a-plus"
+                    class="min-h-[52px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-xl font-bold text-white"
+                    aria-label="Increase Team A score by 1"
+                  >
+                    +1
+                  </button>
+                </div>
+              </div>
+
+              <!-- Team B -->
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                <div>
+                  <label for="team-b-house" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Team B House
+                  </label>
+                  <select
+                    id="team-b-house"
+                    class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900"
+                  ></select>
+                </div>
+                <div class="text-center py-2">
+                  <div
+                    id="team-b-score"
+                    class="font-mono text-6xl font-bold tabular-nums text-slate-900"
+                  >
+                    0
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    id="btn-team-b-minus"
+                    class="min-h-[52px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-xl font-bold text-slate-800"
+                    aria-label="Decrease Team B score by 1"
+                  >
+                    -1
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-team-b-plus"
+                    class="min-h-[52px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-xl font-bold text-white"
+                    aria-label="Increase Team B score by 1"
+                  >
+                    +1
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Optional 3rd Place & Finish Action -->
+            <div class="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div class="w-full sm:w-64">
+                <label for="team-third-house" class="block text-xs font-semibold text-slate-600 mb-1.5">
+                  Optional 3rd Place House (Bronze)
+                </label>
+                <select
+                  id="team-third-house"
+                  class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm text-slate-900"
+                ></select>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  id="btn-team-set-live"
+                  class="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800"
+                >
+                  Broadcast as LIVE Match
+                </button>
+                <button
+                  type="button"
+                  id="btn-team-finish"
+                  class="min-h-[48px] px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold inline-flex items-center gap-2"
+                >
+                  <i data-lucide="award" class="w-5 h-5" aria-hidden="true"></i>
+                  <span>Finish Match &amp; Award Winner</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 3: SPORTS ADMIN PANEL (PIN 7860)                               -->
+      <!-- =================================================================== -->
+      <section
+        id="view-admin"
+        class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8"
+        aria-label="Sports Admin Panel"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Sports Admin &amp; Meet Controls
+            </h2>
+            <p class="text-sm text-slate-500">
+              Configure school details, create events, manage results, and import student chest numbers
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              id="btn-load-sample"
+              class="min-h-[42px] px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold inline-flex items-center gap-1.5"
+            >
+              <i data-lucide="sparkles" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Load Sample School Data</span>
+            </button>
+            <button
+              type="button"
+              id="btn-admin-print"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold inline-flex items-center gap-1.5"
+            >
+              <i data-lucide="printer" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Print A4 Results Sheet</span>
+            </button>
+            <button
+              type="button"
+              id="btn-admin-reset"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold"
+            >
+              Reset All Data
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Left Column: Settings & CSV Roster -->
+          <div class="lg:col-span-5 space-y-6">
+            <!-- School & Ticker Settings -->
+            <form
+              id="form-admin-settings"
+              class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"
+            >
+              <h3 class="text-base font-bold text-slate-900">School, Houses &amp; Point Rules</h3>
+
+              <div>
+                <label for="admin-school-name" class="block text-xs font-semibold text-slate-600 mb-1">
+                  School / Meet Name
+                </label>
+                <input
+                  id="admin-school-name"
+                  type="text"
+                  required
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label for="admin-ticker-msg" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Live Announcement Ticker
+                </label>
+                <input
+                  id="admin-ticker-msg"
+                  type="text"
+                  required
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm text-slate-900"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="house-name-red" class="block text-xs font-semibold text-red-700 mb-1">Red House Name</label>
+                  <input id="house-name-red" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+                </div>
+                <div>
+                  <label for="house-name-blue" class="block text-xs font-semibold text-blue-700 mb-1">Blue House Name</label>
+                  <input id="house-name-blue" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+                </div>
+                <div>
+                  <label for="house-name-green" class="block text-xs font-semibold text-emerald-700 mb-1">Green House Name</label>
+                  <input id="house-name-green" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+                </div>
+                <div>
+                  <label for="house-name-yellow" class="block text-xs font-semibold text-amber-700 mb-1">Yellow House Name</label>
+                  <input id="house-name-yellow" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4 pt-1">
+                <div>
+                  <span class="block text-xs font-semibold text-slate-600 mb-1.5">Individual Points (1st / 2nd / 3rd)</span>
+                  <div class="grid grid-cols-3 gap-1.5">
+                    <input id="pts-ind-1" type="number" min="0" aria-label="Individual 1st points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
+                    <input id="pts-ind-2" type="number" min="0" aria-label="Individual 2nd points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
+                    <input id="pts-ind-3" type="number" min="0" aria-label="Individual 3rd points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
+                  </div>
+                </div>
+                <div>
+                  <span class="block text-xs font-semibold text-slate-600 mb-1.5">Team Game Points (1st / 2nd / 3rd)</span>
+                  <div class="grid grid-cols-3 gap-1.5">
+                    <input id="pts-team-1" type="number" min="0" aria-label="Team 1st points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
+                    <input id="pts-team-2" type="number" min="0" aria-label="Team 2nd points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
+                    <input id="pts-team-3" type="number" min="0" aria-label="Team 3rd points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                class="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold"
+              >
+                Save Meet Settings
+              </button>
+            </form>
+
+            <!-- Optional CSV Student List -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="text-base font-bold text-slate-900">Optional Student Roster (CSV)</h3>
+                <span id="roster-count-label" class="text-xs font-mono text-slate-500">0 students</span>
+              </div>
+              <p class="text-xs text-slate-500">
+                Format: <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">ChestNo, Name, House, Category</code>. Typing a Chest No. on the Official Scoring screen will auto-fill student name &amp; house.
+              </p>
+              <textarea
+                id="admin-csv-textarea"
+                rows="4"
+                placeholder="101, Aarav Sharma, Red, Junior Boys&#10;102, Priya Nair, Blue, Senior Girls"
+                class="w-full p-3 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              ></textarea>
+              <div class="flex flex-wrap items-center gap-2">
+                <label class="min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer inline-flex items-center gap-1.5">
+                  <i data-lucide="upload" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                  <span>Upload CSV File</span>
+                  <input id="admin-csv-file" type="file" accept=".csv,.txt" class="sr-only" />
+                </label>
+                <button
+                  type="button"
+                  id="btn-save-roster"
+                  class="min-h-[40px] px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold"
+                >
+                  Import Roster
+                </button>
+                <button
+                  type="button"
+                  id="btn-clear-roster"
+                  class="min-h-[40px] px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-red-700"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Quick Event Creator & Events/Results Manager -->
+          <div class="lg:col-span-7 space-y-6">
+            <!-- Quick Event Creator -->
+            <form
+              id="form-create-event"
+              class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"
+            >
+              <h3 class="text-base font-bold text-slate-900">Quick Event Creator</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label for="new-event-name" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Event Name
+                  </label>
+                  <input
+                    id="new-event-name"
+                    type="text"
+                    required
+                    placeholder="e.g. 200m Sprint or Football Final"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+                <div>
+                  <label for="new-event-category" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Category
+                  </label>
+                  <input
+                    id="new-event-category"
+                    type="text"
+                    required
+                    placeholder="e.g. Junior Boys, Senior Girls"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+                <div>
+                  <label for="new-event-type" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Scoring Type
+                  </label>
+                  <select
+                    id="new-event-type"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm"
+                  >
+                    <option value="individual">Individual / Athletics</option>
+                    <option value="team">Team Game</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="new-event-venue" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Ground / Track Venue
+                  </label>
+                  <input
+                    id="new-event-venue"
+                    type="text"
+                    required
+                    placeholder="e.g. Main Track / Football Turf"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="min-h-[44px] px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold inline-flex items-center gap-1.5"
+                >
+                  <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>
+                  <span>Add Event</span>
+                </button>
+              </div>
+            </form>
+
+            <!-- Events & Results Manager -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="text-base font-bold text-slate-900">Manage Events &amp; Results</h3>
+                <span class="text-xs text-slate-500">Edit, clear scores, or delete any event</span>
+              </div>
+              <div id="admin-events-list" class="divide-y divide-slate-200"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 4: FULL-SCREEN LIVE TV SCOREBOARD (NO-SCROLL DARK PROJECTOR UI)  -->
+    <!-- ===================================================================== -->
+    <div
+      id="view-tv"
+      class="hidden no-print fixed inset-0 z-50 bg-slate-950 text-slate-50 flex flex-col lg:h-screen lg:overflow-hidden overflow-y-auto"
+      role="region"
+      aria-label="Live TV Scoreboard"
+    >
+      <!-- TV Header -->
+      <div class="px-6 py-4 border-b border-slate-800/80 flex items-center justify-between gap-4 shrink-0">
+        <div class="flex items-center gap-4 min-w-0">
+          <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
+            <i data-lucide="trophy" class="w-5 h-5" aria-hidden="true"></i>
+          </div>
+          <div class="min-w-0">
+            <h2 id="tv-school-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white truncate">
+              Annual Sports &amp; Games Meet
+            </h2>
+            <p id="tv-ticker-preview" class="text-xs sm:text-sm text-slate-400 truncate">
+              Live Auditorium &amp; Ground Scoreboard
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 shrink-0">
+          <div id="tv-clock" class="hidden sm:block font-mono text-lg font-semibold text-slate-300 tabular-nums">
+            00:00
+          </div>
+          <button
+            type="button"
+            id="btn-exit-tv"
+            class="min-h-[40px] px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
+          >
+            <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
+            <span>Exit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TV Split-Screen Layout (45% Left / 55% Right) -->
+      <div class="flex-1 min-h-0 p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- LEFT SIDE (45% -> 5 of 12 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-5 min-h-0">
+          <!-- Giant House Standings -->
+          <div class="flex-1 min-h-0 bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                House Championship
+              </h3>
+              <span class="text-xs font-mono text-slate-400">Pts · G / S / B</span>
+            </div>
+            <div id="tv-house-bars" class="space-y-4 my-auto"></div>
+          </div>
+
+          <!-- Leading Individual Champions (Top Boy & Top Girl) -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shrink-0">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+              Leading Individual Champions
+            </h3>
+            <div id="tv-champions-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE (55% -> 7 of 12 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-5 min-h-0">
+          <!-- Top Box: LIVE Match or Ongoing Event -->
+          <div
+            id="tv-live-box"
+            class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center min-h-[210px]"
+          ></div>
+
+          <!-- Bottom Box: Auto-Rotating Recent Winners Carousel -->
+          <div class="flex-1 min-h-0 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">
+                Recent Event Winners
+              </h3>
+              <div class="flex items-center gap-2">
+                <span id="tv-carousel-counter" class="text-xs font-mono text-slate-400">1 / 1</span>
+                <button
+                  type="button"
+                  id="btn-tv-prev"
+                  aria-label="Previous event winners"
+                  class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 inline-flex items-center justify-center"
+                >
+                  <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button
+                  type="button"
+                  id="btn-tv-next"
+                  aria-label="Next event winners"
+                  class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 inline-flex items-center justify-center"
+                >
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="tv-carousel-body" class="flex-1 flex flex-col justify-start pt-2"></div>
+
+            <div class="h-1 w-full bg-slate-800 rounded-full overflow-hidden mt-4">
+              <div id="tv-carousel-progress" class="carousel-bar h-full bg-amber-400 w-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- WINNER CELEBRATION OVERLAY (4-SECOND POP-UP)                          -->
+    <!-- ===================================================================== -->
+    <div
+      id="winner-celebration-overlay"
+      class="hidden no-print fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="celebration-title"
+    >
+      <div class="max-w-xl w-full bg-slate-900 border border-amber-400/50 rounded-3xl p-6 sm:p-8 text-center text-white shadow-2xl space-y-5">
+        <div class="w-16 h-16 rounded-2xl bg-amber-400 text-slate-950 mx-auto flex items-center justify-center">
+          <i data-lucide="trophy" class="w-8 h-8" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-amber-400">
+            Official Result Published
+          </div>
+          <h3 id="celebration-title" class="text-2xl sm:text-3xl font-extrabold mt-1">
+            100m Sprint Final
+          </h3>
+        </div>
+        <div id="celebration-winners" class="space-y-2.5 text-left"></div>
+        <button
+          type="button"
+          id="btn-close-celebration"
+          class="min-h-[40px] px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300"
+        >
+          Dismiss
+        </button>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- PIN LOGIN MODAL                                                       -->
+    <!-- ===================================================================== -->
+    <div
+      id="pin-modal"
+      class="hidden no-print fixed inset-0 z-[60] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pin-modal-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-6 shadow-xl space-y-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 id="pin-modal-title" class="text-lg font-bold text-slate-900">Official &amp; Admin Login</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Enter Ground Official PIN (<span class="font-mono font-semibold">1111</span>) or Admin PIN (<span class="font-mono font-semibold">7860</span>)
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-close-pin"
+            aria-label="Close login modal"
+            class="w-10 h-10 rounded-lg hover:bg-slate-100 text-slate-500 inline-flex items-center justify-center"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <form id="form-pin-login" class="space-y-4">
+          <div>
+            <label for="pin-input" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              4-Digit Access PIN
+            </label>
+            <input
+              id="pin-input"
+              type="password"
+              inputmode="numeric"
+              maxlength="8"
+              autocomplete="off"
+              placeholder="Enter PIN"
+              class="w-full min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-xl tracking-widest text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            />
+          </div>
+          <div id="pin-error" role="alert" class="hidden text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></div>
+          <button
+            type="submit"
+            class="w-full min-h-[46px] rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm"
+          >
+            Unlock Console
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ADMIN EDIT RESULT / EVENT MODAL                                       -->
+    <!-- ===================================================================== -->
+    <div
+      id="edit-event-modal"
+      class="hidden no-print fixed inset-0 z-[60] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-modal-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-lg w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between gap-2">
+          <h3 id="edit-modal-title" class="text-lg font-bold text-slate-900">Edit Event &amp; Result</h3>
+          <button
+            type="button"
+            id="btn-close-edit-modal"
+            aria-label="Close edit modal"
+            class="w-10 h-10 rounded-lg hover:bg-slate-100 text-slate-500 inline-flex items-center justify-center"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <form id="form-edit-event" class="space-y-4">
+          <input type="hidden" id="edit-event-id" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="edit-event-name" class="block text-xs font-semibold text-slate-600 mb-1">Event Name</label>
+              <input id="edit-event-name" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="edit-event-category" class="block text-xs font-semibold text-slate-600 mb-1">Category</label>
+              <input id="edit-event-category" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="edit-event-venue" class="block text-xs font-semibold text-slate-600 mb-1">Venue</label>
+              <input id="edit-event-venue" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label for="edit-event-status" class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+              <select id="edit-event-status" class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm">
+                <option value="UPCOMING">UPCOMING</option>
+                <option value="LIVE">LIVE</option>
+                <option value="FINISHED">FINISHED</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-2.5 pt-2 border-t border-slate-200">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Winners (1st / 2nd / 3rd)</div>
+            <div id="edit-winners-fields" class="space-y-2.5"></div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              id="btn-cancel-edit-modal"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="min-h-[42px] px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- PRINTABLE A4 RESULTS REPORT (PRINT ONLY)                              -->
+    <!-- ===================================================================== -->
+    <div id="print-sheet" class="hidden print-only p-4 text-black space-y-6"></div>
+
+    <!-- ===================================================================== -->
+    <!-- SINGLE-FILE APPLICATION SCRIPT                                        -->
+    <!-- ===================================================================== -->
+    <script type="module">
+      // =======================================================================
+      // 1. FIREBASE CLOUD FIRESTORE CONFIG
+      // Configured for live Cloud Firestore sync on sports_day/main_event,
+      // with automatic localStorage fallback if offline or blocked.
+      // =======================================================================
+      const firebaseConfig = {
+        apiKey: "AIzaSyDD01xHRd9S37VxjptPxrFCXENWu8Aqjro",
+        authDomain: "sports-track-9817e.firebaseapp.com",
+        projectId: "sports-track-9817e",
+        storageBucket: "sports-track-9817e.firebasestorage.app",
+        messagingSenderId: "1022585883515",
+        appId: "1:1022585883515:web:46d5ea9d2191f751068bde",
+        measurementId: "G-0MRSW1PP63"
+      };
+
+      const FIRESTORE_COLLECTION = 'sports_day';
+      const FIRESTORE_DOC_ID = 'main_event';
+      const STORAGE_KEY = 'sports_day_main_event_v1';
+
+      // House visual palette (accessible contrast in light & dark views)
+      const HOUSE_THEME = {
+        red: {
+          bar: 'bg-red-600',
+          tint: 'bg-red-50',
+          border: 'border-red-200',
+          text: 'text-red-800',
+          badge: 'bg-red-100 text-red-900 border-red-200',
+          tvBar: 'bg-red-500',
+        },
+        blue: {
+          bar: 'bg-blue-600',
+          tint: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-800',
+          badge: 'bg-blue-100 text-blue-900 border-blue-200',
+          tvBar: 'bg-blue-500',
+        },
+        green: {
+          bar: 'bg-emerald-600',
+          tint: 'bg-emerald-50',
+          border: 'border-emerald-200',
+          text: 'text-emerald-800',
+          badge: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+          tvBar: 'bg-emerald-500',
+        },
+        yellow: {
+          bar: 'bg-amber-500',
+          tint: 'bg-amber-50',
+          border: 'border-amber-200',
+          text: 'text-amber-900',
+          badge: 'bg-amber-100 text-amber-900 border-amber-200',
+          tvBar: 'bg-amber-400',
+        },
+      };
+
+      // =======================================================================
+      // 2. DEFAULT & SAMPLE SCHOOL DATA
+      // =======================================================================
+      function createBlankState() {
+        return {
+          schoolName: 'Annual Sports & Games Meet',
+          tickerMessage: 'Welcome to Annual Sports & Games Meet — Track & Field athletes report to Call Room 15 minutes before your heat.',
+          houses: {
+            red: { id: 'red', name: 'Red House', color: '#DC2626' },
+            blue: { id: 'blue', name: 'Blue House', color: '#2563EB' },
+            green: { id: 'green', name: 'Green House', color: '#16A34A' },
+            yellow: { id: 'yellow', name: 'Yellow House', color: '#CA8A04' },
+          },
+          pointRules: {
+            individual: [5, 3, 1],
+            team: [10, 6, 4],
+          },
+          events: [
+            {
+              id: 'ev-1',
+              name: '100m Sprint Final',
+              category: 'Senior Boys',
+              type: 'individual',
+              venue: 'Main Track',
+              status: 'FINISHED',
+              winners: [
+                { place: 1, chestNo: '104', name: 'Aarav Menon', house: 'blue', metric: '11.42s' },
+                { place: 2, chestNo: '211', name: 'Rohan Verma', house: 'red', metric: '11.68s' },
+                { place: 3, chestNo: '309', name: 'Kabir Khan', house: 'green', metric: '11.95s' },
+              ],
+              updatedAt: Date.now() - 1800000,
+            },
+            {
+              id: 'ev-2',
+              name: 'Football Championship Final',
+              category: 'Senior Boys',
+              type: 'team',
+              venue: 'Central Turf',
+              status: 'LIVE',
+              winners: [],
+              liveMatch: {
+                teamAHouse: 'red',
+                teamBHouse: 'blue',
+                scoreA: 2,
+                scoreB: 1,
+                periodLabel: '2nd Half',
+              },
+              updatedAt: Date.now() - 300000,
+            },
+            {
+              id: 'ev-3',
+              name: '200m Dash',
+              category: 'Sub-Junior Boys',
+              type: 'individual',
+              venue: 'Track Lane 1-8',
+              status: 'UPCOMING',
+              winners: [],
+              updatedAt: Date.now() - 120000,
+            },
+          ],
+          students: [
+            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys' },
+            { chestNo: '108', name: 'Ananya Rao', house: 'green', category: 'Senior Girls' },
+            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys' },
+            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys' },
+            { chestNo: '412', name: 'Meera Iyer', house: 'yellow', category: 'Junior Girls' },
+          ],
+          lastPublishedAt: 0,
+          lastPublishedTitle: '',
+        };
+      }
+
+      function createSampleSchoolState() {
+        const now = Date.now();
+        return {
+          schoolName: 'St. Xavier Public School — Annual Sports Meet',
+          tickerMessage: 'Sub-Junior Boys 100m finalists report to Track Start Line · Football Final 2nd Half underway on Central Turf!',
+          houses: {
+            red: { id: 'red', name: 'Red House', color: '#DC2626' },
+            blue: { id: 'blue', name: 'Blue House', color: '#2563EB' },
+            green: { id: 'green', name: 'Green House', color: '#16A34A' },
+            yellow: { id: 'yellow', name: 'Yellow House', color: '#CA8A04' },
+          },
+          pointRules: {
+            individual: [5, 3, 1],
+            team: [10, 6, 4],
+          },
+          events: [
+            {
+              id: 'smp-1',
+              name: '100m Sprint Final',
+              category: 'Senior Boys',
+              type: 'individual',
+              venue: 'Main Track',
+              status: 'FINISHED',
+              winners: [
+                { place: 1, chestNo: '104', name: 'Aarav Menon', house: 'blue', metric: '11.38s' },
+                { place: 2, chestNo: '211', name: 'Rohan Verma', house: 'red', metric: '11.61s' },
+                { place: 3, chestNo: '309', name: 'Kabir Khan', house: 'green', metric: '11.84s' },
+              ],
+              updatedAt: now - 3600000,
+            },
+            {
+              id: 'smp-2',
+              name: 'Long Jump',
+              category: 'Senior Boys',
+              type: 'individual',
+              venue: 'Sand Pit A',
+              status: 'FINISHED',
+              winners: [
+                { place: 1, chestNo: '104', name: 'Aarav Menon', house: 'blue', metric: '5.62m' },
+                { place: 2, chestNo: '415', name: 'Devansh Joshi', house: 'yellow', metric: '5.41m' },
+                { place: 3, chestNo: '211', name: 'Rohan Verma', house: 'red', metric: '5.28m' },
+              ],
+              updatedAt: now - 2800000,
+            },
+            {
+              id: 'smp-3',
+              name: '400m Track Run',
+              category: 'Senior Girls',
+              type: 'individual',
+              venue: 'Main Track',
+              status: 'FINISHED',
+              winners: [
+                { place: 1, chestNo: '108', name: 'Ananya Rao', house: 'green', metric: '59.84s' },
+                { place: 2, chestNo: '412', name: 'Meera Iyer', house: 'yellow', metric: '61.10s' },
+                { place: 3, chestNo: '218', name: 'Sana Kapoor', house: 'red', metric: '62.45s' },
+              ],
+              updatedAt: now - 2100000,
+            },
+            {
+              id: 'smp-4',
+              name: 'Shot Put',
+              category: 'Junior Girls',
+              type: 'individual',
+              venue: 'Field Sector B',
+              status: 'FINISHED',
+              winners: [
+                { place: 1, chestNo: '108', name: 'Ananya Rao', house: 'green', metric: '9.45m' },
+                { place: 2, chestNo: '122', name: 'Diya Nair', house: 'blue', metric: '8.90m' },
+                { place: 3, chestNo: '412', name: 'Meera Iyer', house: 'yellow', metric: '8.65m' },
+              ],
+              updatedAt: now - 1500000,
+            },
+            {
+              id: 'smp-5',
+              name: 'Tug of War',
+              category: 'Senior Boys',
+              type: 'team',
+              venue: 'Center Lawn',
+              status: 'FINISHED',
+              winners: [
+                { place: 1, chestNo: '', name: 'Red House', house: 'red', metric: '2 - 0' },
+                { place: 2, chestNo: '', name: 'Yellow House', house: 'yellow', metric: '0 - 2' },
+                { place: 3, chestNo: '', name: 'Green House', house: 'green', metric: 'Bronze' },
+              ],
+              updatedAt: now - 900000,
+            },
+            {
+              id: 'smp-6',
+              name: 'Football Final',
+              category: 'Senior Boys',
+              type: 'team',
+              venue: 'Central Turf',
+              status: 'LIVE',
+              winners: [],
+              liveMatch: {
+                teamAHouse: 'red',
+                teamBHouse: 'blue',
+                scoreA: 3,
+                scoreB: 2,
+                periodLabel: '2nd Half · 68\'',
+              },
+              updatedAt: now - 120000,
+            },
+            {
+              id: 'smp-7',
+              name: '100m Sprint',
+              category: 'Sub-Junior Boys',
+              type: 'individual',
+              venue: 'Main Track',
+              status: 'UPCOMING',
+              winners: [],
+              updatedAt: now - 60000,
+            },
+            {
+              id: 'smp-8',
+              name: 'Volleyball Final',
+              category: 'Senior Girls',
+              type: 'team',
+              venue: 'Court 1',
+              status: 'UPCOMING',
+              winners: [],
+              liveMatch: {
+                teamAHouse: 'green',
+                teamBHouse: 'yellow',
+                scoreA: 0,
+                scoreB: 0,
+                periodLabel: 'Warmup',
+              },
+              updatedAt: now - 30000,
+            },
+          ],
+          students: [
+            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys' },
+            { chestNo: '108', name: 'Ananya Rao', house: 'green', category: 'Senior Girls' },
+            { chestNo: '122', name: 'Diya Nair', house: 'blue', category: 'Junior Girls' },
+            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys' },
+            { chestNo: '218', name: 'Sana Kapoor', house: 'red', category: 'Senior Girls' },
+            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys' },
+            { chestNo: '412', name: 'Meera Iyer', house: 'yellow', category: 'Junior Girls' },
+            { chestNo: '415', name: 'Devansh Joshi', house: 'yellow', category: 'Senior Boys' },
+            { chestNo: '501', name: 'Ishaan Patel', house: 'red', category: 'Sub-Junior Boys' },
+            { chestNo: '502', name: 'Vivaan Gupta', house: 'blue', category: 'Sub-Junior Boys' },
+            { chestNo: '503', name: 'Reyansh Das', house: 'green', category: 'Sub-Junior Boys' },
+          ],
+          lastPublishedAt: 0,
+          lastPublishedTitle: '',
+        };
+      }
+
+      // =======================================================================
+      // 3. PURE SCORING & DATA DERIVATION ENGINE
+      // =======================================================================
+      function normalizeHouseId(raw) {
+        const val = String(raw || '').trim().toLowerCase();
+        if (val === 'red' || val.startsWith('red ')) return 'red';
+        if (val === 'blue' || val.startsWith('blue ')) return 'blue';
+        if (val === 'green' || val.startsWith('green ')) return 'green';
+        if (val === 'yellow' || val.startsWith('yellow ') || val === 'gold') return 'yellow';
+        return null;
+      }
+
+      function inferDivision(category) {
+        const lower = String(category || '').toLowerCase();
+        if (/(girl|women|female|ladies)/.test(lower)) return 'girls';
+        if (/(boy|men|male)/.test(lower)) return 'boys';
+        return 'open';
+      }
+
+      function parseStudentCsv(csvText) {
+        const lines = String(csvText || '')
+          .split(/\r?\n/)
+          .map((l) => l.trim())
+          .filter(Boolean);
+        const records = [];
+        const seen = new Set();
+
+        for (const line of lines) {
+          const parts = line.split(',').map((p) => p.trim());
+          if (parts.length < 3) continue;
+          if (parts[0].toLowerCase().includes('chest') && parts[1].toLowerCase().includes('name')) {
+            continue;
+          }
+          const chestNo = parts[0];
+          const name = parts[1];
+          const house = normalizeHouseId(parts[2]);
+          const category = parts[3] || 'Open';
+          if (!chestNo || !name || !house) continue;
+          const key = chestNo.toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          records.push({ chestNo, name, house, category });
+        }
+        return records;
+      }
+
+      function computeHouseStandings(state) {
+        const totals = {
+          red: { ...state.houses.red, points: 0, gold: 0, silver: 0, bronze: 0, rank: 1 },
+          blue: { ...state.houses.blue, points: 0, gold: 0, silver: 0, bronze: 0, rank: 1 },
+          green: { ...state.houses.green, points: 0, gold: 0, silver: 0, bronze: 0, rank: 1 },
+          yellow: { ...state.houses.yellow, points: 0, gold: 0, silver: 0, bronze: 0, rank: 1 },
+        };
+
+        for (const ev of state.events) {
+          if (ev.status !== 'FINISHED') continue;
+          const rules = ev.type === 'team' ? state.pointRules.team : state.pointRules.individual;
+          for (const w of ev.winners || []) {
+            if (!w.house || !totals[w.house]) continue;
+            totals[w.house].points += Number(rules[w.place - 1] || 0);
+            if (w.place === 1) totals[w.house].gold += 1;
+            if (w.place === 2) totals[w.house].silver += 1;
+            if (w.place === 3) totals[w.house].bronze += 1;
+          }
+        }
+
+        const sorted = Object.values(totals).sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.gold !== a.gold) return b.gold - a.gold;
+          if (b.silver !== a.silver) return b.silver - a.silver;
+          return b.bronze - a.bronze;
+        });
+
+        return sorted.map((h, i) => ({ ...h, rank: i + 1 }));
+      }
+
+      function computeTopAthletes(state) {
+        const map = new Map();
+        for (const ev of state.events) {
+          if (ev.status !== 'FINISHED' || ev.type !== 'individual') continue;
+          const rules = state.pointRules.individual;
+          const division = inferDivision(ev.category);
+
+          for (const w of ev.winners || []) {
+            const cleanName = String(w.name || '').trim();
+            if (!cleanName || !w.house) continue;
+            const chest = String(w.chestNo || '').trim();
+            const key = chest
+              ? `chest:${chest.toLowerCase()}`
+              : `name:${cleanName.toLowerCase()}:${w.house}`;
+
+            const existing = map.get(key) || {
+              key,
+              chestNo: chest,
+              name: cleanName,
+              house: w.house,
+              division,
+              points: 0,
+              gold: 0,
+              silver: 0,
+              bronze: 0,
+            };
+
+            existing.points += Number(rules[w.place - 1] || 0);
+            if (w.place === 1) existing.gold += 1;
+            if (w.place === 2) existing.silver += 1;
+            if (w.place === 3) existing.bronze += 1;
+            if (existing.division === 'open' && division !== 'open') {
+              existing.division = division;
+            }
+            map.set(key, existing);
+          }
+        }
+
+        return Array.from(map.values()).sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.gold !== a.gold) return b.gold - a.gold;
+          if (b.silver !== a.silver) return b.silver - a.silver;
+          return b.bronze - a.bronze;
+        });
+      }
+
+      function formatStopwatch(ms) {
+        const clamped = Math.max(0, Math.floor(ms));
+        const minutes = Math.floor(clamped / 60000);
+        const seconds = Math.floor((clamped % 60000) / 1000);
+        const centis = Math.floor((clamped % 1000) / 10);
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centis).padStart(2, '0')}`;
+      }
+
+      function escapeHtml(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // =======================================================================
+      // 4. PERSISTENCE LAYER (FIRESTORE MODULAR SDK v10+ + LOCALSTORAGE FALLBACK)
+      // =======================================================================
+      let appState = loadFromLocalStorage() || createBlankState();
+      let currentRole = 'public'; // 'public' | 'official' | 'admin'
+      let currentView = 'home'; // 'home' | 'scoring' | 'admin' | 'tv'
+      let activeFilterTab = 'all'; // 'all' | 'active' | 'finished' | 'athletes'
+      let activeDivision = 'all'; // 'all' | 'boys' | 'girls'
+      let searchQuery = '';
+      let selectedEventId = appState.events[0]?.id || '';
+      let scoringMode = 'individual';
+      let tvCarouselIndex = 0;
+      let lastSeenPublishedAt = appState.lastPublishedAt || 0;
+      let resetConfirmArmed = false;
+
+      // Firestore handles (if configured)
+      let firestoreRef = null;
+      let firestoreSetDoc = null;
+      let isFirestoreLive = false;
+
+      function isFirebaseConfigured(cfg) {
+        return Boolean(
+          cfg &&
+            cfg.apiKey &&
+            cfg.projectId &&
+            !String(cfg.apiKey).startsWith('YOUR_') &&
+            !String(cfg.projectId).startsWith('YOUR_')
+        );
+      }
+
+      function loadFromLocalStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.houses && Array.isArray(parsed.events)) {
+            return parsed;
+          }
+        } catch (err) {
+          console.warn('Could not read localStorage state', err);
+        }
+        return null;
+      }
+
+      function saveToLocalStorage(state) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (err) {
+          console.warn('Could not save localStorage state', err);
+        }
+      }
+
+      async function persistState(nextState, triggerCelebration = false) {
+        appState = nextState;
+        saveToLocalStorage(appState);
+
+        if (triggerCelebration && appState.lastPublishedAt > lastSeenPublishedAt) {
+          lastSeenPublishedAt = appState.lastPublishedAt;
+          showWinnerCelebration();
+        }
+
+        renderAll();
+
+        if (isFirestoreLive && firestoreRef && firestoreSetDoc) {
+          try {
+            await firestoreSetDoc(firestoreRef, appState);
+          } catch (err) {
+            console.error('Firestore write failed; saved locally', err);
+            showToast('Saved locally (Firestore sync pending)');
+          }
+        }
+      }
+
+      async function initDataLayer() {
+        if (!loadFromLocalStorage()) {
+          saveToLocalStorage(appState);
+        }
+
+        // Cross-tab localStorage sync
+        window.addEventListener('storage', (ev) => {
+          if (ev.key === STORAGE_KEY && ev.newValue) {
+            try {
+              const incoming = JSON.parse(ev.newValue);
+              applyIncomingState(incoming);
+            } catch (e) {}
+          }
+        });
+
+        if (!isFirebaseConfigured(firebaseConfig)) {
+          document.getElementById('sync-status-label').textContent = 'Local Mode';
+          return;
+        }
+
+        try {
+          const [{ initializeApp }, { getFirestore, doc, onSnapshot, setDoc }] = await Promise.all([
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
+          ]);
+
+          const fbApp = initializeApp(firebaseConfig);
+          const db = getFirestore(fbApp);
+          firestoreRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC_ID);
+          firestoreSetDoc = setDoc;
+          isFirestoreLive = true;
+
+          document.getElementById('sync-status-label').textContent = 'Firestore Live Sync';
+
+          onSnapshot(
+            firestoreRef,
+            (snap) => {
+              if (snap.exists()) {
+                applyIncomingState(snap.data());
+              } else {
+                setDoc(firestoreRef, appState).catch((writeErr) => {
+                  console.warn('Firestore initial seed skipped; running locally', writeErr);
+                });
+              }
+            },
+            (err) => {
+              console.warn('Firestore listener error; falling back to Local Mode', err);
+              isFirestoreLive = false;
+              document.getElementById('sync-status-label').textContent = 'Local Mode';
+            }
+          );
+        } catch (err) {
+          console.warn('Firebase SDK unavailable; running in Local Mode', err);
+          document.getElementById('sync-status-label').textContent = 'Local Mode (Offline Fallback)';
+        }
+      }
+
+      function applyIncomingState(incoming) {
+        if (!incoming || !incoming.houses || !Array.isArray(incoming.events)) return;
+        const shouldCelebrate =
+          incoming.lastPublishedAt && incoming.lastPublishedAt > lastSeenPublishedAt;
+        appState = incoming;
+        saveToLocalStorage(appState);
+        if (shouldCelebrate) {
+          lastSeenPublishedAt = incoming.lastPublishedAt;
+          showWinnerCelebration();
+        }
+        renderAll();
+      }
+
+      // =======================================================================
+      // 5. UI FEEDBACK & NAVIGATION
+      // =======================================================================
+      let toastTimer = null;
+      function showToast(msg) {
+        const el = document.getElementById('toast-banner');
+        const txt = document.getElementById('toast-message');
+        txt.textContent = msg;
+        el.classList.remove('hidden');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          el.classList.add('hidden');
+        }, 2800);
+      }
+
+      function setView(view) {
+        currentView = view;
+        document.getElementById('view-home').classList.toggle('hidden', view !== 'home');
+        document.getElementById('view-scoring').classList.toggle('hidden', view !== 'scoring');
+        document.getElementById('view-admin').classList.toggle('hidden', view !== 'admin');
+        document.getElementById('view-tv').classList.toggle('hidden', view !== 'tv');
+
+        if (view === 'scoring') {
+          syncScoringSelector();
+        } else if (view === 'admin') {
+          populateAdminForms();
+        } else if (view === 'tv') {
+          renderTvScreen();
+        }
+        refreshIcons();
+      }
+
+      function updateRoleUI() {
+        const roleLabel = document.getElementById('header-role-label');
+        const roleNavBar = document.getElementById('role-nav-bar');
+        const btnLogin = document.getElementById('btn-official-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const btnHome = document.getElementById('btn-nav-home');
+        const btnScoring = document.getElementById('btn-nav-scoring');
+        const btnAdmin = document.getElementById('btn-nav-admin');
+
+        if (currentRole === 'public') {
+          roleLabel.textContent = 'Public View';
+          roleNavBar.classList.add('hidden');
+          btnLogin.classList.remove('hidden');
+          btnLogout.classList.add('hidden');
+          btnHome.classList.add('hidden');
+          btnScoring.classList.add('hidden');
+          btnAdmin.classList.add('hidden');
+        } else if (currentRole === 'official') {
+          roleLabel.textContent = 'Ground Official';
+          roleNavBar.classList.remove('hidden');
+          btnLogin.classList.add('hidden');
+          btnLogout.classList.remove('hidden');
+          btnLogout.classList.add('inline-flex');
+          btnHome.classList.remove('hidden');
+          btnHome.classList.add('inline-flex');
+          btnScoring.classList.remove('hidden');
+          btnScoring.classList.add('inline-flex');
+          btnAdmin.classList.add('hidden');
+        } else if (currentRole === 'admin') {
+          roleLabel.textContent = 'Sports Admin';
+          roleNavBar.classList.remove('hidden');
+          btnLogin.classList.add('hidden');
+          btnLogout.classList.remove('hidden');
+          btnLogout.classList.add('inline-flex');
+          btnHome.classList.remove('hidden');
+          btnHome.classList.add('inline-flex');
+          btnScoring.classList.remove('hidden');
+          btnScoring.classList.add('inline-flex');
+          btnAdmin.classList.remove('hidden');
+          btnAdmin.classList.add('inline-flex');
+        }
+      }
+
+      function refreshIcons() {
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+
+      // =======================================================================
+      // 6. RENDERING: HOME SCREEN
+      // =======================================================================
+      function renderHeaderAndTicker() {
+        document.getElementById('header-school-name').textContent = appState.schoolName;
+        document.title = `${appState.schoolName} — Live Scoreboard`;
+        document.getElementById('ticker-text-a').textContent = appState.tickerMessage;
+        document.getElementById('ticker-text-b').textContent = appState.tickerMessage;
+        document.getElementById('tv-school-name').textContent = appState.schoolName;
+        document.getElementById('tv-ticker-preview').textContent = appState.tickerMessage;
+      }
+
+      function renderHouseLeaderboard() {
+        const standings = computeHouseStandings(appState);
+        const grid = document.getElementById('house-leaderboard-grid');
+        const finishedCount = appState.events.filter((e) => e.status === 'FINISHED').length;
+        document.getElementById('home-summary-counts').textContent =
+          `${appState.events.length} Events · ${finishedCount} Completed`;
+
+        const topPoints = standings[0]?.points || 0;
+
+        grid.innerHTML = standings
+          .map((h) => {
+            const theme = HOUSE_THEME[h.id] || HOUSE_THEME.red;
+            const isLeader = h.rank === 1 && topPoints > 0;
+            return `
+              <article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col">
+                <div class="h-2 w-full ${theme.bar}"></div>
+                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-4">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <div class="text-xs font-semibold text-slate-500">Rank #${h.rank}</div>
+                      <h3 class="text-lg font-bold text-slate-900 mt-0.5 flex items-center gap-1.5">
+                        <span>${escapeHtml(h.name)}</span>
+                        ${isLeader ? '<span title="Leading House" aria-label="Leading House">👑</span>' : ''}
+                      </h3>
+                    </div>
+                    <div class="text-right">
+                      <div class="font-mono text-3xl font-extrabold tabular-nums text-slate-900 leading-none">
+                        ${h.points}
+                      </div>
+                      <div class="text-[11px] font-medium text-slate-500 mt-1">Points</div>
+                    </div>
+                  </div>
+
+                  <div class="pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+                    <div class="rounded-lg bg-amber-50/80 py-1.5 px-2">
+                      <div class="text-[11px] font-semibold text-amber-800">Gold</div>
+                      <div class="font-mono text-sm font-bold tabular-nums text-amber-950">${h.gold}</div>
+                    </div>
+                    <div class="rounded-lg bg-slate-100 py-1.5 px-2">
+                      <div class="text-[11px] font-semibold text-slate-600">Silver</div>
+                      <div class="font-mono text-sm font-bold tabular-nums text-slate-900">${h.silver}</div>
+                    </div>
+                    <div class="rounded-lg bg-orange-50/80 py-1.5 px-2">
+                      <div class="text-[11px] font-semibold text-orange-800">Bronze</div>
+                      <div class="font-mono text-sm font-bold tabular-nums text-orange-950">${h.bronze}</div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function renderEventsAndAthletes() {
+        const eventsGrid = document.getElementById('events-grid');
+        const athletesPanel = document.getElementById('top-athletes-panel');
+
+        // Update filter tab states
+        document.querySelectorAll('.filter-tab').forEach((btn) => {
+          const isActive = btn.dataset.filterTab === activeFilterTab;
+          btn.setAttribute('aria-selected', String(isActive));
+          btn.className = isActive
+            ? 'filter-tab min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-slate-900 shadow-sm transition-colors whitespace-nowrap'
+            : 'filter-tab min-h-[40px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors whitespace-nowrap';
+        });
+
+        if (activeFilterTab === 'athletes') {
+          eventsGrid.classList.add('hidden');
+          athletesPanel.classList.remove('hidden');
+          renderTopAthletesTable();
+          return;
+        }
+
+        eventsGrid.classList.remove('hidden');
+        athletesPanel.classList.add('hidden');
+
+        const q = searchQuery.trim().toLowerCase();
+        let filtered = [...appState.events];
+
+        if (activeFilterTab === 'active') {
+          filtered = filtered.filter((e) => e.status === 'LIVE' || e.status === 'UPCOMING');
+        } else if (activeFilterTab === 'finished') {
+          filtered = filtered.filter((e) => e.status === 'FINISHED');
+        }
+
+        if (q) {
+          filtered = filtered.filter((e) => {
+            const textMatch = `${e.name} ${e.category} ${e.venue}`.toLowerCase().includes(q);
+            const winnerMatch = (e.winners || []).some((w) =>
+              `${w.name} ${w.chestNo}`.toLowerCase().includes(q)
+            );
+            return textMatch || winnerMatch;
+          });
+        }
+
+        // Sort: LIVE first, then UPCOMING, then FINISHED (most recent first)
+        const order = { LIVE: 0, UPCOMING: 1, FINISHED: 2 };
+        filtered.sort((a, b) => {
+          if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+          return (b.updatedAt || 0) - (a.updatedAt || 0);
+        });
+
+        if (filtered.length === 0) {
+          eventsGrid.innerHTML = `
+            <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
+              <div class="text-base font-bold text-slate-900">No matching events found</div>
+              <p class="text-sm text-slate-500">Try changing the filter tab or search query, or add events from the Admin Console.</p>
+            </div>
+          `;
+          return;
+        }
+
+        eventsGrid.innerHTML = filtered
+          .map((ev) => {
+            const statusClasses =
+              ev.status === 'LIVE'
+                ? 'bg-red-50 text-red-700 border-red-200'
+                : ev.status === 'FINISHED'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-slate-100 text-slate-700 border-slate-200';
+
+            const typeLabel = ev.type === 'team' ? 'Team Game' : 'Individual';
+
+            let bodyHtml = '';
+            if (ev.status === 'LIVE' && ev.type === 'team' && ev.liveMatch) {
+              const hA = appState.houses[ev.liveMatch.teamAHouse]?.name || ev.liveMatch.teamAHouse;
+              const hB = appState.houses[ev.liveMatch.teamBHouse]?.name || ev.liveMatch.teamBHouse;
+              const tA = HOUSE_THEME[ev.liveMatch.teamAHouse] || HOUSE_THEME.red;
+              const tB = HOUSE_THEME[ev.liveMatch.teamBHouse] || HOUSE_THEME.blue;
+              bodyHtml = `
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                  <div class="text-[11px] font-semibold text-slate-500 mb-2">
+                    ${escapeHtml(ev.liveMatch.periodLabel || 'Live Match')}
+                  </div>
+                  <div class="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-3">
+                    <div class="min-w-0">
+                      <span class="inline-block w-2 h-2 rounded-full ${tA.bar} mr-1.5"></span>
+                      <span class="text-sm font-bold text-slate-900 truncate">${escapeHtml(hA)}</span>
+                    </div>
+                    <div class="font-mono text-xl font-extrabold tabular-nums text-slate-900 shrink-0">
+                      ${ev.liveMatch.scoreA} - ${ev.liveMatch.scoreB}
+                    </div>
+                    <div class="min-w-0 text-right">
+                      <span class="text-sm font-bold text-slate-900 truncate">${escapeHtml(hB)}</span>
+                      <span class="inline-block w-2 h-2 rounded-full ${tB.bar} ml-1.5"></span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else if (ev.status === 'FINISHED' && ev.winners && ev.winners.length > 0) {
+              const rows = ev.winners
+                .slice()
+                .sort((a, b) => a.place - b.place)
+                .map((w) => {
+                  const hName = appState.houses[w.house]?.name || w.house || '—';
+                  const theme = HOUSE_THEME[w.house] || HOUSE_THEME.red;
+                  const medalLabel = w.place === 1 ? '1st' : w.place === 2 ? '2nd' : '3rd';
+                  const medalTone =
+                    w.place === 1
+                      ? 'text-amber-700 font-bold'
+                      : w.place === 2
+                        ? 'text-slate-600 font-bold'
+                        : 'text-orange-700 font-bold';
+                  return `
+                    <div class="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="font-mono w-7 shrink-0 ${medalTone}">${medalLabel}</span>
+                        <span class="font-semibold text-slate-900 truncate">
+                          ${w.chestNo ? `<span class="font-mono text-slate-500 mr-1.5">#${escapeHtml(w.chestNo)} </span>` : ''}${escapeHtml(w.name)}
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        ${w.metric ? `<span class="font-mono text-xs text-slate-500 tabular-nums">${escapeHtml(w.metric)}</span>` : ''}
+                        <span class="px-2 py-0.5 rounded-md border text-[11px] font-semibold ${theme.badge}">
+                          ${escapeHtml(hName.replace(' House', ''))}
+                        </span>
+                      </div>
+                    </div>
+                  `;
+                })
+                .join('');
+              bodyHtml = `<div class="mt-3 pt-2.5 border-t border-slate-100 divide-y divide-slate-100">${rows}</div>`;
+            } else {
+              bodyHtml = `
+                <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                  ${ev.status === 'LIVE' ? 'Event currently underway on the ground.' : 'Scheduled — results will appear once published.'}
+                </div>
+              `;
+            }
+
+            return `
+              <article class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div class="flex items-start justify-between gap-3">
+                    <h3 class="text-base font-bold text-slate-900 leading-snug">
+                      ${escapeHtml(ev.name)}
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-md border text-[11px] font-bold tracking-wide shrink-0 ${statusClasses}">
+                      ${escapeHtml(ev.status)}
+                    </span>
+                  </div>
+                  <div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                    <span>${escapeHtml(ev.category)}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>${escapeHtml(ev.venue)}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>${typeLabel}</span>
+                  </div>
+                </div>
+                ${bodyHtml}
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function renderTopAthletesTable() {
+        document.querySelectorAll('.division-tab').forEach((btn) => {
+          const isActive = btn.dataset.division === activeDivision;
+          btn.className = isActive
+            ? 'division-tab min-h-[36px] px-3 py-1 rounded-md text-xs font-semibold bg-white text-slate-900 shadow-sm'
+            : 'division-tab min-h-[36px] px-3 py-1 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900';
+        });
+
+        let athletes = computeTopAthletes(appState);
+        if (activeDivision !== 'all') {
+          athletes = athletes.filter((a) => a.division === activeDivision);
+        }
+
+        const q = searchQuery.trim().toLowerCase();
+        if (q) {
+          athletes = athletes.filter((a) =>
+            `${a.name} ${a.chestNo} ${a.house}`.toLowerCase().includes(q)
+          );
+        }
+
+        const wrap = document.getElementById('top-athletes-table-wrap');
+        if (athletes.length === 0) {
+          wrap.innerHTML = `
+            <div class="p-8 text-center text-sm text-slate-500">
+              No individual athlete points recorded yet for this filter.
+            </div>
+          `;
+          return;
+        }
+
+        wrap.innerHTML = `
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500">
+                <th class="py-3 px-4">Rank</th>
+                <th class="py-3 px-4">Chest No.</th>
+                <th class="py-3 px-4">Athlete</th>
+                <th class="py-3 px-4">House</th>
+                <th class="py-3 px-4 text-right">G / S / B</th>
+                <th class="py-3 px-4 text-right">Points</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm">
+              ${athletes
+                .map((a, idx) => {
+                  const hName = appState.houses[a.house]?.name || a.house;
+                  const theme = HOUSE_THEME[a.house] || HOUSE_THEME.red;
+                  return `
+                    <tr class="hover:bg-slate-50/70">
+                      <td class="py-3 px-4 font-mono font-bold text-slate-700">#${idx + 1}</td>
+                      <td class="py-3 px-4 font-mono text-slate-500">${a.chestNo ? escapeHtml(a.chestNo) : '—'}</td>
+                      <td class="py-3 px-4 font-semibold text-slate-900">${escapeHtml(a.name)}</td>
+                      <td class="py-3 px-4">
+                        <span class="px-2 py-0.5 rounded-md border text-xs font-semibold ${theme.badge}">
+                          ${escapeHtml(hName)}
+                        </span>
+                      </td>
+                      <td class="py-3 px-4 text-right font-mono text-xs text-slate-600 tabular-nums">
+                        ${a.gold} / ${a.silver} / ${a.bronze}
+                      </td>
+                      <td class="py-3 px-4 text-right font-mono font-bold text-slate-900 tabular-nums">
+                        ${a.points}
+                      </td>
+                    </tr>
+                  `;
+                })
+                .join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      // =======================================================================
+      // 7. OFFICIAL SCORING SCREEN & DIGITAL STOPWATCH
+      // =======================================================================
+      let swRunning = false;
+      let swElapsed = 0;
+      let swStartTs = 0;
+      let swTimerId = null;
+
+      function updateStopwatchUI() {
+        const display = document.getElementById('stopwatch-display');
+        const btn = document.getElementById('btn-sw-toggle');
+        const currentMs = swRunning ? swElapsed + (performance.now() - swStartTs) : swElapsed;
+        display.textContent = formatStopwatch(currentMs);
+        btn.innerHTML = swRunning
+          ? '<i data-lucide="pause" class="w-4 h-4" aria-hidden="true"></i><span>Pause</span>'
+          : '<i data-lucide="play" class="w-4 h-4" aria-hidden="true"></i><span>Start</span>';
+        refreshIcons();
+      }
+
+      function toggleStopwatch() {
+        if (swRunning) {
+          swElapsed += performance.now() - swStartTs;
+          swRunning = false;
+          cancelAnimationFrame(swTimerId);
+        } else {
+          swStartTs = performance.now();
+          swRunning = true;
+          const tick = () => {
+            if (!swRunning) return;
+            const currentMs = swElapsed + (performance.now() - swStartTs);
+            document.getElementById('stopwatch-display').textContent = formatStopwatch(currentMs);
+            swTimerId = requestAnimationFrame(tick);
+          };
+          swTimerId = requestAnimationFrame(tick);
+        }
+        updateStopwatchUI();
+      }
+
+      function resetStopwatch() {
+        swRunning = false;
+        swElapsed = 0;
+        cancelAnimationFrame(swTimerId);
+        updateStopwatchUI();
+      }
+
+      function buildPodiumRowsUI() {
+        const container = document.getElementById('podium-rows-container');
+        const places = [
+          { place: 1, title: '1st Place (Gold)', badgeClass: 'bg-amber-100 text-amber-900 border-amber-300' },
+          { place: 2, title: '2nd Place (Silver)', badgeClass: 'bg-slate-200 text-slate-800 border-slate-300' },
+          { place: 3, title: '3rd Place (Bronze)', badgeClass: 'bg-orange-100 text-orange-900 border-orange-300' },
+        ];
+        container.innerHTML = places
+          .map(
+            (p) => `
+            <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 sm:p-4 space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-md border text-xs font-bold ${p.badgeClass}">${p.title}</span>
+                <span id="autofill-hint-${p.place}" class="text-xs font-medium text-emerald-700"></span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                <div class="sm:col-span-2">
+                  <label for="w-chest-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Chest No.</label>
+                  <input id="w-chest-${p.place}" data-place-chest="${p.place}" type="text" placeholder="e.g. 104" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-sm" />
+                </div>
+                <div class="sm:col-span-4">
+                  <label for="w-name-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Student Name</label>
+                  <input id="w-name-${p.place}" type="text" placeholder="Full name" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm" />
+                </div>
+                <div class="sm:col-span-3">
+                  <label for="w-house-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">House</label>
+                  <select id="w-house-${p.place}" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm"></select>
+                </div>
+                <div class="sm:col-span-3">
+                  <label for="w-metric-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Time / Distance</label>
+                  <input id="w-metric-${p.place}" type="text" placeholder="e.g. 12.4s / 4.85m" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-sm" />
+                </div>
+              </div>
+            </div>
+          `
+          )
+          .join('');
+
+        // Wire chest number auto-fill
+        container.querySelectorAll('[data-place-chest]').forEach((input) => {
+          input.addEventListener('input', (e) => {
+            const place = e.target.getAttribute('data-place-chest');
+            const val = e.target.value.trim().toLowerCase();
+            const hintEl = document.getElementById(`autofill-hint-${place}`);
+            if (!val) {
+              hintEl.textContent = '';
+              return;
+            }
+            const found = appState.students.find((s) => s.chestNo.toLowerCase() === val);
+            if (found) {
+              document.getElementById(`w-name-${place}`).value = found.name;
+              document.getElementById(`w-house-${place}`).value = found.house;
+              hintEl.textContent = `Auto-filled: ${found.name}`;
+            } else {
+              hintEl.textContent = '';
+            }
+          });
+        });
+      }
+
+      function populateHouseSelectOptions() {
+        const houseIds = ['red', 'blue', 'green', 'yellow'];
+        const optionsHtml = houseIds
+          .map((id) => `<option value="${id}">${escapeHtml(appState.houses[id].name)}</option>`)
+          .join('');
+
+        [1, 2, 3].forEach((place) => {
+          const sel = document.getElementById(`w-house-${place}`);
+          if (sel) {
+            const prev = sel.value;
+            sel.innerHTML = `<option value="">Select House</option>${optionsHtml}`;
+            if (prev) sel.value = prev;
+          }
+        });
+
+        ['team-a-house', 'team-b-house'].forEach((id, idx) => {
+          const sel = document.getElementById(id);
+          if (sel) {
+            const prev = sel.value || (idx === 0 ? 'red' : 'blue');
+            sel.innerHTML = optionsHtml;
+            sel.value = prev;
+          }
+        });
+
+        const thirdSel = document.getElementById('team-third-house');
+        if (thirdSel) {
+          const prev = thirdSel.value;
+          thirdSel.innerHTML = `<option value="">None / Not Awarded</option>${optionsHtml}`;
+          if (prev) thirdSel.value = prev;
+        }
+      }
+
+      function syncScoringSelector() {
+        populateHouseSelectOptions();
+        const select = document.getElementById('scoring-event-select');
+        const quickWrap = document.getElementById('scoring-quick-events');
+
+        if (!appState.events.some((e) => e.id === selectedEventId)) {
+          selectedEventId =
+            appState.events.find((e) => e.status !== 'FINISHED')?.id || appState.events[0]?.id || '';
+        }
+
+        if (appState.events.length === 0) {
+          select.innerHTML = '<option value="">No events created yet — add one in Admin</option>';
+          quickWrap.innerHTML = '<span class="text-xs text-slate-400">No events available.</span>';
+          return;
+        }
+
+        select.innerHTML = appState.events
+          .map(
+            (ev) =>
+              `<option value="${escapeHtml(ev.id)}">[${ev.status}] ${escapeHtml(ev.name)} — ${escapeHtml(ev.category)}</option>`
+          )
+          .join('');
+        select.value = selectedEventId;
+
+        const activeEvents = appState.events.filter((e) => e.status !== 'FINISHED');
+        quickWrap.innerHTML =
+          activeEvents.length > 0
+            ? activeEvents
+                .map((ev) => {
+                  const isSel = ev.id === selectedEventId;
+                  return `
+                  <button
+                    type="button"
+                    data-quick-event-id="${escapeHtml(ev.id)}"
+                    class="min-h-[38px] px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                      isSel
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }"
+                  >
+                    ${ev.status === 'LIVE' ? 'LIVE · ' : ''}${escapeHtml(ev.name)} (${escapeHtml(ev.category)})
+                  </button>
+                `;
+                })
+                .join('')
+            : '<span class="text-xs text-slate-500">All current events are finished. Select any event above to update.</span>';
+
+        quickWrap.querySelectorAll('[data-quick-event-id]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            selectedEventId = btn.getAttribute('data-quick-event-id');
+            syncScoringSelector();
+          });
+        });
+
+        loadSelectedEventIntoScoringForm();
+      }
+
+      function setScoringMode(mode) {
+        scoringMode = mode;
+        const indPanel = document.getElementById('scoring-individual-panel');
+        const teamPanel = document.getElementById('scoring-team-panel');
+        const btnInd = document.getElementById('btn-mode-individual');
+        const btnTeam = document.getElementById('btn-mode-team');
+
+        indPanel.classList.toggle('hidden', mode !== 'individual');
+        teamPanel.classList.toggle('hidden', mode !== 'team');
+
+        btnInd.className =
+          mode === 'individual'
+            ? 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-900 bg-slate-900 text-white whitespace-nowrap'
+            : 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap';
+        btnTeam.className =
+          mode === 'team'
+            ? 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-900 bg-slate-900 text-white whitespace-nowrap'
+            : 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap';
+      }
+
+      function loadSelectedEventIntoScoringForm() {
+        const ev = appState.events.find((e) => e.id === selectedEventId);
+        if (!ev) return;
+
+        setScoringMode(ev.type === 'team' ? 'team' : 'individual');
+        document.getElementById('individual-error').classList.add('hidden');
+        document.getElementById('team-error').classList.add('hidden');
+
+        const [p1, p2, p3] = appState.pointRules.individual;
+        document.getElementById('individual-points-hint').textContent =
+          `Points: 1st = ${p1} · 2nd = ${p2} · 3rd = ${p3}`;
+
+        [1, 2, 3].forEach((place) => {
+          const w = (ev.winners || []).find((x) => x.place === place);
+          document.getElementById(`w-chest-${place}`).value = w?.chestNo || '';
+          document.getElementById(`w-name-${place}`).value = w?.name || '';
+          document.getElementById(`w-house-${place}`).value = w?.house || '';
+          document.getElementById(`w-metric-${place}`).value = w?.metric || '';
+          document.getElementById(`autofill-hint-${place}`).textContent = '';
+        });
+
+        const live = ev.liveMatch || {
+          teamAHouse: 'red',
+          teamBHouse: 'blue',
+          scoreA: 0,
+          scoreB: 0,
+          periodLabel: 'Live Match',
+        };
+        document.getElementById('team-a-house').value = live.teamAHouse;
+        document.getElementById('team-b-house').value = live.teamBHouse;
+        document.getElementById('team-a-score').textContent = String(live.scoreA);
+        document.getElementById('team-b-score').textContent = String(live.scoreB);
+        document.getElementById('team-period-input').value = live.periodLabel || 'Live Match';
+      }
+
+      async function adjustLiveTeamScore(side, delta) {
+        const ev = appState.events.find((e) => e.id === selectedEventId);
+        if (!ev) return;
+        const teamAHouse = document.getElementById('team-a-house').value;
+        const teamBHouse = document.getElementById('team-b-house').value;
+        if (teamAHouse === teamBHouse) {
+          const errEl = document.getElementById('team-error');
+          errEl.textContent = 'Select two different Houses for Team A and Team B.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        document.getElementById('team-error').classList.add('hidden');
+
+        const current = ev.liveMatch || {
+          teamAHouse,
+          teamBHouse,
+          scoreA: 0,
+          scoreB: 0,
+          periodLabel: 'Live Match',
+        };
+        const nextMatch = {
+          teamAHouse,
+          teamBHouse,
+          scoreA: side === 'A' ? Math.max(0, current.scoreA + delta) : current.scoreA,
+          scoreB: side === 'B' ? Math.max(0, current.scoreB + delta) : current.scoreB,
+          periodLabel: document.getElementById('team-period-input').value.trim() || 'Live Match',
+        };
+
+        const nextEvents = appState.events.map((item) =>
+          item.id === ev.id
+            ? { ...item, type: 'team', status: 'LIVE', liveMatch: nextMatch, updatedAt: Date.now() }
+            : item
+        );
+        document.getElementById('team-a-score').textContent = String(nextMatch.scoreA);
+        document.getElementById('team-b-score').textContent = String(nextMatch.scoreB);
+        await persistState({ ...appState, events: nextEvents });
+      }
+
+      // =======================================================================
+      // 8. ADMIN PANEL RENDERING & ACTIONS
+      // =======================================================================
+      function populateAdminForms() {
+        document.getElementById('admin-school-name').value = appState.schoolName;
+        document.getElementById('admin-ticker-msg').value = appState.tickerMessage;
+        document.getElementById('house-name-red').value = appState.houses.red.name;
+        document.getElementById('house-name-blue').value = appState.houses.blue.name;
+        document.getElementById('house-name-green').value = appState.houses.green.name;
+        document.getElementById('house-name-yellow').value = appState.houses.yellow.name;
+
+        document.getElementById('pts-ind-1').value = appState.pointRules.individual[0];
+        document.getElementById('pts-ind-2').value = appState.pointRules.individual[1];
+        document.getElementById('pts-ind-3').value = appState.pointRules.individual[2];
+        document.getElementById('pts-team-1').value = appState.pointRules.team[0];
+        document.getElementById('pts-team-2').value = appState.pointRules.team[1];
+        document.getElementById('pts-team-3').value = appState.pointRules.team[2];
+
+        document.getElementById('roster-count-label').textContent =
+          `${appState.students.length} students`;
+
+        renderAdminEventsList();
+      }
+
+      function renderAdminEventsList() {
+        const list = document.getElementById('admin-events-list');
+        if (appState.events.length === 0) {
+          list.innerHTML =
+            '<div class="py-6 text-center text-sm text-slate-500">No events yet. Use Quick Event Creator or Load Sample School Data.</div>';
+          return;
+        }
+
+        list.innerHTML = appState.events
+          .map(
+            (ev) => `
+            <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-sm text-slate-900 truncate">${escapeHtml(ev.name)}</span>
+                  <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">${escapeHtml(ev.status)}</span>
+                </div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  ${escapeHtml(ev.category)} · ${escapeHtml(ev.venue)} · ${ev.type === 'team' ? 'Team Game' : 'Individual'}
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  data-admin-edit="${escapeHtml(ev.id)}"
+                  class="min-h-[36px] px-3 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                >
+                  Edit
+                </button>
+                ${
+                  ev.status === 'FINISHED'
+                    ? `<button
+                        type="button"
+                        data-admin-clear="${escapeHtml(ev.id)}"
+                        class="min-h-[36px] px-3 py-1 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-xs font-semibold text-amber-800"
+                      >
+                        Clear Result
+                      </button>`
+                    : ''
+                }
+                <button
+                  type="button"
+                  data-admin-delete="${escapeHtml(ev.id)}"
+                  aria-label="Delete ${escapeHtml(ev.name)}"
+                  class="min-h-[36px] px-3 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-semibold text-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          `
+          )
+          .join('');
+
+        list.querySelectorAll('[data-admin-edit]').forEach((btn) => {
+          btn.addEventListener('click', () => openEditEventModal(btn.getAttribute('data-admin-edit')));
+        });
+
+        list.querySelectorAll('[data-admin-clear]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-admin-clear');
+            const nextEvents = appState.events.map((ev) =>
+              ev.id === id
+                ? { ...ev, status: 'UPCOMING', winners: [], updatedAt: Date.now() }
+                : ev
+            );
+            await persistState({ ...appState, events: nextEvents });
+            showToast('Result cleared and house points recalculated');
+          });
+        });
+
+        list.querySelectorAll('[data-admin-delete]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-admin-delete');
+            const nextEvents = appState.events.filter((ev) => ev.id !== id);
+            await persistState({ ...appState, events: nextEvents });
+            showToast('Event deleted');
+          });
+        });
+      }
+
+      function openEditEventModal(eventId) {
+        const ev = appState.events.find((e) => e.id === eventId);
+        if (!ev) return;
+
+        document.getElementById('edit-event-id').value = ev.id;
+        document.getElementById('edit-event-name').value = ev.name;
+        document.getElementById('edit-event-category').value = ev.category;
+        document.getElementById('edit-event-venue').value = ev.venue;
+        document.getElementById('edit-event-status').value = ev.status;
+
+        const houseOpts = ['red', 'blue', 'green', 'yellow']
+          .map((id) => `<option value="${id}">${escapeHtml(appState.houses[id].name)}</option>`)
+          .join('');
+
+        const fieldsWrap = document.getElementById('edit-winners-fields');
+        fieldsWrap.innerHTML = [1, 2, 3]
+          .map((place) => {
+            const w = (ev.winners || []).find((x) => x.place === place);
+            return `
+              <div class="grid grid-cols-12 gap-2 items-center">
+                <span class="col-span-2 font-mono text-xs font-bold text-slate-600">${place === 1 ? '1st' : place === 2 ? '2nd' : '3rd'}</span>
+                <input id="edit-w-chest-${place}" type="text" placeholder="Chest" value="${escapeHtml(w?.chestNo || '')}" class="col-span-2 min-h-[38px] px-2 py-1 rounded-lg border border-slate-300 font-mono text-xs" />
+                <input id="edit-w-name-${place}" type="text" placeholder="Winner Name" value="${escapeHtml(w?.name || '')}" class="col-span-4 min-h-[38px] px-2 py-1 rounded-lg border border-slate-300 text-xs" />
+                <select id="edit-w-house-${place}" class="col-span-2 min-h-[38px] px-1.5 py-1 rounded-lg border border-slate-300 bg-white text-xs">
+                  <option value="">House</option>
+                  ${houseOpts}
+                </select>
+                <input id="edit-w-metric-${place}" type="text" placeholder="Time/Dist" value="${escapeHtml(w?.metric || '')}" class="col-span-2 min-h-[38px] px-2 py-1 rounded-lg border border-slate-300 font-mono text-xs" />
+              </div>
+            `;
+          })
+          .join('');
+
+        [1, 2, 3].forEach((place) => {
+          const w = (ev.winners || []).find((x) => x.place === place);
+          if (w?.house) document.getElementById(`edit-w-house-${place}`).value = w.house;
+        });
+
+        document.getElementById('edit-event-modal').classList.remove('hidden');
+      }
+
+      // =======================================================================
+      // 9. LIVE TV SCOREBOARD & 4-SECOND CONFETTI CELEBRATION
+      // =======================================================================
+      function renderTvScreen() {
+        // Clock
+        const now = new Date();
+        document.getElementById('tv-clock').textContent = now.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        // Left Top: Giant House Standings Bars
+        const standings = computeHouseStandings(appState);
+        const maxPts = Math.max(1, standings[0]?.points || 1);
+        document.getElementById('tv-house-bars').innerHTML = standings
+          .map((h) => {
+            const theme = HOUSE_THEME[h.id] || HOUSE_THEME.red;
+            const widthPct = Math.max(8, Math.round((h.points / maxPts) * 100));
+            const isLeader = h.rank === 1 && h.points > 0;
+            return `
+              <div class="space-y-1.5">
+                <div class="flex items-baseline justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="font-mono text-sm font-bold text-slate-400">#${h.rank}</span>
+                    <span class="text-lg sm:text-xl font-extrabold text-white truncate">${escapeHtml(h.name)}</span>
+                    ${isLeader ? '<span aria-label="Leader">👑</span>' : ''}
+                  </div>
+                  <div class="flex items-baseline gap-3 shrink-0">
+                    <span class="font-mono text-xs text-slate-400 tabular-nums">${h.gold}G · ${h.silver}S · ${h.bronze}B</span>
+                    <span class="font-mono text-2xl sm:text-3xl font-extrabold text-white tabular-nums">${h.points}</span>
+                  </div>
+                </div>
+                <div class="h-4 w-full bg-slate-800 rounded-full overflow-hidden">
+                  <div class="h-full ${theme.tvBar} rounded-full transition-all duration-500" style="width: ${widthPct}%"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        // Left Bottom: Leading Individual Champions (Top Boy & Top Girl)
+        const athletes = computeTopAthletes(appState);
+        const topBoy = athletes.find((a) => a.division === 'boys') || athletes[0];
+        const topGirl = athletes.find((a) => a.division === 'girls');
+
+        const renderChampCard = (label, champ) => {
+          if (!champ) {
+            return `
+              <div class="rounded-xl bg-slate-800/70 border border-slate-700/60 p-3.5">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">${label}</div>
+                <div class="text-sm text-slate-500 mt-1">Awaiting results</div>
+              </div>
+            `;
+          }
+          const hName = appState.houses[champ.house]?.name || champ.house;
+          const theme = HOUSE_THEME[champ.house] || HOUSE_THEME.red;
+          return `
+            <div class="rounded-xl bg-slate-800/80 border border-slate-700/80 p-3.5 flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <div class="text-[11px] font-bold uppercase tracking-wider text-amber-400">${label}</div>
+                <div class="text-base font-bold text-white truncate mt-0.5">${escapeHtml(champ.name)}</div>
+                <div class="text-xs text-slate-400 truncate">
+                  ${champ.chestNo ? `#${escapeHtml(champ.chestNo)} · ` : ''}${escapeHtml(hName)}
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="font-mono text-2xl font-extrabold text-white tabular-nums">${champ.points}</div>
+                <div class="text-[10px] font-semibold text-slate-400">PTS</div>
+              </div>
+            </div>
+          `;
+        };
+
+        document.getElementById('tv-champions-grid').innerHTML =
+          renderChampCard('Top Boy', topBoy) + renderChampCard('Top Girl', topGirl);
+
+        // Right Top: LIVE Match / Ongoing Event Box
+        const liveBox = document.getElementById('tv-live-box');
+        const liveTeamEvent = appState.events.find(
+          (e) => e.status === 'LIVE' && e.type === 'team' && e.liveMatch
+        );
+        const liveAnyEvent = appState.events.find((e) => e.status === 'LIVE');
+        const nextUpcoming = appState.events.find((e) => e.status === 'UPCOMING');
+
+        if (liveTeamEvent) {
+          const lm = liveTeamEvent.liveMatch;
+          const hA = appState.houses[lm.teamAHouse]?.name || lm.teamAHouse;
+          const hB = appState.houses[lm.teamBHouse]?.name || lm.teamBHouse;
+          const tA = HOUSE_THEME[lm.teamAHouse] || HOUSE_THEME.red;
+          const tB = HOUSE_THEME[lm.teamBHouse] || HOUSE_THEME.blue;
+          liveBox.innerHTML = `
+            <div class="flex items-center justify-between gap-2 mb-4">
+              <span class="px-2.5 py-1 rounded-md bg-red-500/20 border border-red-400/40 text-red-300 text-xs font-bold uppercase tracking-wider">
+                LIVE MATCH · ${escapeHtml(lm.periodLabel || 'In Progress')}
+              </span>
+              <span class="text-xs sm:text-sm text-slate-400">
+                ${escapeHtml(liveTeamEvent.name)} · ${escapeHtml(liveTeamEvent.category)} · ${escapeHtml(liveTeamEvent.venue)}
+              </span>
+            </div>
+            <div class="grid grid-cols-3 items-center gap-4 text-center">
+              <div class="space-y-2">
+                <div class="w-4 h-4 rounded-full ${tA.tvBar} mx-auto"></div>
+                <div class="text-xl sm:text-2xl font-extrabold text-white truncate">${escapeHtml(hA)}</div>
+              </div>
+              <div class="font-mono text-5xl sm:text-6xl font-extrabold tabular-nums text-white tracking-tight">
+                ${lm.scoreA} <span class="text-slate-600">:</span> ${lm.scoreB}
+              </div>
+              <div class="space-y-2">
+                <div class="w-4 h-4 rounded-full ${tB.tvBar} mx-auto"></div>
+                <div class="text-xl sm:text-2xl font-extrabold text-white truncate">${escapeHtml(hB)}</div>
+              </div>
+            </div>
+          `;
+        } else if (liveAnyEvent) {
+          liveBox.innerHTML = `
+            <div class="space-y-2">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-red-500/20 border border-red-400/40 text-red-300 text-xs font-bold uppercase tracking-wider">
+                LIVE ON GROUND
+              </span>
+              <div class="text-2xl sm:text-3xl font-extrabold text-white">${escapeHtml(liveAnyEvent.name)}</div>
+              <div class="text-sm text-slate-400">${escapeHtml(liveAnyEvent.category)} · ${escapeHtml(liveAnyEvent.venue)}</div>
+            </div>
+          `;
+        } else if (nextUpcoming) {
+          liveBox.innerHTML = `
+            <div class="space-y-2">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-amber-300 text-xs font-bold uppercase tracking-wider">
+                UP NEXT
+              </span>
+              <div class="text-2xl sm:text-3xl font-extrabold text-white">${escapeHtml(nextUpcoming.name)}</div>
+              <div class="text-sm text-slate-400">${escapeHtml(nextUpcoming.category)} · ${escapeHtml(nextUpcoming.venue)}</div>
+            </div>
+          `;
+        } else {
+          liveBox.innerHTML = `
+            <div class="text-center text-slate-400 text-sm">
+              All scheduled events have concluded. Final House Championship Standings shown on the left.
+            </div>
+          `;
+        }
+
+        // Right Bottom: Recent Winners Carousel
+        renderTvCarousel();
+      }
+
+      function renderTvCarousel() {
+        const finished = appState.events
+          .filter((e) => e.status === 'FINISHED' && e.winners && e.winners.length > 0)
+          .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+        const counter = document.getElementById('tv-carousel-counter');
+        const body = document.getElementById('tv-carousel-body');
+
+        if (finished.length === 0) {
+          counter.textContent = '0 / 0';
+          body.innerHTML =
+            '<div class="text-center text-slate-400 text-sm">Published event winners will rotate here automatically.</div>';
+          return;
+        }
+
+        if (tvCarouselIndex >= finished.length) tvCarouselIndex = 0;
+        if (tvCarouselIndex < 0) tvCarouselIndex = finished.length - 1;
+
+        const ev = finished[tvCarouselIndex];
+        counter.textContent = `${tvCarouselIndex + 1} / ${finished.length}`;
+
+        const rows = ev.winners
+          .slice()
+          .sort((a, b) => a.place - b.place)
+          .map((w) => {
+            const hName = appState.houses[w.house]?.name || w.house;
+            const theme = HOUSE_THEME[w.house] || HOUSE_THEME.red;
+            const label = w.place === 1 ? '1ST GOLD' : w.place === 2 ? '2ND SILVER' : '3RD BRONZE';
+            const badgeColor =
+              w.place === 1
+                ? 'bg-amber-400 text-slate-950'
+                : w.place === 2
+                  ? 'bg-slate-300 text-slate-950'
+                  : 'bg-orange-400 text-slate-950';
+            return `
+              <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-800/80 border border-slate-700/70 px-4 py-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="px-2.5 py-1 rounded-md text-xs font-extrabold tracking-wide shrink-0 ${badgeColor}">${label}</span>
+                  <div class="min-w-0">
+                    <div class="text-lg font-bold text-white truncate">
+                      ${w.chestNo ? `<span class="font-mono text-slate-400 mr-1.5">#${escapeHtml(w.chestNo)}</span>` : ''}${escapeHtml(w.name)}
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  ${w.metric ? `<span class="font-mono text-base font-bold text-amber-300 tabular-nums">${escapeHtml(w.metric)}</span>` : ''}
+                  <span class="px-2.5 py-1 rounded-md text-xs font-bold text-white ${theme.tvBar}">
+                    ${escapeHtml(hName)}
+                  </span>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        body.innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <div class="text-2xl font-extrabold text-white">${escapeHtml(ev.name)}</div>
+              <div class="text-sm text-slate-400 mt-0.5">${escapeHtml(ev.category)} · ${escapeHtml(ev.venue)}</div>
+            </div>
+            <div class="space-y-2.5">${rows}</div>
+          </div>
+        `;
+      }
+
+      let celebrationTimeout = null;
+      function showWinnerCelebration() {
+        const finished = appState.events
+          .filter((e) => e.status === 'FINISHED' && e.winners && e.winners.length > 0)
+          .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        const latest = finished[0];
+        if (!latest) return;
+
+        const overlay = document.getElementById('winner-celebration-overlay');
+        document.getElementById('celebration-title').textContent = `${latest.name} (${latest.category})`;
+        document.getElementById('celebration-winners').innerHTML = latest.winners
+          .slice()
+          .sort((a, b) => a.place - b.place)
+          .map((w) => {
+            const hName = appState.houses[w.house]?.name || w.house;
+            return `
+              <div class="flex items-center justify-between rounded-xl bg-slate-800 px-4 py-2.5 border border-slate-700">
+                <span class="font-semibold text-white">
+                  <span class="font-mono text-amber-400 mr-2">${w.place === 1 ? '1st' : w.place === 2 ? '2nd' : '3rd'}</span>
+                  ${escapeHtml(w.name)}
+                </span>
+                <span class="text-xs font-bold text-slate-300">${escapeHtml(hName)}${w.metric ? ` · ${escapeHtml(w.metric)}` : ''}</span>
+              </div>
+            `;
+          })
+          .join('');
+
+        overlay.classList.remove('hidden');
+        spawnConfetti();
+        refreshIcons();
+
+        clearTimeout(celebrationTimeout);
+        celebrationTimeout = setTimeout(() => {
+          overlay.classList.add('hidden');
+        }, 4000);
+      }
+
+      function spawnConfetti() {
+        const colors = ['#F59E0B', '#EF4444', '#3B82F6', '#10B981', '#FBBF24'];
+        for (let i = 0; i < 36; i++) {
+          const piece = document.createElement('div');
+          piece.className = 'confetti-piece';
+          piece.style.left = `${Math.random() * 100}vw`;
+          piece.style.backgroundColor = colors[i % colors.length];
+          piece.style.animationDelay = `${Math.random() * 0.6}s`;
+          document.body.appendChild(piece);
+          setTimeout(() => piece.remove(), 4200);
+        }
+      }
+
+      // =======================================================================
+      // 10. PRINTABLE A4 SHEET
+      // =======================================================================
+      function renderPrintSheet() {
+        const standings = computeHouseStandings(appState);
+        const athletes = computeTopAthletes(appState);
+        const topBoy = athletes.find((a) => a.division === 'boys');
+        const topGirl = athletes.find((a) => a.division === 'girls');
+        const finished = appState.events.filter((e) => e.status === 'FINISHED');
+
+        document.getElementById('print-sheet').innerHTML = `
+          <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+            <h1 style="font-size: 20px; font-weight: 800; margin: 0;">${escapeHtml(appState.schoolName)}</h1>
+            <p style="font-size: 12px; color: #475569; margin: 4px 0 0;">Official Sports Day Summary Report · Printed ${new Date().toLocaleString()}</p>
+          </div>
+
+          <h2 style="font-size: 14px; font-weight: 700; margin: 0 0 8px;">1. House Championship Standings</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 18px;">
+            <thead>
+              <tr style="background: #f1f5f9; text-align: left;">
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">Rank</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">House</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">Gold</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">Silver</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">Bronze</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">Total Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${standings
+                .map(
+                  (h) => `
+                  <tr>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">#${h.rank}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px 8px; font-weight: 600;">${escapeHtml(h.name)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">${h.gold}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">${h.silver}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right;">${h.bronze}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: right; font-weight: 700;">${h.points}</td>
+                  </tr>
+                `
+                )
+                .join('')}
+            </tbody>
+          </table>
+
+          <h2 style="font-size: 14px; font-weight: 700; margin: 0 0 8px;">2. Leading Individual Champions</h2>
+          <p style="font-size: 12px; margin: 0 0 18px;">
+            <strong>Top Boy:</strong> ${topBoy ? `${escapeHtml(topBoy.name)} (${escapeHtml(appState.houses[topBoy.house]?.name || '')}, ${topBoy.points} pts)` : 'N/A'}
+            &nbsp;|&nbsp;
+            <strong>Top Girl:</strong> ${topGirl ? `${escapeHtml(topGirl.name)} (${escapeHtml(appState.houses[topGirl.house]?.name || '')}, ${topGirl.points} pts)` : 'N/A'}
+          </p>
+
+          <h2 style="font-size: 14px; font-weight: 700; margin: 0 0 8px;">3. Completed Event Winners (${finished.length})</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <thead>
+              <tr style="background: #f1f5f9; text-align: left;">
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">Event</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">Category</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">1st Place</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">2nd Place</th>
+                <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">3rd Place</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                finished.length === 0
+                  ? '<tr><td colspan="5" style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">No completed events recorded.</td></tr>'
+                  : finished
+                      .map((ev) => {
+                        const fmt = (place) => {
+                          const w = (ev.winners || []).find((x) => x.place === place);
+                          if (!w) return '—';
+                          const h = appState.houses[w.house]?.name || w.house;
+                          return `${escapeHtml(w.name)} (${escapeHtml(h.replace(' House', ''))})${w.metric ? ` · ${escapeHtml(w.metric)}` : ''}`;
+                        };
+                        return `
+                          <tr>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px 8px; font-weight: 600;">${escapeHtml(ev.name)}</td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">${escapeHtml(ev.category)}</td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">${fmt(1)}</td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">${fmt(2)}</td>
+                            <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">${fmt(3)}</td>
+                          </tr>
+                        `;
+                      })
+                      .join('')
+              }
+            </tbody>
+          </table>
+        `;
+      }
+
+      // =======================================================================
+      // 11. MASTER RENDER & EVENT WIRING
+      // =======================================================================
+      function renderAll() {
+        updateRoleUI();
+        renderHeaderAndTicker();
+        renderHouseLeaderboard();
+        renderEventsAndAthletes();
+        renderPrintSheet();
+        if (currentView === 'scoring') syncScoringSelector();
+        if (currentView === 'admin') populateAdminForms();
+        if (currentView === 'tv') renderTvScreen();
+        refreshIcons();
+      }
+
+      function wireEventListeners() {
+        // Filter Tabs
+        document.querySelectorAll('.filter-tab').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            activeFilterTab = btn.dataset.filterTab;
+            renderEventsAndAthletes();
+          });
+        });
+
+        // Athlete Division Tabs
+        document.querySelectorAll('.division-tab').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            activeDivision = btn.dataset.division;
+            renderTopAthletesTable();
+          });
+        });
+
+        // Search
+        document.getElementById('home-search-input').addEventListener('input', (e) => {
+          searchQuery = e.target.value;
+          renderEventsAndAthletes();
+        });
+
+        // Navigation Buttons
+        document.getElementById('btn-open-tv').addEventListener('click', () => setView('tv'));
+        document.getElementById('btn-exit-tv').addEventListener('click', () => setView('home'));
+        document.getElementById('btn-nav-home').addEventListener('click', () => setView('home'));
+        document.getElementById('btn-scoring-back-home').addEventListener('click', () => setView('home'));
+        document.getElementById('btn-nav-scoring').addEventListener('click', () => setView('scoring'));
+        document.getElementById('btn-nav-admin').addEventListener('click', () => setView('admin'));
+
+        // Print
+        const triggerPrint = () => {
+          renderPrintSheet();
+          window.print();
+        };
+        document.getElementById('btn-print-header').addEventListener('click', triggerPrint);
+        document.getElementById('btn-admin-print').addEventListener('click', triggerPrint);
+
+        // Escape exits TV or modals
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (currentView === 'tv') setView('home');
+            document.getElementById('pin-modal').classList.add('hidden');
+            document.getElementById('edit-event-modal').classList.add('hidden');
+            document.getElementById('winner-celebration-overlay').classList.add('hidden');
+          }
+        });
+
+        // PIN Login Modal
+        const pinModal = document.getElementById('pin-modal');
+        const pinInput = document.getElementById('pin-input');
+        const pinError = document.getElementById('pin-error');
+
+        document.getElementById('btn-official-login').addEventListener('click', () => {
+          pinInput.value = '';
+          pinError.classList.add('hidden');
+          pinModal.classList.remove('hidden');
+          setTimeout(() => pinInput.focus(), 50);
+        });
+
+        document.getElementById('btn-close-pin').addEventListener('click', () => {
+          pinModal.classList.add('hidden');
+        });
+
+        document.getElementById('form-pin-login').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const pin = pinInput.value.trim();
+          if (pin === '1111') {
+            currentRole = 'official';
+            pinModal.classList.add('hidden');
+            updateRoleUI();
+            setView('scoring');
+            showToast('Signed in as Ground Official');
+          } else if (pin === '7860') {
+            currentRole = 'admin';
+            pinModal.classList.add('hidden');
+            updateRoleUI();
+            setView('admin');
+            showToast('Signed in as Sports Admin');
+          } else {
+            pinError.textContent = 'Invalid PIN. Use 1111 for Ground Official or 7860 for Sports Admin.';
+            pinError.classList.remove('hidden');
+          }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+          currentRole = 'public';
+          updateRoleUI();
+          setView('home');
+          showToast('Switched to Public View');
+        });
+
+        // Scoring Event Selection & Mode Toggle
+        document.getElementById('scoring-event-select').addEventListener('change', (e) => {
+          selectedEventId = e.target.value;
+          loadSelectedEventIntoScoringForm();
+        });
+        document.getElementById('btn-mode-individual').addEventListener('click', () => setScoringMode('individual'));
+        document.getElementById('btn-mode-team').addEventListener('click', () => setScoringMode('team'));
+
+        // Stopwatch Controls
+        document.getElementById('btn-sw-toggle').addEventListener('click', toggleStopwatch);
+        document.getElementById('btn-sw-reset').addEventListener('click', resetStopwatch);
+        document.querySelectorAll('.sw-assign').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const place = btn.getAttribute('data-sw-assign');
+            const currentMs = swRunning ? swElapsed + (performance.now() - swStartTs) : swElapsed;
+            document.getElementById(`w-metric-${place}`).value = formatStopwatch(currentMs);
+            showToast(`Copied ${formatStopwatch(currentMs)} to ${place === '1' ? '1st' : place === '2' ? '2nd' : '3rd'} place`);
+          });
+        });
+
+        // Mark Event Live (Individual)
+        document.getElementById('btn-mark-event-live').addEventListener('click', async () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const nextEvents = appState.events.map((item) =>
+            item.id === ev.id ? { ...item, status: 'LIVE', updatedAt: Date.now() } : item
+          );
+          await persistState({ ...appState, events: nextEvents });
+          showToast(`${ev.name} marked LIVE`);
+        });
+
+        // Submit Individual Winners
+        document.getElementById('form-individual-winners').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const errEl = document.getElementById('individual-error');
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) {
+            errEl.textContent = 'Please select an event first.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          const winners = [];
+          for (const place of [1, 2, 3]) {
+            const chestNo = document.getElementById(`w-chest-${place}`).value.trim();
+            const name = document.getElementById(`w-name-${place}`).value.trim();
+            const house = document.getElementById(`w-house-${place}`).value;
+            const metric = document.getElementById(`w-metric-${place}`).value.trim();
+
+            if (place === 1 && (!name || !house)) {
+              errEl.textContent = '1st Place Student Name and House are required to publish results.';
+              errEl.classList.remove('hidden');
+              return;
+            }
+            if ((name && !house) || (!name && house)) {
+              errEl.textContent = `Please provide both Name and House for ${place === 2 ? '2nd' : '3rd'} Place, or leave both blank.`;
+              errEl.classList.remove('hidden');
+              return;
+            }
+            if (name && house) {
+              winners.push({ place, chestNo, name, house, metric });
+            }
+          }
+
+          errEl.classList.add('hidden');
+          const now = Date.now();
+          const nextEvents = appState.events.map((item) =>
+            item.id === ev.id
+              ? { ...item, type: 'individual', status: 'FINISHED', winners, updatedAt: now }
+              : item
+          );
+          await persistState(
+            {
+              ...appState,
+              events: nextEvents,
+              lastPublishedAt: now,
+              lastPublishedTitle: `${ev.name} (${ev.category})`,
+            },
+            true
+          );
+          showToast(`Published ${ev.name} results!`);
+        });
+
+        // Team Match Live Score Controls
+        document.getElementById('btn-team-a-plus').addEventListener('click', () => adjustLiveTeamScore('A', 1));
+        document.getElementById('btn-team-a-minus').addEventListener('click', () => adjustLiveTeamScore('A', -1));
+        document.getElementById('btn-team-b-plus').addEventListener('click', () => adjustLiveTeamScore('B', 1));
+        document.getElementById('btn-team-b-minus').addEventListener('click', () => adjustLiveTeamScore('B', -1));
+
+        document.getElementById('btn-team-set-live').addEventListener('click', () => adjustLiveTeamScore('A', 0));
+
+        document.getElementById('btn-team-finish').addEventListener('click', async () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const teamAHouse = document.getElementById('team-a-house').value;
+          const teamBHouse = document.getElementById('team-b-house').value;
+          const thirdHouse = document.getElementById('team-third-house').value;
+          const errEl = document.getElementById('team-error');
+
+          if (teamAHouse === teamBHouse) {
+            errEl.textContent = 'Team A and Team B must belong to different Houses.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          const scoreA = Number(document.getElementById('team-a-score').textContent || 0);
+          const scoreB = Number(document.getElementById('team-b-score').textContent || 0);
+          if (scoreA === scoreB) {
+            errEl.textContent = 'Scores are tied. Adjust score for the tie-breaker winner before finishing the match.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          errEl.classList.add('hidden');
+          const firstHouse = scoreA > scoreB ? teamAHouse : teamBHouse;
+          const secondHouse = scoreA > scoreB ? teamBHouse : teamAHouse;
+          const winScore = scoreA > scoreB ? `${scoreA} - ${scoreB}` : `${scoreB} - ${scoreA}`;
+          const loseScore = scoreA > scoreB ? `${scoreB} - ${scoreA}` : `${scoreA} - ${scoreB}`;
+
+          const winners = [
+            {
+              place: 1,
+              chestNo: '',
+              name: appState.houses[firstHouse].name,
+              house: firstHouse,
+              metric: winScore,
+            },
+            {
+              place: 2,
+              chestNo: '',
+              name: appState.houses[secondHouse].name,
+              house: secondHouse,
+              metric: loseScore,
+            },
+          ];
+
+          if (thirdHouse && thirdHouse !== firstHouse && thirdHouse !== secondHouse) {
+            winners.push({
+              place: 3,
+              chestNo: '',
+              name: appState.houses[thirdHouse].name,
+              house: thirdHouse,
+              metric: 'Bronze',
+            });
+          }
+
+          const now = Date.now();
+          const nextEvents = appState.events.map((item) =>
+            item.id === ev.id
+              ? {
+                  ...item,
+                  type: 'team',
+                  status: 'FINISHED',
+                  winners,
+                  liveMatch: {
+                    teamAHouse,
+                    teamBHouse,
+                    scoreA,
+                    scoreB,
+                    periodLabel: 'Final',
+                  },
+                  updatedAt: now,
+                }
+              : item
+          );
+
+          await persistState(
+            {
+              ...appState,
+              events: nextEvents,
+              lastPublishedAt: now,
+              lastPublishedTitle: `${ev.name} (${ev.category})`,
+            },
+            true
+          );
+          showToast(`Match finished! ${appState.houses[firstHouse].name} wins.`);
+        });
+
+        // Admin: Load Sample School Data
+        document.getElementById('btn-load-sample').addEventListener('click', async () => {
+          const sample = createSampleSchoolState();
+          await persistState(sample);
+          selectedEventId = sample.events[0].id;
+          populateAdminForms();
+          showToast('Sample School Data loaded (4 Houses, 8 Events, Roster)');
+        });
+
+        // Admin: Reset All Data (2-step safe click without window.confirm)
+        const resetBtn = document.getElementById('btn-admin-reset');
+        resetBtn.addEventListener('click', async () => {
+          if (!resetConfirmArmed) {
+            resetConfirmArmed = true;
+            resetBtn.textContent = 'Confirm Reset All?';
+            setTimeout(() => {
+              resetConfirmArmed = false;
+              resetBtn.textContent = 'Reset All Data';
+            }, 4000);
+            return;
+          }
+          resetConfirmArmed = false;
+          resetBtn.textContent = 'Reset All Data';
+          const blank = createBlankState();
+          blank.events = [];
+          blank.students = [];
+          await persistState(blank);
+          populateAdminForms();
+          showToast('All events and scores reset');
+        });
+
+        // Admin: Save Settings
+        document.getElementById('form-admin-settings').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const nextState = {
+            ...appState,
+            schoolName: document.getElementById('admin-school-name').value.trim() || 'Annual Sports & Games Meet',
+            tickerMessage: document.getElementById('admin-ticker-msg').value.trim() || 'Annual Sports Day Live',
+            houses: {
+              red: { ...appState.houses.red, name: document.getElementById('house-name-red').value.trim() || 'Red House' },
+              blue: { ...appState.houses.blue, name: document.getElementById('house-name-blue').value.trim() || 'Blue House' },
+              green: { ...appState.houses.green, name: document.getElementById('house-name-green').value.trim() || 'Green House' },
+              yellow: { ...appState.houses.yellow, name: document.getElementById('house-name-yellow').value.trim() || 'Yellow House' },
+            },
+            pointRules: {
+              individual: [
+                Number(document.getElementById('pts-ind-1').value || 5),
+                Number(document.getElementById('pts-ind-2').value || 3),
+                Number(document.getElementById('pts-ind-3').value || 1),
+              ],
+              team: [
+                Number(document.getElementById('pts-team-1').value || 10),
+                Number(document.getElementById('pts-team-2').value || 6),
+                Number(document.getElementById('pts-team-3').value || 4),
+              ],
+            },
+          };
+          await persistState(nextState);
+          showToast('Meet settings & point rules saved');
+        });
+
+        // Admin: Quick Event Creator
+        document.getElementById('form-create-event').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('new-event-name').value.trim();
+          const category = document.getElementById('new-event-category').value.trim();
+          const type = document.getElementById('new-event-type').value;
+          const venue = document.getElementById('new-event-venue').value.trim();
+          if (!name || !category || !venue) return;
+
+          const newEvent = {
+            id: `ev-${Date.now()}`,
+            name,
+            category,
+            type,
+            venue,
+            status: 'UPCOMING',
+            winners: [],
+            ...(type === 'team'
+              ? {
+                  liveMatch: {
+                    teamAHouse: 'red',
+                    teamBHouse: 'blue',
+                    scoreA: 0,
+                    scoreB: 0,
+                    periodLabel: 'Scheduled',
+                  },
+                }
+              : {}),
+            updatedAt: Date.now(),
+          };
+
+          await persistState({ ...appState, events: [newEvent, ...appState.events] });
+          selectedEventId = newEvent.id;
+          e.target.reset();
+          populateAdminForms();
+          showToast(`Added event: ${name}`);
+        });
+
+        // Admin: CSV Student Roster
+        document.getElementById('admin-csv-file').addEventListener('change', (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            document.getElementById('admin-csv-textarea').value = String(reader.result || '');
+          };
+          reader.readAsText(file);
+        });
+
+        document.getElementById('btn-save-roster').addEventListener('click', async () => {
+          const text = document.getElementById('admin-csv-textarea').value;
+          const parsed = parseStudentCsv(text);
+          if (parsed.length === 0) {
+            showToast('No valid rows found. Format: ChestNo, Name, House, Category');
+            return;
+          }
+          await persistState({ ...appState, students: parsed });
+          populateAdminForms();
+          showToast(`Imported ${parsed.length} students into roster`);
+        });
+
+        document.getElementById('btn-clear-roster').addEventListener('click', async () => {
+          document.getElementById('admin-csv-textarea').value = '';
+          await persistState({ ...appState, students: [] });
+          populateAdminForms();
+          showToast('Student roster cleared');
+        });
+
+        // Admin: Edit Event Modal
+        document.getElementById('btn-close-edit-modal').addEventListener('click', () => {
+          document.getElementById('edit-event-modal').classList.add('hidden');
+        });
+        document.getElementById('btn-cancel-edit-modal').addEventListener('click', () => {
+          document.getElementById('edit-event-modal').classList.add('hidden');
+        });
+        document.getElementById('form-edit-event').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const id = document.getElementById('edit-event-id').value;
+          const name = document.getElementById('edit-event-name').value.trim();
+          const category = document.getElementById('edit-event-category').value.trim();
+          const venue = document.getElementById('edit-event-venue').value.trim();
+          const status = document.getElementById('edit-event-status').value;
+
+          const winners = [];
+          for (const place of [1, 2, 3]) {
+            const chestNo = document.getElementById(`edit-w-chest-${place}`).value.trim();
+            const wName = document.getElementById(`edit-w-name-${place}`).value.trim();
+            const house = document.getElementById(`edit-w-house-${place}`).value;
+            const metric = document.getElementById(`edit-w-metric-${place}`).value.trim();
+            if (wName && house) {
+              winners.push({ place, chestNo, name: wName, house, metric });
+            }
+          }
+
+          const nextEvents = appState.events.map((ev) =>
+            ev.id === id
+              ? { ...ev, name, category, venue, status, winners, updatedAt: Date.now() }
+              : ev
+          );
+
+          await persistState({ ...appState, events: nextEvents });
+          document.getElementById('edit-event-modal').classList.add('hidden');
+          populateAdminForms();
+          showToast('Event updated & house points recalculated');
+        });
+
+        // TV Carousel Controls & Auto-Rotation (8 seconds)
+        document.getElementById('btn-tv-prev').addEventListener('click', () => {
+          tvCarouselIndex -= 1;
+          renderTvCarousel();
+        });
+        document.getElementById('btn-tv-next').addEventListener('click', () => {
+          tvCarouselIndex += 1;
+          renderTvCarousel();
+        });
+        setInterval(() => {
+          if (currentView === 'tv') {
+            tvCarouselIndex += 1;
+            renderTvScreen();
+          }
+        }, 8000);
+
+        // Celebration Close
+        document.getElementById('btn-close-celebration').addEventListener('click', () => {
+          document.getElementById('winner-celebration-overlay').classList.add('hidden');
+          document.querySelectorAll('.confetti-piece').forEach((el) => el.remove());
+        });
+      }
+
+      // =======================================================================
+      // 12. BOOTSTRAP
+      // =======================================================================
+      buildPodiumRowsUI();
+      wireEventListeners();
+      renderAll();
+      initDataLayer();
+    </script>
+  </body>
+</html>

@@ -467,9 +467,9 @@
     <div id="app-shell" class="hidden no-print min-h-screen flex flex-col">
       <!-- Top Bar -->
       <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
-          <!-- Brand / School Name -->
-          <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-0 sm:h-16 flex flex-wrap sm:flex-nowrap items-center justify-between gap-x-2 gap-y-2 sm:gap-3">
+          <!-- Row 1 Left (Mobile) / Brand Left (Desktop): Logo & Full School Name -->
+          <div class="order-1 flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
             <div
               class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0"
               aria-hidden="true"
@@ -479,11 +479,11 @@
             <div class="min-w-0 flex-1">
               <h1
                 id="header-school-name"
-                class="text-sm sm:text-lg font-bold tracking-tight text-slate-900 truncate"
+                class="text-[15px] leading-snug sm:text-lg font-bold tracking-tight text-slate-900 break-words sm:truncate"
               >
                 Annual Sports &amp; Games Meet
               </h1>
-              <div class="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 min-w-0">
+              <div class="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 min-w-0 mt-0.5 sm:mt-0">
                 <span id="header-school-code" class="font-mono font-semibold text-slate-700 shrink-0">DEMOFEST</span>
                 <span aria-hidden="true" class="shrink-0">·</span>
                 <span id="sync-status-label" class="hidden sm:inline truncate">Local Mode</span>
@@ -493,53 +493,12 @@
             </div>
           </div>
 
-          <!-- Header Actions -->
-          <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-            <button
-              type="button"
-              id="btn-switch-school"
-              class="min-h-[38px] sm:min-h-[40px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium inline-flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0"
-            >
-              <i data-lucide="arrow-left-right" class="w-3.5 h-3.5" aria-hidden="true"></i>
-              <span class="hidden md:inline">Switch School</span>
-              <span class="md:hidden">Switch</span>
-            </button>
-
-            <button
-              type="button"
-              id="btn-open-tv"
-              class="min-h-[38px] sm:min-h-[40px] px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-            >
-              <i data-lucide="monitor" class="w-4 h-4" aria-hidden="true"></i>
-              <span class="hidden sm:inline">TV Screen</span>
-              <span class="sm:hidden">TV</span>
-            </button>
-
-            <button
-              type="button"
-              id="btn-share-qr"
-              aria-label="Share Public Scoreboard QR Code"
-              title="Share Public Scoreboard QR Code"
-              class="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-            >
-              <i data-lucide="qr-code" class="w-4 h-4" aria-hidden="true"></i>
-              <span class="hidden sm:inline">Share QR</span>
-            </button>
-
-            <button
-              type="button"
-              id="btn-print-header"
-              class="hidden lg:inline-flex min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-              aria-label="Print Results Sheet"
-            >
-              <i data-lucide="printer" class="w-4 h-4" aria-hidden="true"></i>
-              <span>Print</span>
-            </button>
-
+          <!-- Row 1 Right (Mobile) / Far Right (Desktop): Primary Login / Exit Action -->
+          <div class="order-2 sm:order-3 flex items-center shrink-0">
             <button
               type="button"
               id="btn-official-login"
-              class="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              class="min-h-[38px] sm:min-h-[40px] px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
             >
               <i data-lucide="shield-check" class="w-4 h-4" aria-hidden="true"></i>
               <span class="hidden sm:inline">Official Login</span>
@@ -549,11 +508,54 @@
             <button
               type="button"
               id="btn-logout"
-              class="hidden min-h-[38px] sm:min-h-[40px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0"
+              class="hidden min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
             >
               <i data-lucide="log-out" class="w-4 h-4" aria-hidden="true"></i>
               <span class="hidden sm:inline">Exit Role</span>
               <span class="sm:hidden">Exit</span>
+            </button>
+          </div>
+
+          <!-- Row 2 Sub-Bar (Mobile) / Middle Actions (Desktop): Switch, TV Screen, Share QR, Print -->
+          <div class="order-3 sm:order-2 w-full sm:w-auto flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 overflow-x-auto pt-2 sm:pt-0 border-t border-slate-100 sm:border-t-0 shrink-0">
+            <button
+              type="button"
+              id="btn-switch-school"
+              class="min-h-[36px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="arrow-left-right" class="w-3.5 h-3.5" aria-hidden="true"></i>
+              <span class="hidden md:inline">Switch School</span>
+              <span class="md:hidden">Switch</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-open-tv"
+              class="min-h-[36px] sm:min-h-[40px] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+              <i data-lucide="monitor" class="w-4 h-4" aria-hidden="true"></i>
+              <span>TV Screen</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-share-qr"
+              aria-label="Share Public Scoreboard QR Code"
+              title="Share Public Scoreboard QR Code"
+              class="min-h-[36px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+              <i data-lucide="qr-code" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Share QR</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-print-header"
+              class="inline-flex sm:hidden lg:inline-flex min-h-[36px] sm:min-h-[40px] px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              aria-label="Print Results Sheet"
+            >
+              <i data-lucide="printer" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Print</span>
             </button>
           </div>
         </div>

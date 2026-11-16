@@ -447,3 +447,54 @@ export function formatStopwatch(ms: number): string {
   const centis = Math.floor((clamped % 1000) / 10);
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centis).padStart(2, '0')}`;
 }
+
+export function getEditablePeriodValue(periodLabel?: string): string {
+  const trimmed = String(periodLabel || '').trim();
+  if (!trimmed) return '';
+  const lower = trimmed.toLowerCase();
+  if (lower === 'live match' || lower === 'scheduled') return '';
+  return trimmed;
+}
+
+export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.now()): SportEvent {
+  return {
+    ...ev,
+    status: 'UPCOMING',
+    winners: [],
+    liveMatch: ev.liveMatch
+      ? {
+          ...ev.liveMatch,
+          scoreA: 0,
+          scoreB: 0,
+          periodLabel: 'Scheduled',
+        }
+      : {
+          teamAHouse: 'red',
+          teamBHouse: 'blue',
+          scoreA: 0,
+          scoreB: 0,
+          periodLabel: 'Scheduled',
+        },
+    updatedAt: now,
+  };
+}
+
+export function resolveCarouselIndex(
+  items: ReadonlyArray<{ id: string }>,
+  currentIndex: number,
+  currentId: string,
+  preserveById: boolean
+): { index: number; id: string } {
+  if (!items || items.length === 0) {
+    return { index: 0, id: '' };
+  }
+  if (preserveById && currentId) {
+    const matchedIdx = items.findIndex((item) => item.id === currentId);
+    if (matchedIdx !== -1) {
+      return { index: matchedIdx, id: currentId };
+    }
+  }
+  const len = items.length;
+  const wrapped = ((currentIndex % len) + len) % len;
+  return { index: wrapped, id: items[wrapped].id };
+}

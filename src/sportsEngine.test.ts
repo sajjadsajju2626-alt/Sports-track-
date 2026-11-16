@@ -6,13 +6,16 @@ import {
   computeHousePointBreakdown,
   computeHouseStandings,
   computeTopAthletes,
+  createRevertedUpcomingEvent,
   DEFAULT_POINT_RULES,
   formatStopwatch,
   generateCsvTemplate,
+  getEditablePeriodValue,
   inferDivision,
   isStudentRegisteredForEvent,
   normalizeSchoolCode,
   parseStudentCsv,
+  resolveCarouselIndex,
   validateWorkspacePin,
   type SportsDayState,
 } from './sportsEngine';
@@ -295,4 +298,55 @@ test('buildPublicShareUrl constructs clean public scoreboard URL with normalized
     buildPublicShareUrl('https://sports.example.com/?code=OLD', ''),
     'https://sports.example.com/'
   );
+});
+
+test('getEditablePeriodValue clears default Scheduled/Live Match labels and preserves custom periods', () => {
+  assert.equal(getEditablePeriodValue(''), '');
+  assert.equal(getEditablePeriodValue('Live Match'), '');
+  assert.equal(getEditablePeriodValue('Scheduled'), '');
+  assert.equal(getEditablePeriodValue("2nd Half · 65'"), "2nd Half · 65'");
+});
+
+test('createRevertedUpcomingEvent resets status to UPCOMING, clears scores to 0-0, and resets periodLabel', () => {
+  const reverted = createRevertedUpcomingEvent(
+    {
+      id: 'ev-team',
+      name: 'Football Final',
+      category: 'Senior Boys',
+      type: 'team',
+      venue: 'Central Turf',
+      status: 'LIVE',
+      winners: [{ place: 1, chestNo: '', name: 'Red House', house: 'red', metric: '3-2' }],
+      liveMatch: {
+        teamAHouse: 'red',
+        teamBHouse: 'blue',
+        scoreA: 3,
+        scoreB: 2,
+        periodLabel: "2nd Half · 68'",
+      },
+      updatedAt: 100,
+    },
+    999
+  );
+  assert.equal(reverted.status, 'UPCOMING');
+  assert.deepEqual(reverted.winners, []);
+  assert.equal(reverted.liveMatch?.scoreA, 0);
+  assert.equal(reverted.liveMatch?.scoreB, 0);
+  assert.equal(reverted.liveMatch?.periodLabel, 'Scheduled');
+  assert.equal(reverted.liveMatch?.teamAHouse, 'red');
+  assert.equal(reverted.liveMatch?.teamBHouse, 'blue');
+  assert.equal(reverted.updatedAt, 999);
+});
+
+test('resolveCarouselIndex keeps active live match anchored during score updates and wraps cleanly on navigation', () => {
+  const liveMatches = [{ id: 'm1' }, { id: 'm2' }, { id: 'm3' }];
+  // Score update arrives for m2 while m2 is displayed -> keeps m2 visible even if list order shifts
+  const reordered = [{ id: 'm3' }, { id: 'm2' }, { id: 'm1' }];
+  assert.deepEqual(resolveCarouselIndex(reordered, 1, 'm2', true), { index: 1, id: 'm2' });
+  assert.deepEqual(resolveCarouselIndex([{ id: 'm2' }, { id: 'm1' }], 1, 'm2', true), { index: 0, id: 'm2' });
+
+  // Manual navigation wraps cleanly
+  assert.deepEqual(resolveCarouselIndex(liveMatches, -1, 'm1', false), { index: 2, id: 'm3' });
+  assert.deepEqual(resolveCarouselIndex(liveMatches, 3, 'm3', false), { index: 0, id: 'm1' });
+  assert.deepEqual(resolveCarouselIndex([], 0, 'm1', true), { index: 0, id: '' });
 });

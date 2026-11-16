@@ -47,6 +47,7 @@ export interface StudentRecord {
   name: string;
   house: HouseId;
   category: string;
+  items?: string[];
 }
 
 export interface SchoolWorkspaceMeta {
@@ -137,9 +138,9 @@ export function buildInviteMessage(meta: {
 
 export function generateCsvTemplate(): string {
   return [
-    'ChestNo,Name,House,Category',
-    '101,Aarav Sharma,Red,Junior Boys',
-    '102,Priya Nair,Blue,Senior Girls',
+    'ChestNo,Name,House,Category,Items',
+    '101,Aarav Sharma,Red,Junior Boys,"100m Sprint, Long Jump"',
+    '102,Priya Nair,Blue,Senior Girls,"Shot Put, High Jump"',
   ].join('\n');
 }
 
@@ -159,6 +160,66 @@ export function inferDivision(category: string): 'boys' | 'girls' | 'open' {
   return 'open';
 }
 
+export function parseCsvRow(line: string): string[] {
+  const fields: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      fields.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
+export function parseItemsList(raw: string): string[] {
+  return String(raw || '')
+    .split(/[,;|]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export function isStudentRegisteredForEvent(
+  student: Pick<StudentRecord, 'items'> | null | undefined,
+  eventName: string
+): boolean | null {
+  const items = student?.items;
+  if (!Array.isArray(items) || items.length === 0) return null;
+
+  const normalizeToken = (s: string) =>
+    String(s || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  const stripStage = (s: string) =>
+    normalizeToken(s)
+      .replace(/\s+(final|finals|heats|heat\s*\d*|semi-?final\s*\d*|quarter-?final\s*\d*)$/i, '')
+      .trim();
+
+  const targetNorm = normalizeToken(eventName);
+  const targetBase = stripStage(eventName);
+  if (!targetNorm) return null;
+
+  return items.some((item) => {
+    const itemNorm = normalizeToken(item);
+    const itemBase = stripStage(item);
+    return itemNorm === targetNorm || (Boolean(itemBase) && itemBase === targetBase);
+  });
+}
+
 export function parseStudentCsv(csvText: string): StudentRecord[] {
   const lines = csvText
     .split(/\r?\n/)
@@ -169,7 +230,7 @@ export function parseStudentCsv(csvText: string): StudentRecord[] {
   const seen = new Set<string>();
 
   for (const line of lines) {
-    const parts = line.split(',').map((p) => p.trim());
+    const parts = parseCsvRow(line);
     if (parts.length < 3) continue;
 
     if (
@@ -183,13 +244,15 @@ export function parseStudentCsv(csvText: string): StudentRecord[] {
     const name = parts[1];
     const house = normalizeHouseId(parts[2]);
     const category = parts[3] || 'Open';
+    const rawItems = parts.length > 5 ? parts.slice(4).join(',') : parts[4] || '';
+    const items = parseItemsList(rawItems);
 
     if (!chestNo || !name || !house) continue;
     const key = chestNo.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
 
-    records.push({ chestNo, name, house, category });
+    records.push({ chestNo, name, house, category, items });
   }
 
   return records;

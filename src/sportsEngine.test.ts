@@ -8,6 +8,7 @@ import {
   formatStopwatch,
   generateCsvTemplate,
   inferDivision,
+  isStudentRegisteredForEvent,
   normalizeSchoolCode,
   parseStudentCsv,
   validateWorkspacePin,
@@ -60,14 +61,14 @@ test('buildInviteMessage creates WhatsApp text without URL parameters', () => {
   assert.ok(!msg.includes('?'));
 });
 
-test('generateCsvTemplate includes standard header and 2 sample rows', () => {
+test('generateCsvTemplate includes Items header and 2 quoted sample rows', () => {
   const csv = generateCsvTemplate();
   assert.equal(
     csv,
     [
-      'ChestNo,Name,House,Category',
-      '101,Aarav Sharma,Red,Junior Boys',
-      '102,Priya Nair,Blue,Senior Girls',
+      'ChestNo,Name,House,Category,Items',
+      '101,Aarav Sharma,Red,Junior Boys,"100m Sprint, Long Jump"',
+      '102,Priya Nair,Blue,Senior Girls,"Shot Put, High Jump"',
     ].join('\n')
   );
   const parsed = parseStudentCsv(csv);
@@ -77,31 +78,37 @@ test('generateCsvTemplate includes standard header and 2 sample rows', () => {
     name: 'Aarav Sharma',
     house: 'red',
     category: 'Junior Boys',
+    items: ['100m Sprint', 'Long Jump'],
   });
   assert.deepEqual(parsed[1], {
     chestNo: '102',
     name: 'Priya Nair',
     house: 'blue',
     category: 'Senior Girls',
+    items: ['Shot Put', 'High Jump'],
   });
 });
 
-test('CSV parser parses student rows, skips header, and deduplicates chest numbers', () => {
+test('CSV parser parses quoted Items, skips header, and deduplicates chest numbers', () => {
   const csv = `
-ChestNo, Name, House, Category
-101, Aarav Sharma, Red, Junior Boys
-102, Priya Nair, Blue, Senior Girls
-101, Duplicate Student, Green, Junior Boys
-103, Invalid House, Purple, Open
+ChestNo, Name, House, Category, Items
+101, Aarav Sharma, Red, Junior Boys, "100m Sprint, Long Jump"
+102, Priya Nair, Blue, Senior Girls, Shot Put
+101, Duplicate Student, Green, Junior Boys, 200m
+103, Invalid House, Purple, Open, 100m
 `;
   const parsed = parseStudentCsv(csv);
   assert.equal(parsed.length, 2);
-  assert.deepEqual(parsed[0], {
-    chestNo: '101',
-    name: 'Aarav Sharma',
-    house: 'red',
-    category: 'Junior Boys',
-  });
+  assert.deepEqual(parsed[0].items, ['100m Sprint', 'Long Jump']);
+  assert.deepEqual(parsed[1].items, ['Shot Put']);
+});
+
+test('isStudentRegisteredForEvent checks Items list and handles stage suffixes', () => {
+  const student = { items: ['100m Sprint', 'Long Jump'] };
+  assert.equal(isStudentRegisteredForEvent(student, '100m Sprint'), true);
+  assert.equal(isStudentRegisteredForEvent(student, '100m Sprint Final'), true);
+  assert.equal(isStudentRegisteredForEvent(student, 'Shot Put'), false);
+  assert.equal(isStudentRegisteredForEvent({ items: [] }, 'Shot Put'), null);
 });
 
 test('computeHouseStandings calculates individual + team points and ranks ties by gold medals', () => {

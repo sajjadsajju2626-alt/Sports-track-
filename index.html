@@ -1194,12 +1194,12 @@
                 <span id="roster-count-label" class="text-xs font-mono text-slate-500">0 students</span>
               </div>
               <p class="text-xs text-slate-500">
-                Format: <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">ChestNo, Name, House, Category</code>. Typing a Chest No. on the Official Scoring screen will auto-fill student name &amp; house.
+                Format: <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">ChestNo, Name, House, Category, Items</code>. Wrap multiple items in quotes (e.g. <code class="font-mono bg-slate-100 px-1 py-0.5 rounded">"100m Sprint, Long Jump"</code>). Typing a Chest No. on Official Scoring auto-fills &amp; checks registration.
               </p>
               <textarea
                 id="admin-csv-textarea"
                 rows="4"
-                placeholder="101, Aarav Sharma, Red, Junior Boys&#10;102, Priya Nair, Blue, Senior Girls"
+                placeholder='101, Aarav Sharma, Red, Junior Boys, "100m Sprint, Long Jump"&#10;102, Priya Nair, Blue, Senior Girls, "Shot Put, High Jump"'
                 class="w-full p-3 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
               ></textarea>
               <div class="flex flex-wrap items-center gap-2">
@@ -1932,17 +1932,17 @@
             },
           ],
           students: [
-            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys' },
-            { chestNo: '108', name: 'Ananya Rao', house: 'green', category: 'Senior Girls' },
-            { chestNo: '122', name: 'Diya Nair', house: 'blue', category: 'Junior Girls' },
-            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys' },
-            { chestNo: '218', name: 'Sana Kapoor', house: 'red', category: 'Senior Girls' },
-            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys' },
-            { chestNo: '412', name: 'Meera Iyer', house: 'yellow', category: 'Junior Girls' },
-            { chestNo: '415', name: 'Devansh Joshi', house: 'yellow', category: 'Senior Boys' },
-            { chestNo: '501', name: 'Ishaan Patel', house: 'red', category: 'Sub-Junior Boys' },
-            { chestNo: '502', name: 'Vivaan Gupta', house: 'blue', category: 'Sub-Junior Boys' },
-            { chestNo: '503', name: 'Reyansh Das', house: 'green', category: 'Sub-Junior Boys' },
+            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys', items: ['100m Sprint', 'Long Jump'] },
+            { chestNo: '108', name: 'Ananya Rao', house: 'green', category: 'Senior Girls', items: ['400m Track Run', 'Shot Put'] },
+            { chestNo: '122', name: 'Diya Nair', house: 'blue', category: 'Junior Girls', items: ['Shot Put'] },
+            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys', items: ['100m Sprint', 'Long Jump'] },
+            { chestNo: '218', name: 'Sana Kapoor', house: 'red', category: 'Senior Girls', items: ['400m Track Run'] },
+            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys', items: ['100m Sprint'] },
+            { chestNo: '412', name: 'Meera Iyer', house: 'yellow', category: 'Junior Girls', items: ['400m Track Run', 'Shot Put'] },
+            { chestNo: '415', name: 'Devansh Joshi', house: 'yellow', category: 'Senior Boys', items: ['Long Jump'] },
+            { chestNo: '501', name: 'Ishaan Patel', house: 'red', category: 'Sub-Junior Boys', items: ['100m Sprint'] },
+            { chestNo: '502', name: 'Vivaan Gupta', house: 'blue', category: 'Sub-Junior Boys', items: ['100m Sprint'] },
+            { chestNo: '503', name: 'Reyansh Das', house: 'green', category: 'Sub-Junior Boys', items: ['100m Sprint'] },
           ],
           lastPublishedAt: 0,
           lastPublishedTitle: '',
@@ -1983,9 +1983,9 @@
 
       function generateCsvTemplate() {
         return [
-          'ChestNo,Name,House,Category',
-          '101,Aarav Sharma,Red,Junior Boys',
-          '102,Priya Nair,Blue,Senior Girls',
+          'ChestNo,Name,House,Category,Items',
+          '101,Aarav Sharma,Red,Junior Boys,"100m Sprint, Long Jump"',
+          '102,Priya Nair,Blue,Senior Girls,"Shot Put, High Jump"',
         ].join('\n');
       }
 
@@ -2005,6 +2005,63 @@
         return 'open';
       }
 
+      function parseCsvRow(line) {
+        const fields = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i += 1) {
+          const ch = line[i];
+          if (ch === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              current += '"';
+              i += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (ch === ',' && !inQuotes) {
+            fields.push(current.trim());
+            current = '';
+          } else {
+            current += ch;
+          }
+        }
+        fields.push(current.trim());
+        return fields;
+      }
+
+      function parseItemsList(raw) {
+        return String(raw || '')
+          .split(/[,;|]/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function isStudentRegisteredForEvent(student, eventName) {
+        const items = student?.items;
+        if (!Array.isArray(items) || items.length === 0) return null;
+
+        const normalizeToken = (s) =>
+          String(s || '')
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, ' ');
+        const stripStage = (s) =>
+          normalizeToken(s)
+            .replace(/\s+(final|finals|heats|heat\s*\d*|semi-?final\s*\d*|quarter-?final\s*\d*)$/i, '')
+            .trim();
+
+        const targetNorm = normalizeToken(eventName);
+        const targetBase = stripStage(eventName);
+        if (!targetNorm) return null;
+
+        return items.some((item) => {
+          const itemNorm = normalizeToken(item);
+          const itemBase = stripStage(item);
+          return itemNorm === targetNorm || (Boolean(itemBase) && itemBase === targetBase);
+        });
+      }
+
       function parseStudentCsv(csvText) {
         const lines = String(csvText || '')
           .split(/\r?\n/)
@@ -2014,7 +2071,7 @@
         const seen = new Set();
 
         for (const line of lines) {
-          const parts = line.split(',').map((p) => p.trim());
+          const parts = parseCsvRow(line);
           if (parts.length < 3) continue;
           if (parts[0].toLowerCase().includes('chest') && parts[1].toLowerCase().includes('name')) {
             continue;
@@ -2023,11 +2080,13 @@
           const name = parts[1];
           const house = normalizeHouseId(parts[2]);
           const category = parts[3] || 'Open';
+          const rawItems = parts.length > 5 ? parts.slice(4).join(',') : parts[4] || '';
+          const items = parseItemsList(rawItems);
           if (!chestNo || !name || !house) continue;
           const key = chestNo.toLowerCase();
           if (seen.has(key)) continue;
           seen.add(key);
-          records.push({ chestNo, name, house, category });
+          records.push({ chestNo, name, house, category, items });
         }
         return records;
       }
@@ -2468,6 +2527,7 @@
 
       function applyIncomingSchoolState(incoming) {
         if (!incoming || !incoming.houses || !Array.isArray(incoming.events)) return;
+        if (JSON.stringify(incoming) === JSON.stringify(appState)) return;
         const shouldCelebrate =
           incoming.lastPublishedAt && incoming.lastPublishedAt > lastSeenPublishedAt;
         appState = incoming;
@@ -3206,22 +3266,47 @@
         container.querySelectorAll('[data-place-chest]').forEach((input) => {
           input.addEventListener('input', (e) => {
             const place = e.target.getAttribute('data-place-chest');
-            const val = e.target.value.trim().toLowerCase();
-            const hintEl = document.getElementById(`autofill-hint-${place}`);
-            if (!val) {
-              hintEl.textContent = '';
-              return;
-            }
-            const found = appState.students.find((s) => s.chestNo.toLowerCase() === val);
-            if (found) {
-              document.getElementById(`w-name-${place}`).value = found.name;
-              document.getElementById(`w-house-${place}`).value = found.house;
-              hintEl.textContent = `Auto-filled: ${found.name}`;
-            } else {
-              hintEl.textContent = '';
-            }
+            applyChestAutofill(place);
           });
         });
+      }
+
+      function applyChestAutofill(place) {
+        const chestInput = document.getElementById(`w-chest-${place}`);
+        const hintEl = document.getElementById(`autofill-hint-${place}`);
+        if (!chestInput || !hintEl) return;
+
+        const val = chestInput.value.trim().toLowerCase();
+        if (!val) {
+          hintEl.textContent = '';
+          hintEl.className = 'text-xs font-medium text-emerald-700';
+          return;
+        }
+
+        const found = appState.students.find((s) => s.chestNo.toLowerCase() === val);
+        if (!found) {
+          hintEl.textContent = '';
+          hintEl.className = 'text-xs font-medium text-emerald-700';
+          return;
+        }
+
+        const ev = appState.events.find((e) => e.id === selectedEventId);
+        const regStatus = ev ? isStudentRegisteredForEvent(found, ev.name) : null;
+
+        document.getElementById(`w-name-${place}`).value = found.name;
+        document.getElementById(`w-house-${place}`).value = found.house;
+
+        if (regStatus === false) {
+          hintEl.textContent = `Not registered for this event (${found.name} — override allowed)`;
+          hintEl.className =
+            'px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-xs font-medium text-amber-800';
+        } else if (regStatus === true) {
+          hintEl.textContent = `Registered · Auto-filled: ${found.name}`;
+          hintEl.className = 'text-xs font-medium text-emerald-700';
+        } else {
+          hintEl.textContent = `Auto-filled: ${found.name}`;
+          hintEl.className = 'text-xs font-medium text-emerald-700';
+        }
       }
 
       function populateHouseSelectOptions() {
@@ -3256,11 +3341,13 @@
         }
       }
 
-      function syncScoringSelector() {
+      function syncScoringSelector(options = {}) {
+        const { preserveInputs = false } = options;
         populateHouseSelectOptions();
         const select = document.getElementById('scoring-event-select');
         const quickWrap = document.getElementById('scoring-quick-events');
 
+        const prevEventId = selectedEventId;
         if (!appState.events.some((e) => e.id === selectedEventId)) {
           selectedEventId =
             appState.events.find((e) => e.status !== 'FINISHED')?.id || appState.events[0]?.id || '';
@@ -3310,7 +3397,9 @@
           });
         });
 
-        loadSelectedEventIntoScoringForm();
+        if (!preserveInputs || prevEventId !== selectedEventId) {
+          loadSelectedEventIntoScoringForm();
+        }
       }
 
       function setScoringMode(mode) {
@@ -3351,7 +3440,9 @@
           document.getElementById(`w-name-${place}`).value = w?.name || '';
           document.getElementById(`w-house-${place}`).value = w?.house || '';
           document.getElementById(`w-metric-${place}`).value = w?.metric || '';
-          document.getElementById(`autofill-hint-${place}`).textContent = '';
+          const hintEl = document.getElementById(`autofill-hint-${place}`);
+          hintEl.textContent = '';
+          hintEl.className = 'text-xs font-medium text-emerald-700';
         });
 
         const live = ev.liveMatch || {
@@ -3933,7 +4024,7 @@
         renderHouseLeaderboard();
         renderEventsAndAthletes();
         renderPrintSheet();
-        if (currentView === 'scoring') syncScoringSelector();
+        if (currentView === 'scoring') syncScoringSelector({ preserveInputs: true });
         if (currentView === 'admin') populateAdminForms();
         if (currentView === 'tv') renderTvScreen();
         refreshIcons();
@@ -4067,10 +4158,7 @@
             status,
             createdAt: Date.now(),
           };
-          const nextSchools = { ...masterRegistry.schools, [code]: newMeta };
-          await persistRegistry({ ...masterRegistry, schools: nextSchools });
-
-          // Seed isolated school document under sports_meets/{schoolCode}
+          // Seed isolated school document under sports_meets/{schoolCode} before rendering it in list
           const initialSchool = createBlankSchoolState(code, name, adminPin, officialPin, status);
           saveSchoolLocal(code, initialSchool);
           if (isFirestoreReady && db && fsSetDoc) {
@@ -4078,6 +4166,9 @@
               await fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, code), initialSchool);
             } catch (err) {}
           }
+
+          const nextSchools = { ...masterRegistry.schools, [code]: newMeta };
+          await persistRegistry({ ...masterRegistry, schools: nextSchools });
 
           showToast(`Created workspace ${code}`);
         });
@@ -4546,7 +4637,7 @@
           const text = document.getElementById('admin-csv-textarea').value;
           const parsed = parseStudentCsv(text);
           if (parsed.length === 0) {
-            showToast('No valid rows found. Format: ChestNo, Name, House, Category');
+            showToast('No valid rows found. Format: ChestNo, Name, House, Category, Items');
             return;
           }
           await persistState({ ...appState, students: parsed });

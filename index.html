@@ -6,12 +6,12 @@
     <title>Annual Sports &amp; Games Meet — Live Scoreboard</title>
     <meta
       name="description"
-      content="Live school sports day scoreboard, official ground scoring, admin controls, and full-screen auditorium TV display."
+      content="Multi-school live sports day scoreboard, official ground scoring, admin controls, and full-screen auditorium TV display."
     />
     <meta property="og:title" content="Annual Sports &amp; Games Meet — Live Scoreboard" />
     <meta
       property="og:description"
-      content="Live school sports day scoreboard, official ground scoring, admin controls, and full-screen auditorium TV display."
+      content="Multi-school live sports day scoreboard, official ground scoring, admin controls, and full-screen auditorium TV display."
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -151,16 +151,324 @@
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-900 selection:bg-slate-900 selection:text-white">
     <!-- ===================================================================== -->
-    <!-- MAIN APP SHELL (HIDDEN ON PRINT)                                      -->
+    <!-- VIEW 0: WELCOME / SCHOOL CODE ENTRY PORTAL                            -->
     <!-- ===================================================================== -->
-    <div id="app-shell" class="no-print min-h-screen flex flex-col">
+    <div
+      id="view-welcome"
+      class="no-print min-h-screen bg-slate-50 flex flex-col justify-between px-4 py-6 sm:px-8"
+    >
+      <!-- Top Subtle Row -->
+      <div class="max-w-5xl w-full mx-auto flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
+            <i data-lucide="trophy" class="w-4 h-4" aria-hidden="true"></i>
+          </div>
+          <span class="text-sm sm:text-base font-bold tracking-tight text-slate-900">
+            Sports Meet Live
+          </span>
+        </div>
+
+        <button
+          type="button"
+          id="btn-welcome-master"
+          class="min-h-[40px] px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 transition-colors inline-flex items-center gap-1.5"
+        >
+          <i data-lucide="key-round" class="w-3.5 h-3.5" aria-hidden="true"></i>
+          <span>Master Admin</span>
+        </button>
+      </div>
+
+      <!-- Center Portal Card -->
+      <main class="max-w-md w-full mx-auto my-auto py-8">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+          <div class="space-y-2 text-center">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+              Enter Your School Sports Meet
+            </h1>
+            <p class="text-sm text-slate-500">
+              Type your school or festival code to view live house standings, schedules, and results.
+            </p>
+          </div>
+
+          <form id="form-welcome-code" class="space-y-4">
+            <div>
+              <label
+                for="welcome-code-input"
+                class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5"
+              >
+                School / Sports Code
+              </label>
+              <input
+                id="welcome-code-input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+                placeholder="e.g. XAVIER26"
+                class="w-full min-h-[52px] px-4 py-3 rounded-xl border border-slate-300 bg-slate-50/60 font-mono text-lg font-bold tracking-widest uppercase text-center text-slate-900 placeholder:normal-case placeholder:text-slate-400 placeholder:font-normal placeholder:tracking-normal focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
+              />
+            </div>
+
+            <div
+              id="welcome-error"
+              role="alert"
+              class="hidden rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-xs sm:text-sm font-semibold text-red-800 text-center"
+            ></div>
+
+            <button
+              type="submit"
+              id="btn-enter-meet"
+              class="w-full min-h-[50px] px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm sm:text-base inline-flex items-center justify-center gap-2 transition-colors"
+            >
+              <span>Enter Sports Meet</span>
+              <i data-lucide="arrow-right" class="w-4 h-4" aria-hidden="true"></i>
+            </button>
+          </form>
+
+          <div class="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
+            <button
+              type="button"
+              id="btn-try-demo"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors"
+            >
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-600" aria-hidden="true"></i>
+              <span>Try Demo Meet</span>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Subtle Bottom Footer -->
+      <footer class="max-w-5xl w-full mx-auto text-center text-xs text-slate-400">
+        <span id="welcome-sync-hint">Cloud Firestore &amp; Offline Ready</span>
+      </footer>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SUSPENDED ACCESS SCREEN                                               -->
+    <!-- ===================================================================== -->
+    <div
+      id="view-suspended"
+      class="hidden no-print min-h-screen bg-slate-50 flex items-center justify-center p-4"
+    >
+      <div class="max-w-md w-full bg-white rounded-3xl border border-red-200 p-8 text-center space-y-5 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-700 border border-red-200 mx-auto flex items-center justify-center">
+          <i data-lucide="shield-alert" class="w-7 h-7" aria-hidden="true"></i>
+        </div>
+        <div class="space-y-2">
+          <h2 class="text-xl font-extrabold text-slate-900">Access Suspended - Contact Administrator</h2>
+          <p id="suspended-school-detail" class="text-sm text-slate-500">
+            This school workspace is currently suspended. Please contact your system administrator to restore access.
+          </p>
+        </div>
+        <button
+          type="button"
+          id="btn-suspended-switch"
+          class="w-full min-h-[46px] px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm"
+        >
+          Switch School
+        </button>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 5: SECRET MASTER ADMIN CONTROL DASHBOARD                         -->
+    <!-- ===================================================================== -->
+    <div id="view-master" class="hidden no-print min-h-screen bg-slate-50 flex flex-col">
+      <header class="sticky top-0 z-30 bg-slate-900 text-white border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-9 h-9 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center shrink-0">
+              <i data-lucide="shield" class="w-4 h-4" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0">
+              <h1 class="text-base sm:text-lg font-bold tracking-tight truncate">
+                Master Control Dashboard
+              </h1>
+              <p class="text-xs text-slate-400 truncate">Multi-School Workspace &amp; Access Management</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="btn-exit-master"
+            class="min-h-[40px] px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 shrink-0"
+          >
+            <i data-lucide="arrow-left" class="w-4 h-4" aria-hidden="true"></i>
+            <span>Exit Master</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Create New School & Change Master PIN -->
+        <div class="lg:col-span-5 space-y-6">
+          <form
+            id="form-master-create-school"
+            class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4"
+          >
+            <h2 class="text-base font-bold text-slate-900">Create New School Workspace</h2>
+
+            <div>
+              <label for="master-new-name" class="block text-xs font-semibold text-slate-600 mb-1">
+                Institution Name
+              </label>
+              <input
+                id="master-new-name"
+                type="text"
+                required
+                placeholder="e.g. St. Joseph Public School"
+                class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="master-new-code" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Unique School Code
+                </label>
+                <input
+                  id="master-new-code"
+                  type="text"
+                  required
+                  autocapitalize="characters"
+                  placeholder="e.g. STJOSEPH"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm uppercase placeholder:normal-case"
+                />
+              </div>
+              <div>
+                <label for="master-new-status" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Initial Status
+                </label>
+                <select
+                  id="master-new-status"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Suspended">Suspended</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="master-new-admin-pin" class="block text-xs font-semibold text-slate-600 mb-1">
+                  School Admin PIN
+                </label>
+                <input
+                  id="master-new-admin-pin"
+                  type="text"
+                  inputmode="numeric"
+                  required
+                  placeholder="e.g. 4820"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm"
+                />
+              </div>
+              <div>
+                <label for="master-new-official-pin" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Ground Official PIN
+                </label>
+                <input
+                  id="master-new-official-pin"
+                  type="text"
+                  inputmode="numeric"
+                  required
+                  placeholder="e.g. 2410"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm"
+                />
+              </div>
+            </div>
+
+            <div id="master-create-error" role="alert" class="hidden rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs font-semibold text-red-700"></div>
+
+            <button
+              type="submit"
+              class="w-full min-h-[44px] px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+            >
+              <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>
+              <span>Create School Workspace</span>
+            </button>
+          </form>
+
+          <!-- Change Master PIN -->
+          <form
+            id="form-master-pin-update"
+            class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4"
+          >
+            <h2 class="text-base font-bold text-slate-900">Change Master Admin PIN</h2>
+            <p class="text-xs text-slate-500">
+              Updating the Master PIN secures access to this commercial control dashboard across reloads.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="master-pin-new" class="block text-xs font-semibold text-slate-600 mb-1">
+                  New Master PIN
+                </label>
+                <input
+                  id="master-pin-new"
+                  type="password"
+                  inputmode="numeric"
+                  minlength="4"
+                  required
+                  placeholder="Min 4 digits"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm"
+                />
+              </div>
+              <div>
+                <label for="master-pin-confirm" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Confirm Master PIN
+                </label>
+                <input
+                  id="master-pin-confirm"
+                  type="password"
+                  inputmode="numeric"
+                  minlength="4"
+                  required
+                  placeholder="Repeat PIN"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 font-mono text-sm"
+                />
+              </div>
+            </div>
+            <div id="master-pin-error" role="alert" class="hidden rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs font-semibold text-red-700"></div>
+            <button
+              type="submit"
+              class="w-full min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-900 text-sm font-semibold"
+            >
+              Update Master PIN
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Manage All Schools -->
+        <div class="lg:col-span-7">
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="text-base font-bold text-slate-900">Manage All Schools</h2>
+                <p class="text-xs text-slate-500">
+                  Each school workspace is stored separately under <code class="font-mono">sports_meets/{schoolCode}</code>
+                </p>
+              </div>
+              <span id="master-school-count" class="text-xs font-mono text-slate-500">0 workspaces</span>
+            </div>
+
+            <div id="master-schools-list" class="divide-y divide-slate-200"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MAIN SCHOOL APP SHELL (HIDDEN ON PRINT / WELCOME / MASTER)            -->
+    <!-- ===================================================================== -->
+    <div id="app-shell" class="hidden no-print min-h-screen flex flex-col">
       <!-- Top Bar -->
       <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-3">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-3">
           <!-- Brand / School Name -->
-          <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 overflow-hidden">
+          <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 overflow-hidden">
             <div
-              class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0"
+              class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0"
               aria-hidden="true"
             >
               <i data-lucide="trophy" class="w-4 h-4"></i>
@@ -172,31 +480,42 @@
               >
                 Annual Sports &amp; Games Meet
               </h1>
-              <div class="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 min-w-0 truncate">
-                <span id="sync-status-label" class="truncate">Local Mode</span>
+              <div class="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 min-w-0">
+                <span id="header-school-code" class="font-mono font-semibold text-slate-700 shrink-0">DEMOFEST</span>
                 <span aria-hidden="true" class="shrink-0">·</span>
-                <span id="header-role-label" class="shrink-0 font-medium text-slate-700"
-                  >Public View</span
-                >
+                <span id="sync-status-label" class="hidden sm:inline truncate">Local Mode</span>
+                <span aria-hidden="true" class="hidden sm:inline shrink-0">·</span>
+                <span id="header-role-label" class="truncate font-medium text-slate-700">Public</span>
               </div>
             </div>
           </div>
 
           <!-- Header Actions -->
-          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              id="btn-switch-school"
+              class="min-h-[38px] sm:min-h-[40px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium inline-flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="arrow-left-right" class="w-3.5 h-3.5" aria-hidden="true"></i>
+              <span class="hidden md:inline">Switch School</span>
+              <span class="md:hidden">Switch</span>
+            </button>
+
             <button
               type="button"
               id="btn-open-tv"
-              class="min-h-[40px] px-2.5 sm:px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              class="min-h-[38px] sm:min-h-[40px] px-2 sm:px-3.5 py-1.5 sm:py-2 rounded-lg border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
             >
               <i data-lucide="monitor" class="w-4 h-4" aria-hidden="true"></i>
-              <span>TV Screen</span>
+              <span class="hidden sm:inline">TV Screen</span>
+              <span class="sm:hidden">TV</span>
             </button>
 
             <button
               type="button"
               id="btn-print-header"
-              class="hidden sm:inline-flex min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              class="hidden lg:inline-flex min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-medium items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
               aria-label="Print Results Sheet"
             >
               <i data-lucide="printer" class="w-4 h-4" aria-hidden="true"></i>
@@ -206,19 +525,21 @@
             <button
               type="button"
               id="btn-official-login"
-              class="min-h-[40px] px-2.5 sm:px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+              class="min-h-[38px] sm:min-h-[40px] px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-semibold inline-flex items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
             >
               <i data-lucide="shield-check" class="w-4 h-4" aria-hidden="true"></i>
-              <span>Official Login</span>
+              <span class="hidden sm:inline">Official Login</span>
+              <span class="sm:hidden">Login</span>
             </button>
 
             <button
               type="button"
               id="btn-logout"
-              class="hidden min-h-[40px] px-2.5 sm:px-3 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold items-center gap-1.5 transition-colors whitespace-nowrap shrink-0"
+              class="hidden min-h-[38px] sm:min-h-[40px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs sm:text-sm font-semibold items-center gap-1 sm:gap-1.5 transition-colors whitespace-nowrap shrink-0"
             >
               <i data-lucide="log-out" class="w-4 h-4" aria-hidden="true"></i>
-              <span>Exit Role</span>
+              <span class="hidden sm:inline">Exit Role</span>
+              <span class="sm:hidden">Exit</span>
             </button>
           </div>
         </div>
@@ -280,16 +601,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Toast Feedback Banner -->
-      <div
-        id="toast-banner"
-        role="status"
-        aria-live="polite"
-        class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-[92vw] rounded-xl bg-slate-900 text-white px-4 py-2.5 shadow-lg border border-slate-700 text-xs sm:text-sm font-medium flex items-center gap-2 whitespace-nowrap"
-      >
-        <span id="toast-message">Updated</span>
       </div>
 
       <!-- =================================================================== -->
@@ -385,7 +696,7 @@
           <!-- Events Grid -->
           <div id="events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 
-          <!-- Top Athletes Panel (shown when Top Athletes tab active) -->
+          <!-- Top Athletes Panel -->
           <div id="top-athletes-panel" class="hidden space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <h3 class="text-lg font-bold text-slate-900">Individual Champion Standings</h3>
@@ -720,7 +1031,7 @@
       </section>
 
       <!-- =================================================================== -->
-      <!-- VIEW 3: SPORTS ADMIN PANEL (PIN 7860)                               -->
+      <!-- VIEW 3: SPORTS ADMIN PANEL (SCHOOL-ISOLATED)                        -->
       <!-- =================================================================== -->
       <section
         id="view-admin"
@@ -733,7 +1044,7 @@
               Sports Admin &amp; Meet Controls
             </h2>
             <p class="text-sm text-slate-500">
-              Configure school details, create events, manage results, and import student chest numbers
+              Configure school details, Ground Official PIN, events, results, and student roster
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
@@ -766,7 +1077,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <!-- Left Column: Settings & CSV Roster -->
           <div class="lg:col-span-5 space-y-6">
-            <!-- School & Ticker Settings -->
+            <!-- School, Houses, Official PIN & Point Rules -->
             <form
               id="form-admin-settings"
               class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"
@@ -795,6 +1106,39 @@
                   required
                   class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm text-slate-900"
                 />
+              </div>
+
+              <!-- School Access PINs -->
+              <div class="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-slate-700">School Code</span>
+                  <span id="admin-readonly-code" class="font-mono font-bold text-slate-900">DEMOFEST</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="admin-readonly-admin-pin" class="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Admin PIN
+                    </label>
+                    <input
+                      id="admin-readonly-admin-pin"
+                      type="text"
+                      readonly
+                      class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 font-mono text-xs text-slate-700"
+                    />
+                  </div>
+                  <div>
+                    <label for="admin-official-pin" class="block text-[11px] font-semibold text-slate-600 mb-1">
+                      Ground Official PIN
+                    </label>
+                    <input
+                      id="admin-official-pin"
+                      type="text"
+                      inputmode="numeric"
+                      required
+                      class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-900"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
@@ -843,7 +1187,7 @@
               </button>
             </form>
 
-            <!-- Optional CSV Student List -->
+            <!-- Optional CSV Student List with Template Download -->
             <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
               <div class="flex items-center justify-between gap-2">
                 <h3 class="text-base font-bold text-slate-900">Optional Student Roster (CSV)</h3>
@@ -859,9 +1203,17 @@
                 class="w-full p-3 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
               ></textarea>
               <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  id="btn-download-csv-template"
+                  class="min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5"
+                >
+                  <i data-lucide="download" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                  <span>Download Template</span>
+                </button>
                 <label class="min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer inline-flex items-center gap-1.5">
                   <i data-lucide="upload" class="w-3.5 h-3.5" aria-hidden="true"></i>
-                  <span>Upload CSV File</span>
+                  <span>Upload CSV</span>
                   <input id="admin-csv-file" type="file" accept=".csv,.txt" class="sr-only" />
                 </label>
                 <button
@@ -1074,6 +1426,18 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- GLOBAL TOAST BANNER                                                   -->
+    <!-- ===================================================================== -->
+    <div
+      id="toast-banner"
+      role="status"
+      aria-live="polite"
+      class="hidden no-print fixed bottom-4 left-1/2 -translate-x-1/2 z-[80] max-w-[92vw] rounded-xl bg-slate-900 text-white px-4 py-2.5 shadow-lg border border-slate-700 text-xs sm:text-sm font-medium flex items-center gap-2 whitespace-nowrap"
+    >
+      <span id="toast-message">Updated</span>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- WINNER CELEBRATION OVERLAY (4-SECOND POP-UP)                          -->
     <!-- ===================================================================== -->
     <div
@@ -1107,7 +1471,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- PIN LOGIN MODAL                                                       -->
+    <!-- PIN LOGIN MODAL (NO DEFAULT PIN HINTS)                                -->
     <!-- ===================================================================== -->
     <div
       id="pin-modal"
@@ -1119,9 +1483,9 @@
       <div class="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-6 shadow-xl space-y-5">
         <div class="flex items-start justify-between gap-3">
           <div>
-            <h3 id="pin-modal-title" class="text-lg font-bold text-slate-900">Official &amp; Admin Login</h3>
+            <h3 id="pin-modal-title" class="text-lg font-bold text-slate-900">Console Login</h3>
             <p class="text-xs text-slate-500 mt-0.5">
-              Enter Ground Official PIN (<span class="font-mono font-semibold">1111</span>) or Admin PIN (<span class="font-mono font-semibold">7860</span>)
+              Enter your assigned PIN
             </p>
           </div>
           <button
@@ -1137,13 +1501,13 @@
         <form id="form-pin-login" class="space-y-4">
           <div>
             <label for="pin-input" class="block text-xs font-semibold text-slate-700 mb-1.5">
-              4-Digit Access PIN
+              Assigned PIN
             </label>
             <input
               id="pin-input"
               type="password"
               inputmode="numeric"
-              maxlength="8"
+              maxlength="12"
               autocomplete="off"
               placeholder="Enter PIN"
               class="w-full min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-xl tracking-widest text-center text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
@@ -1156,6 +1520,99 @@
           >
             Unlock Console
           </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- CUSTOM CONFIRMATION MODAL (REPLACES WINDOW.CONFIRM)                   -->
+    <!-- ===================================================================== -->
+    <div
+      id="confirm-modal"
+      class="hidden no-print fixed inset-0 z-[75] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirm-modal-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-6 shadow-xl space-y-4">
+        <div class="space-y-1.5">
+          <h3 id="confirm-modal-title" class="text-lg font-bold text-slate-900">Confirm Action</h3>
+          <p id="confirm-modal-message" class="text-sm text-slate-600">
+            Are you sure you want to continue?
+          </p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            id="btn-confirm-cancel"
+            class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            id="btn-confirm-ok"
+            class="min-h-[42px] px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MASTER ADMIN: EDIT SCHOOL WORKSPACE MODAL                             -->
+    <!-- ===================================================================== -->
+    <div
+      id="master-edit-school-modal"
+      class="hidden no-print fixed inset-0 z-[65] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="master-edit-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between gap-2">
+          <h3 id="master-edit-title" class="text-lg font-bold text-slate-900">Edit School Workspace</h3>
+          <button
+            type="button"
+            id="btn-close-master-edit"
+            aria-label="Close edit school modal"
+            class="w-10 h-10 rounded-lg hover:bg-slate-100 text-slate-500 inline-flex items-center justify-center"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <form id="form-master-edit-school" class="space-y-3.5">
+          <input type="hidden" id="master-edit-code" />
+          <div>
+            <label for="master-edit-name" class="block text-xs font-semibold text-slate-600 mb-1">Institution Name</label>
+            <input id="master-edit-name" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="master-edit-admin-pin" class="block text-xs font-semibold text-slate-600 mb-1">Admin PIN</label>
+              <input id="master-edit-admin-pin" type="text" inputmode="numeric" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-sm" />
+            </div>
+            <div>
+              <label for="master-edit-official-pin" class="block text-xs font-semibold text-slate-600 mb-1">Official PIN</label>
+              <input id="master-edit-official-pin" type="text" inputmode="numeric" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-sm" />
+            </div>
+          </div>
+          <div>
+            <label for="master-edit-status" class="block text-xs font-semibold text-slate-600 mb-1">Workspace Status</label>
+            <select id="master-edit-status" class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm">
+              <option value="Active">Active</option>
+              <option value="Suspended">Suspended</option>
+            </select>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" id="btn-cancel-master-edit" class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700">
+              Cancel
+            </button>
+            <button type="submit" class="min-h-[42px] px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold">
+              Save Workspace
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -1242,8 +1699,6 @@
     <script type="module">
       // =======================================================================
       // 1. FIREBASE CLOUD FIRESTORE CONFIG
-      // Configured for live Cloud Firestore sync on sports_day/main_event,
-      // with automatic localStorage fallback if offline or blocked.
       // =======================================================================
       const firebaseConfig = {
         apiKey: "AIzaSyDD01xHRd9S37VxjptPxrFCXENWu8Aqjro",
@@ -1255,11 +1710,13 @@
         measurementId: "G-0MRSW1PP63"
       };
 
-      const FIRESTORE_COLLECTION = 'sports_day';
-      const FIRESTORE_DOC_ID = 'main_event';
-      const STORAGE_KEY = 'sports_day_main_event_v1';
+      const FIRESTORE_COLLECTION = 'sports_meets';
+      const MASTER_REGISTRY_DOC_ID = '_master_registry';
+      const REGISTRY_STORAGE_KEY = 'sports_meets_master_registry_v1';
+      const LAST_CODE_STORAGE_KEY = 'sports_meets_last_code_v1';
+      const SCHOOL_STORAGE_PREFIX = 'sports_meets_school_';
+      const DEMO_SCHOOL_CODE = 'DEMOFEST';
 
-      // House visual palette (accessible contrast in light & dark views)
       const HOUSE_THEME = {
         red: {
           bar: 'bg-red-600',
@@ -1296,12 +1753,32 @@
       };
 
       // =======================================================================
-      // 2. DEFAULT & SAMPLE SCHOOL DATA
+      // 2. DEFAULT & SAMPLE SCHOOL DATA FACTORIES
       // =======================================================================
-      function createBlankState() {
+      function createDefaultRegistry() {
         return {
-          schoolName: 'Annual Sports & Games Meet',
-          tickerMessage: 'Welcome to Annual Sports & Games Meet — Track & Field athletes report to Call Room 15 minutes before your heat.',
+          masterPin: '999999',
+          schools: {
+            [DEMO_SCHOOL_CODE]: {
+              code: DEMO_SCHOOL_CODE,
+              name: 'St. Xavier Public School — Demo Meet',
+              adminPin: '7860',
+              officialPin: '1111',
+              status: 'Active',
+              createdAt: Date.now(),
+            },
+          },
+        };
+      }
+
+      function createBlankSchoolState(code, name, adminPin = '7860', officialPin = '1111', status = 'Active') {
+        return {
+          schoolCode: code,
+          schoolName: name || 'Annual Sports & Games Meet',
+          adminPin,
+          officialPin,
+          status,
+          tickerMessage: `Welcome to ${name || 'Annual Sports & Games Meet'} — Athletes report to Call Room 15 minutes before your event.`,
           houses: {
             red: { id: 'red', name: 'Red House', color: '#DC2626' },
             blue: { id: 'blue', name: 'Blue House', color: '#2563EB' },
@@ -1312,65 +1789,21 @@
             individual: [5, 3, 1],
             team: [10, 6, 4],
           },
-          events: [
-            {
-              id: 'ev-1',
-              name: '100m Sprint Final',
-              category: 'Senior Boys',
-              type: 'individual',
-              venue: 'Main Track',
-              status: 'FINISHED',
-              winners: [
-                { place: 1, chestNo: '104', name: 'Aarav Menon', house: 'blue', metric: '11.42s' },
-                { place: 2, chestNo: '211', name: 'Rohan Verma', house: 'red', metric: '11.68s' },
-                { place: 3, chestNo: '309', name: 'Kabir Khan', house: 'green', metric: '11.95s' },
-              ],
-              updatedAt: Date.now() - 1800000,
-            },
-            {
-              id: 'ev-2',
-              name: 'Football Championship Final',
-              category: 'Senior Boys',
-              type: 'team',
-              venue: 'Central Turf',
-              status: 'LIVE',
-              winners: [],
-              liveMatch: {
-                teamAHouse: 'red',
-                teamBHouse: 'blue',
-                scoreA: 2,
-                scoreB: 1,
-                periodLabel: '2nd Half',
-              },
-              updatedAt: Date.now() - 300000,
-            },
-            {
-              id: 'ev-3',
-              name: '200m Dash',
-              category: 'Sub-Junior Boys',
-              type: 'individual',
-              venue: 'Track Lane 1-8',
-              status: 'UPCOMING',
-              winners: [],
-              updatedAt: Date.now() - 120000,
-            },
-          ],
-          students: [
-            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys' },
-            { chestNo: '108', name: 'Ananya Rao', house: 'green', category: 'Senior Girls' },
-            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys' },
-            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys' },
-            { chestNo: '412', name: 'Meera Iyer', house: 'yellow', category: 'Junior Girls' },
-          ],
+          events: [],
+          students: [],
           lastPublishedAt: 0,
           lastPublishedTitle: '',
         };
       }
 
-      function createSampleSchoolState() {
+      function createSampleSchoolState(code = DEMO_SCHOOL_CODE, name = 'St. Xavier Public School — Demo Meet', adminPin = '7860', officialPin = '1111', status = 'Active') {
         const now = Date.now();
         return {
-          schoolName: 'St. Xavier Public School — Annual Sports Meet',
+          schoolCode: code,
+          schoolName: name,
+          adminPin,
+          officialPin,
+          status,
           tickerMessage: 'Sub-Junior Boys 100m finalists report to Track Start Line · Football Final 2nd Half underway on Central Turf!',
           houses: {
             red: { id: 'red', name: 'Red House', color: '#DC2626' },
@@ -1466,7 +1899,7 @@
                 teamBHouse: 'blue',
                 scoreA: 3,
                 scoreB: 2,
-                periodLabel: '2nd Half · 68\'',
+                periodLabel: "2nd Half · 68'",
               },
               updatedAt: now - 120000,
             },
@@ -1517,8 +1950,47 @@
       }
 
       // =======================================================================
-      // 3. PURE SCORING & DATA DERIVATION ENGINE
+      // 3. PURE SCORING & WORKSPACE ENGINE
       // =======================================================================
+      function normalizeSchoolCode(raw) {
+        return String(raw || '')
+          .trim()
+          .toUpperCase()
+          .replace(/[^A-Z0-9_-]/g, '');
+      }
+
+      function validateWorkspacePin(pin, pins) {
+        const trimmed = String(pin || '').trim();
+        if (!trimmed) return null;
+        if (pins.masterPin && trimmed === pins.masterPin) return 'master';
+        if (pins.adminPin && trimmed === pins.adminPin) return 'admin';
+        if (pins.officialPin && trimmed === pins.officialPin) return 'official';
+        return null;
+      }
+
+      function buildInviteMessage(meta) {
+        return [
+          `*${meta.name} — Annual Sports & Games Meet*`,
+          `Open the Sports Meet portal and enter:`,
+          `School Code: *${meta.code}*`,
+          ``,
+          `Role PINs:`,
+          `• Sports Admin (PE Teacher): *${meta.adminPin}*`,
+          `• Ground Official / Referee: *${meta.officialPin}*`,
+          `(Students & parents can view live scores using the School Code without a PIN.)`,
+        ].join('\n');
+      }
+
+      function generateCsvTemplate() {
+        return [
+          'ChestNo,Name,House,Category',
+          '101,Aarav Menon,Blue,Senior Boys',
+          '102,Ananya Rao,Green,Senior Girls',
+          '103,Rohan Verma,Red,Junior Boys',
+          '104,Meera Iyer,Yellow,Junior Girls',
+        ].join('\n');
+      }
+
       function normalizeHouseId(raw) {
         const val = String(raw || '').trim().toLowerCase();
         if (val === 'red' || val.startsWith('red ')) return 'red';
@@ -1656,24 +2128,31 @@
       }
 
       // =======================================================================
-      // 4. PERSISTENCE LAYER (FIRESTORE MODULAR SDK v10+ + LOCALSTORAGE FALLBACK)
+      // 4. APPLICATION STATE & MULTI-SCHOOL PERSISTENCE (FIRESTORE + LOCAL)
       // =======================================================================
-      let appState = loadFromLocalStorage() || createBlankState();
-      let currentRole = 'public'; // 'public' | 'official' | 'admin'
-      let currentView = 'home'; // 'home' | 'scoring' | 'admin' | 'tv'
-      let activeFilterTab = 'all'; // 'all' | 'active' | 'finished' | 'athletes'
-      let activeDivision = 'all'; // 'all' | 'boys' | 'girls'
+      let masterRegistry = loadRegistryLocal() || createDefaultRegistry();
+      let activeSchoolCode = '';
+      let appState = createSampleSchoolState();
+      let currentRole = 'public'; // 'public' | 'official' | 'admin' | 'master'
+      let currentView = 'welcome'; // 'welcome' | 'home' | 'scoring' | 'admin' | 'tv' | 'master' | 'suspended'
+      let activeFilterTab = 'all';
+      let activeDivision = 'all';
       let searchQuery = '';
-      let selectedEventId = appState.events[0]?.id || '';
+      let selectedEventId = '';
       let scoringMode = 'individual';
       let tvCarouselIndex = 0;
-      let lastSeenPublishedAt = appState.lastPublishedAt || 0;
-      let resetConfirmArmed = false;
+      let lastSeenPublishedAt = 0;
+      let isNavigatingFromPopstate = false;
 
-      // Firestore handles (if configured)
-      let firestoreRef = null;
-      let firestoreSetDoc = null;
-      let isFirestoreLive = false;
+      // Firestore SDK handles
+      let db = null;
+      let fsDoc = null;
+      let fsGetDoc = null;
+      let fsSetDoc = null;
+      let fsDeleteDoc = null;
+      let fsOnSnapshot = null;
+      let isFirestoreReady = false;
+      let unsubscribeSchoolSnapshot = null;
 
       function isFirebaseConfigured(cfg) {
         return Boolean(
@@ -1685,31 +2164,63 @@
         );
       }
 
-      function loadFromLocalStorage() {
+      function loadRegistryLocal() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          const raw = localStorage.getItem(REGISTRY_STORAGE_KEY);
           if (!raw) return null;
           const parsed = JSON.parse(raw);
-          if (parsed && parsed.houses && Array.isArray(parsed.events)) {
-            return parsed;
-          }
-        } catch (err) {
-          console.warn('Could not read localStorage state', err);
-        }
+          if (parsed && parsed.masterPin && parsed.schools) return parsed;
+        } catch (err) {}
         return null;
       }
 
-      function saveToLocalStorage(state) {
+      function saveRegistryLocal(reg) {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch (err) {
-          console.warn('Could not save localStorage state', err);
+          localStorage.setItem(REGISTRY_STORAGE_KEY, JSON.stringify(reg));
+        } catch (err) {}
+      }
+
+      function loadSchoolLocal(code) {
+        try {
+          const raw = localStorage.getItem(SCHOOL_STORAGE_PREFIX + code);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.houses && Array.isArray(parsed.events)) return parsed;
+        } catch (err) {}
+        return null;
+      }
+
+      function saveSchoolLocal(code, state) {
+        try {
+          localStorage.setItem(SCHOOL_STORAGE_PREFIX + code, JSON.stringify(state));
+        } catch (err) {}
+      }
+
+      function deleteSchoolLocal(code) {
+        try {
+          localStorage.removeItem(SCHOOL_STORAGE_PREFIX + code);
+        } catch (err) {}
+      }
+
+      async function persistRegistry(nextReg) {
+        masterRegistry = nextReg;
+        saveRegistryLocal(masterRegistry);
+        if (currentView === 'master') renderMasterDashboard();
+
+        if (isFirestoreReady && db) {
+          try {
+            await fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID), masterRegistry);
+          } catch (err) {
+            console.warn('Firestore registry write deferred locally', err);
+          }
         }
       }
 
       async function persistState(nextState, triggerCelebration = false) {
         appState = nextState;
-        saveToLocalStorage(appState);
+        if (activeSchoolCode) {
+          saveSchoolLocal(activeSchoolCode, appState);
+        }
 
         if (triggerCelebration && appState.lastPublishedAt > lastSeenPublishedAt) {
           lastSeenPublishedAt = appState.lastPublishedAt;
@@ -1718,79 +2229,251 @@
 
         renderAll();
 
-        if (isFirestoreLive && firestoreRef && firestoreSetDoc) {
+        if (isFirestoreReady && db && activeSchoolCode) {
           try {
-            await firestoreSetDoc(firestoreRef, appState);
+            await fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState);
           } catch (err) {
-            console.error('Firestore write failed; saved locally', err);
+            console.warn('Firestore school write saved locally', err);
             showToast('Saved locally (Firestore sync pending)');
           }
         }
       }
 
-      async function initDataLayer() {
-        if (!loadFromLocalStorage()) {
-          saveToLocalStorage(appState);
+      function ensureDemoSeededLocal() {
+        if (!masterRegistry.schools[DEMO_SCHOOL_CODE]) {
+          masterRegistry.schools[DEMO_SCHOOL_CODE] = {
+            code: DEMO_SCHOOL_CODE,
+            name: 'St. Xavier Public School — Demo Meet',
+            adminPin: '7860',
+            officialPin: '1111',
+            status: 'Active',
+            createdAt: Date.now(),
+          };
+          saveRegistryLocal(masterRegistry);
         }
+        if (!loadSchoolLocal(DEMO_SCHOOL_CODE)) {
+          saveSchoolLocal(DEMO_SCHOOL_CODE, createSampleSchoolState(DEMO_SCHOOL_CODE));
+        }
+      }
+
+      async function initDataLayer() {
+        ensureDemoSeededLocal();
 
         // Cross-tab localStorage sync
         window.addEventListener('storage', (ev) => {
-          if (ev.key === STORAGE_KEY && ev.newValue) {
+          if (ev.key === REGISTRY_STORAGE_KEY && ev.newValue) {
             try {
-              const incoming = JSON.parse(ev.newValue);
-              applyIncomingState(incoming);
+              masterRegistry = JSON.parse(ev.newValue);
+              if (currentView === 'master') renderMasterDashboard();
+              if (activeSchoolCode && masterRegistry.schools[activeSchoolCode]?.status === 'Suspended') {
+                showSuspendedScreen(activeSchoolCode);
+              }
+            } catch (e) {}
+          } else if (activeSchoolCode && ev.key === SCHOOL_STORAGE_PREFIX + activeSchoolCode && ev.newValue) {
+            try {
+              applyIncomingSchoolState(JSON.parse(ev.newValue));
             } catch (e) {}
           }
         });
 
-        if (!isFirebaseConfigured(firebaseConfig)) {
-          document.getElementById('sync-status-label').textContent = 'Local Mode';
-          return;
+        // Connect Firebase Firestore if configured
+        if (isFirebaseConfigured(firebaseConfig)) {
+          try {
+            const [{ initializeApp }, firestoreMod] = await Promise.all([
+              import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+              import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
+            ]);
+
+            const fbApp = initializeApp(firebaseConfig);
+            db = firestoreMod.getFirestore(fbApp);
+            fsDoc = firestoreMod.doc;
+            fsGetDoc = firestoreMod.getDoc;
+            fsSetDoc = firestoreMod.setDoc;
+            fsDeleteDoc = firestoreMod.deleteDoc;
+            fsOnSnapshot = firestoreMod.onSnapshot;
+            isFirestoreReady = true;
+
+            document.getElementById('sync-status-label').textContent = 'Firestore Live Sync';
+            document.getElementById('welcome-sync-hint').textContent = 'Connected to Cloud Firestore Live Sync';
+
+            // Subscribe to Master Registry in real time
+            const regRef = fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID);
+            fsOnSnapshot(
+              regRef,
+              (snap) => {
+                if (snap.exists()) {
+                  const remoteReg = snap.data();
+                  if (remoteReg && remoteReg.schools) {
+                    masterRegistry = remoteReg;
+                    saveRegistryLocal(masterRegistry);
+                    if (currentView === 'master') renderMasterDashboard();
+                    if (activeSchoolCode) {
+                      const meta = masterRegistry.schools[activeSchoolCode];
+                      if (meta && meta.status === 'Suspended' && currentRole !== 'master') {
+                        showSuspendedScreen(activeSchoolCode);
+                      }
+                    }
+                  }
+                } else {
+                  fsSetDoc(regRef, masterRegistry).catch(() => {});
+                }
+              },
+              (err) => {
+                console.warn('Firestore registry listener fallback to local', err);
+                isFirestoreReady = false;
+                document.getElementById('sync-status-label').textContent = 'Local Mode';
+              }
+            );
+          } catch (err) {
+            console.warn('Firebase SDK unavailable; running in Local Mode', err);
+            document.getElementById('sync-status-label').textContent = 'Local Mode';
+          }
         }
 
-        try {
-          const [{ initializeApp }, { getFirestore, doc, onSnapshot, setDoc }] = await Promise.all([
-            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
-            import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
-          ]);
+        // Initial routing: ?autostart=1 or remembered School Code
+        const params = new URLSearchParams(window.location.search);
+        const autostart = params.get('autostart') === '1';
+        const rememberedCode = localStorage.getItem(LAST_CODE_STORAGE_KEY);
 
-          const fbApp = initializeApp(firebaseConfig);
-          const db = getFirestore(fbApp);
-          firestoreRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC_ID);
-          firestoreSetDoc = setDoc;
-          isFirestoreLive = true;
-
-          document.getElementById('sync-status-label').textContent = 'Firestore Live Sync';
-
-          onSnapshot(
-            firestoreRef,
-            (snap) => {
-              if (snap.exists()) {
-                applyIncomingState(snap.data());
-              } else {
-                setDoc(firestoreRef, appState).catch((writeErr) => {
-                  console.warn('Firestore initial seed skipped; running locally', writeErr);
-                });
-              }
-            },
-            (err) => {
-              console.warn('Firestore listener error; falling back to Local Mode', err);
-              isFirestoreLive = false;
-              document.getElementById('sync-status-label').textContent = 'Local Mode';
-            }
-          );
-        } catch (err) {
-          console.warn('Firebase SDK unavailable; running in Local Mode', err);
-          document.getElementById('sync-status-label').textContent = 'Local Mode (Offline Fallback)';
+        if (autostart) {
+          await enterSchoolWorkspace(DEMO_SCHOOL_CODE, { pushHistory: false });
+        } else if (rememberedCode) {
+          const ok = await enterSchoolWorkspace(rememberedCode, { pushHistory: false, silentMissing: true });
+          if (!ok) {
+            localStorage.removeItem(LAST_CODE_STORAGE_KEY);
+            setView('welcome', { pushHistory: false });
+          }
+        } else {
+          setView('welcome', { pushHistory: false });
         }
       }
 
-      function applyIncomingState(incoming) {
+      async function enterSchoolWorkspace(rawCode, options = {}) {
+        const { pushHistory = true, silentMissing = false } = options;
+        const code = normalizeSchoolCode(rawCode);
+        const errEl = document.getElementById('welcome-error');
+
+        if (!code) {
+          if (!silentMissing) {
+            errEl.textContent = 'Please enter a valid School / Sports Code.';
+            errEl.classList.remove('hidden');
+          }
+          return false;
+        }
+
+        // Lookup in registry (and remote Firestore if not yet cached locally)
+        let meta = masterRegistry.schools[code] || null;
+        let remoteSchoolDoc = null;
+
+        if (isFirestoreReady && db) {
+          try {
+            if (!meta) {
+              const regSnap = await fsGetDoc(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID));
+              if (regSnap.exists() && regSnap.data()?.schools) {
+                masterRegistry = regSnap.data();
+                saveRegistryLocal(masterRegistry);
+                meta = masterRegistry.schools[code] || null;
+              }
+            }
+            const schoolSnap = await fsGetDoc(fsDoc(db, FIRESTORE_COLLECTION, code));
+            if (schoolSnap.exists()) {
+              remoteSchoolDoc = schoolSnap.data();
+            }
+          } catch (e) {}
+        }
+
+        // Ensure DEMOFEST always resolves even if wiped remotely
+        if (!meta && code === DEMO_SCHOOL_CODE) {
+          ensureDemoSeededLocal();
+          meta = masterRegistry.schools[DEMO_SCHOOL_CODE];
+        }
+
+        if (!meta && !remoteSchoolDoc) {
+          if (!silentMissing) {
+            errEl.textContent = `School Code "${code}" not found. Check your code or click Try Demo Meet.`;
+            errEl.classList.remove('hidden');
+          }
+          return false;
+        }
+
+        const effectiveStatus = meta?.status || remoteSchoolDoc?.status || 'Active';
+        if (effectiveStatus === 'Suspended') {
+          if (!silentMissing && currentView === 'welcome') {
+            errEl.textContent = 'Access Suspended - Contact Administrator';
+            errEl.classList.remove('hidden');
+          } else {
+            showSuspendedScreen(code);
+          }
+          return false;
+        }
+
+        errEl.classList.add('hidden');
+        activeSchoolCode = code;
+        localStorage.setItem(LAST_CODE_STORAGE_KEY, code);
+
+        // Detach previous school snapshot listener
+        if (typeof unsubscribeSchoolSnapshot === 'function') {
+          unsubscribeSchoolSnapshot();
+          unsubscribeSchoolSnapshot = null;
+        }
+
+        // Load local or remote state
+        let initialState =
+          remoteSchoolDoc ||
+          loadSchoolLocal(code) ||
+          (code === DEMO_SCHOOL_CODE
+            ? createSampleSchoolState(code, meta?.name, meta?.adminPin, meta?.officialPin, 'Active')
+            : createBlankSchoolState(code, meta?.name, meta?.adminPin, meta?.officialPin, 'Active'));
+
+        if (meta) {
+          initialState.schoolCode = code;
+          initialState.adminPin = meta.adminPin;
+          initialState.officialPin = meta.officialPin;
+          initialState.status = meta.status;
+          if (!initialState.schoolName) initialState.schoolName = meta.name;
+        }
+
+        appState = initialState;
+        lastSeenPublishedAt = appState.lastPublishedAt || 0;
+        selectedEventId = appState.events[0]?.id || '';
+        saveSchoolLocal(code, appState);
+
+        // Subscribe to isolated Firestore document: sports_meets/{schoolCode}
+        if (isFirestoreReady && db && fsOnSnapshot) {
+          const schoolRef = fsDoc(db, FIRESTORE_COLLECTION, code);
+          unsubscribeSchoolSnapshot = fsOnSnapshot(
+            schoolRef,
+            (snap) => {
+              if (snap.exists()) {
+                const data = snap.data();
+                if (data.status === 'Suspended' && currentRole !== 'master') {
+                  showSuspendedScreen(code);
+                  return;
+                }
+                applyIncomingSchoolState(data);
+              } else {
+                fsSetDoc(schoolRef, appState).catch(() => {});
+              }
+            },
+            (err) => {
+              console.warn('Firestore school snapshot fallback to local', err);
+            }
+          );
+        }
+
+        currentRole = 'public';
+        updateRoleUI();
+        renderAll();
+        setView('home', { pushHistory });
+        return true;
+      }
+
+      function applyIncomingSchoolState(incoming) {
         if (!incoming || !incoming.houses || !Array.isArray(incoming.events)) return;
         const shouldCelebrate =
           incoming.lastPublishedAt && incoming.lastPublishedAt > lastSeenPublishedAt;
         appState = incoming;
-        saveToLocalStorage(appState);
+        if (activeSchoolCode) saveSchoolLocal(activeSchoolCode, appState);
         if (shouldCelebrate) {
           lastSeenPublishedAt = incoming.lastPublishedAt;
           showWinnerCelebration();
@@ -1798,8 +2481,33 @@
         renderAll();
       }
 
+      function showSuspendedScreen(code) {
+        if (typeof unsubscribeSchoolSnapshot === 'function') {
+          unsubscribeSchoolSnapshot();
+          unsubscribeSchoolSnapshot = null;
+        }
+        const meta = masterRegistry.schools[code];
+        document.getElementById('suspended-school-detail').textContent = meta
+          ? `"${meta.name}" (${code}) is currently suspended. Contact your administrator to restore access.`
+          : `Workspace "${code}" is currently suspended. Contact your administrator to restore access.`;
+        setView('suspended', { pushHistory: false });
+      }
+
+      function switchSchoolToWelcome() {
+        if (typeof unsubscribeSchoolSnapshot === 'function') {
+          unsubscribeSchoolSnapshot();
+          unsubscribeSchoolSnapshot = null;
+        }
+        activeSchoolCode = '';
+        currentRole = 'public';
+        localStorage.removeItem(LAST_CODE_STORAGE_KEY);
+        document.getElementById('welcome-error').classList.add('hidden');
+        document.getElementById('welcome-code-input').value = '';
+        setView('welcome');
+      }
+
       // =======================================================================
-      // 5. UI FEEDBACK & NAVIGATION
+      // 5. NAVIGATION, HISTORY (HARDWARE BACK BUTTON) & MODALS
       // =======================================================================
       let toastTimer = null;
       function showToast(msg) {
@@ -1813,8 +2521,17 @@
         }, 2800);
       }
 
-      function setView(view) {
+      function setView(view, options = {}) {
+        const { pushHistory = true } = options;
+        const prevView = currentView;
         currentView = view;
+
+        const isShell = view === 'home' || view === 'scoring' || view === 'admin' || view === 'tv';
+        document.getElementById('view-welcome').classList.toggle('hidden', view !== 'welcome');
+        document.getElementById('view-suspended').classList.toggle('hidden', view !== 'suspended');
+        document.getElementById('view-master').classList.toggle('hidden', view !== 'master');
+        document.getElementById('app-shell').classList.toggle('hidden', !isShell);
+
         document.getElementById('view-home').classList.toggle('hidden', view !== 'home');
         document.getElementById('view-scoring').classList.toggle('hidden', view !== 'scoring');
         document.getElementById('view-admin').classList.toggle('hidden', view !== 'admin');
@@ -1826,8 +2543,80 @@
           populateAdminForms();
         } else if (view === 'tv') {
           renderTvScreen();
+        } else if (view === 'master') {
+          renderMasterDashboard();
         }
+
+        if (pushHistory && !isNavigatingFromPopstate && prevView !== view) {
+          try {
+            window.history.pushState({ view, schoolCode: activeSchoolCode }, '');
+          } catch (e) {}
+        }
+
         refreshIcons();
+      }
+
+      function setupHardwareBackSupport() {
+        try {
+          window.history.replaceState({ view: currentView, schoolCode: activeSchoolCode }, '');
+        } catch (e) {}
+
+        window.addEventListener('popstate', (ev) => {
+          // Close any open modal first
+          const openModalIds = [
+            'confirm-modal',
+            'pin-modal',
+            'edit-event-modal',
+            'master-edit-school-modal',
+            'winner-celebration-overlay',
+          ];
+          for (const id of openModalIds) {
+            const el = document.getElementById(id);
+            if (el && !el.classList.contains('hidden')) {
+              el.classList.add('hidden');
+              return;
+            }
+          }
+
+          isNavigatingFromPopstate = true;
+          try {
+            const targetView = ev.state?.view;
+            if (targetView === 'welcome' || !activeSchoolCode) {
+              setView('welcome', { pushHistory: false });
+            } else if (targetView === 'home' || targetView === 'scoring' || targetView === 'admin') {
+              if (targetView === 'scoring' && currentRole !== 'official' && currentRole !== 'admin') {
+                setView('home', { pushHistory: false });
+              } else if (targetView === 'admin' && currentRole !== 'admin') {
+                setView('home', { pushHistory: false });
+              } else {
+                setView(targetView, { pushHistory: false });
+              }
+            } else if (currentView === 'tv' || currentView === 'scoring' || currentView === 'admin') {
+              setView('home', { pushHistory: false });
+            } else if (currentView === 'master') {
+              setView(activeSchoolCode ? 'home' : 'welcome', { pushHistory: false });
+            } else {
+              setView('welcome', { pushHistory: false });
+            }
+          } finally {
+            isNavigatingFromPopstate = false;
+          }
+        });
+      }
+
+      // Custom Confirmation Modal helper
+      let pendingConfirmCallback = null;
+      function openConfirmModal({ title, message, confirmLabel = 'Confirm', onConfirm }) {
+        document.getElementById('confirm-modal-title').textContent = title;
+        document.getElementById('confirm-modal-message').textContent = message;
+        document.getElementById('btn-confirm-ok').textContent = confirmLabel;
+        pendingConfirmCallback = onConfirm;
+        document.getElementById('confirm-modal').classList.remove('hidden');
+      }
+
+      function closeConfirmModal() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        pendingConfirmCallback = null;
       }
 
       function updateRoleUI() {
@@ -1840,7 +2629,7 @@
         const btnAdmin = document.getElementById('btn-nav-admin');
 
         if (currentRole === 'public') {
-          roleLabel.textContent = 'Public View';
+          roleLabel.textContent = 'Public';
           roleNavBar.classList.add('hidden');
           btnLogin.classList.remove('hidden');
           btnLogout.classList.add('hidden');
@@ -1848,7 +2637,7 @@
           btnScoring.classList.add('hidden');
           btnAdmin.classList.add('hidden');
         } else if (currentRole === 'official') {
-          roleLabel.textContent = 'Ground Official';
+          roleLabel.textContent = 'Official';
           roleNavBar.classList.remove('hidden');
           btnLogin.classList.add('hidden');
           btnLogout.classList.remove('hidden');
@@ -1859,7 +2648,7 @@
           btnScoring.classList.add('inline-flex');
           btnAdmin.classList.add('hidden');
         } else if (currentRole === 'admin') {
-          roleLabel.textContent = 'Sports Admin';
+          roleLabel.textContent = 'Admin';
           roleNavBar.classList.remove('hidden');
           btnLogin.classList.add('hidden');
           btnLogout.classList.remove('hidden');
@@ -1880,10 +2669,165 @@
       }
 
       // =======================================================================
-      // 6. RENDERING: HOME SCREEN
+      // 6. RENDERING: MASTER CONTROL DASHBOARD
+      // =======================================================================
+      function renderMasterDashboard() {
+        const schools = Object.values(masterRegistry.schools || {}).sort(
+          (a, b) => (b.createdAt || 0) - (a.createdAt || 0)
+        );
+        document.getElementById('master-school-count').textContent =
+          `${schools.length} workspace${schools.length === 1 ? '' : 's'}`;
+
+        const list = document.getElementById('master-schools-list');
+        if (schools.length === 0) {
+          list.innerHTML =
+            '<div class="py-8 text-center text-sm text-slate-500">No school workspaces created yet.</div>';
+          return;
+        }
+
+        list.innerHTML = schools
+          .map((s) => {
+            const isSuspended = s.status === 'Suspended';
+            const statusClasses = isSuspended
+              ? 'bg-red-50 text-red-700 border-red-200'
+              : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+            return `
+              <div class="py-4 space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-bold text-sm sm:text-base text-slate-900">${escapeHtml(s.name)}</span>
+                  <span class="px-2 py-0.5 rounded-md border text-[11px] font-bold shrink-0 ${statusClasses}">
+                    ${escapeHtml(s.status)}
+                  </span>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <span>Code: <strong class="font-mono text-slate-900">${escapeHtml(s.code)}</strong></span>
+                    <span aria-hidden="true">·</span>
+                    <span>Admin PIN: <strong class="font-mono text-slate-900">${escapeHtml(s.adminPin)}</strong></span>
+                    <span aria-hidden="true">·</span>
+                    <span>Official PIN: <strong class="font-mono text-slate-900">${escapeHtml(s.officialPin)}</strong></span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      data-master-invite="${escapeHtml(s.code)}"
+                      class="min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 inline-flex items-center gap-1"
+                    >
+                      <i data-lucide="copy" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                      <span>Copy Invite Message</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-master-open="${escapeHtml(s.code)}"
+                      class="min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                    >
+                      Open
+                    </button>
+                    <button
+                      type="button"
+                      data-master-edit="${escapeHtml(s.code)}"
+                      class="min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      data-master-delete="${escapeHtml(s.code)}"
+                      aria-label="Delete ${escapeHtml(s.name)}"
+                      class="min-h-[34px] px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-semibold text-red-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        list.querySelectorAll('[data-master-invite]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const code = btn.getAttribute('data-master-invite');
+            const meta = masterRegistry.schools[code];
+            if (!meta) return;
+            const text = buildInviteMessage(meta);
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+              } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+              }
+              showToast(`Copied invite for ${code}`);
+            } catch (err) {
+              showToast(`Invite ready: ${code} (Admin ${meta.adminPin} / Official ${meta.officialPin})`);
+            }
+          });
+        });
+
+        list.querySelectorAll('[data-master-open]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const code = btn.getAttribute('data-master-open');
+            await enterSchoolWorkspace(code);
+          });
+        });
+
+        list.querySelectorAll('[data-master-edit]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const code = btn.getAttribute('data-master-edit');
+            const meta = masterRegistry.schools[code];
+            if (!meta) return;
+            document.getElementById('master-edit-code').value = meta.code;
+            document.getElementById('master-edit-name').value = meta.name;
+            document.getElementById('master-edit-admin-pin').value = meta.adminPin;
+            document.getElementById('master-edit-official-pin').value = meta.officialPin;
+            document.getElementById('master-edit-status').value = meta.status;
+            document.getElementById('master-edit-school-modal').classList.remove('hidden');
+          });
+        });
+
+        list.querySelectorAll('[data-master-delete]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const code = btn.getAttribute('data-master-delete');
+            const meta = masterRegistry.schools[code];
+            if (!meta) return;
+            openConfirmModal({
+              title: `Delete ${meta.code}?`,
+              message: `This will permanently delete the "${meta.name}" workspace and all of its events and results.`,
+              confirmLabel: 'Delete Workspace',
+              onConfirm: async () => {
+                const nextSchools = { ...masterRegistry.schools };
+                delete nextSchools[code];
+                await persistRegistry({ ...masterRegistry, schools: nextSchools });
+                deleteSchoolLocal(code);
+                if (activeSchoolCode === code) {
+                  activeSchoolCode = '';
+                  localStorage.removeItem(LAST_CODE_STORAGE_KEY);
+                }
+                if (isFirestoreReady && db && fsDeleteDoc) {
+                  try {
+                    await fsDeleteDoc(fsDoc(db, FIRESTORE_COLLECTION, code));
+                  } catch (e) {}
+                }
+                showToast(`Deleted workspace ${code}`);
+              },
+            });
+          });
+        });
+
+        refreshIcons();
+      }
+
+      // =======================================================================
+      // 7. RENDERING: HOME SCREEN
       // =======================================================================
       function renderHeaderAndTicker() {
         document.getElementById('header-school-name').textContent = appState.schoolName;
+        document.getElementById('header-school-code').textContent = activeSchoolCode || appState.schoolCode || '';
         document.title = `${appState.schoolName} — Live Scoreboard`;
         document.getElementById('ticker-text-a').textContent = appState.tickerMessage;
         document.getElementById('ticker-text-b').textContent = appState.tickerMessage;
@@ -1949,7 +2893,6 @@
         const eventsGrid = document.getElementById('events-grid');
         const athletesPanel = document.getElementById('top-athletes-panel');
 
-        // Update filter tab states
         document.querySelectorAll('.filter-tab').forEach((btn) => {
           const isActive = btn.dataset.filterTab === activeFilterTab;
           btn.setAttribute('aria-selected', String(isActive));
@@ -1987,7 +2930,6 @@
           });
         }
 
-        // Sort: LIVE first, then UPCOMING, then FINISHED (most recent first)
         const order = { LIVE: 0, UPCOMING: 1, FINISHED: 2 };
         filtered.sort((a, b) => {
           if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
@@ -1997,8 +2939,8 @@
         if (filtered.length === 0) {
           eventsGrid.innerHTML = `
             <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-2">
-              <div class="text-base font-bold text-slate-900">No matching events found</div>
-              <p class="text-sm text-slate-500">Try changing the filter tab or search query, or add events from the Admin Console.</p>
+              <div class="text-base font-bold text-slate-900">No events scheduled yet</div>
+              <p class="text-sm text-slate-500">Sign in as School Admin to add events or load sample school data.</p>
             </div>
           `;
           return;
@@ -2181,7 +3123,7 @@
       }
 
       // =======================================================================
-      // 7. OFFICIAL SCORING SCREEN & DIGITAL STOPWATCH
+      // 8. OFFICIAL SCORING SCREEN & DIGITAL STOPWATCH
       // =======================================================================
       let swRunning = false;
       let swElapsed = 0;
@@ -2263,7 +3205,6 @@
           )
           .join('');
 
-        // Wire chest number auto-fill
         container.querySelectorAll('[data-place-chest]').forEach((input) => {
           input.addEventListener('input', (e) => {
             const place = e.target.getAttribute('data-place-chest');
@@ -2430,7 +3371,7 @@
       }
 
       async function adjustLiveTeamScore(side, delta) {
-        const ev = appState.events.find((e) => e.id === selectedEventId);
+        const ev = appState.events.find((x) => x.id === selectedEventId);
         if (!ev) return;
         const teamAHouse = document.getElementById('team-a-house').value;
         const teamBHouse = document.getElementById('team-b-house').value;
@@ -2468,11 +3409,16 @@
       }
 
       // =======================================================================
-      // 8. ADMIN PANEL RENDERING & ACTIONS
+      // 9. SCHOOL ADMIN PANEL RENDERING & ACTIONS
       // =======================================================================
       function populateAdminForms() {
+        const meta = masterRegistry.schools[activeSchoolCode];
         document.getElementById('admin-school-name').value = appState.schoolName;
         document.getElementById('admin-ticker-msg').value = appState.tickerMessage;
+        document.getElementById('admin-readonly-code').textContent = activeSchoolCode || appState.schoolCode || '';
+        document.getElementById('admin-readonly-admin-pin').value = meta?.adminPin || appState.adminPin || '';
+        document.getElementById('admin-official-pin').value = meta?.officialPin || appState.officialPin || '';
+
         document.getElementById('house-name-red').value = appState.houses.red.name;
         document.getElementById('house-name-blue').value = appState.houses.blue.name;
         document.getElementById('house-name-green').value = appState.houses.green.name;
@@ -2550,24 +3496,42 @@
         });
 
         list.querySelectorAll('[data-admin-clear]').forEach((btn) => {
-          btn.addEventListener('click', async () => {
+          btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-admin-clear');
-            const nextEvents = appState.events.map((ev) =>
-              ev.id === id
-                ? { ...ev, status: 'UPCOMING', winners: [], updatedAt: Date.now() }
-                : ev
-            );
-            await persistState({ ...appState, events: nextEvents });
-            showToast('Result cleared and house points recalculated');
+            const ev = appState.events.find((x) => x.id === id);
+            if (!ev) return;
+            openConfirmModal({
+              title: 'Clear Event Result?',
+              message: `Clear winners for "${ev.name}" and recalculate all house points?`,
+              confirmLabel: 'Clear Result',
+              onConfirm: async () => {
+                const nextEvents = appState.events.map((item) =>
+                  item.id === id
+                    ? { ...item, status: 'UPCOMING', winners: [], updatedAt: Date.now() }
+                    : item
+                );
+                await persistState({ ...appState, events: nextEvents });
+                showToast('Result cleared and house points recalculated');
+              },
+            });
           });
         });
 
         list.querySelectorAll('[data-admin-delete]').forEach((btn) => {
-          btn.addEventListener('click', async () => {
+          btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-admin-delete');
-            const nextEvents = appState.events.filter((ev) => ev.id !== id);
-            await persistState({ ...appState, events: nextEvents });
-            showToast('Event deleted');
+            const ev = appState.events.find((x) => x.id === id);
+            if (!ev) return;
+            openConfirmModal({
+              title: 'Delete Event?',
+              message: `Permanently delete "${ev.name}" (${ev.category})? Any awarded points will be removed.`,
+              confirmLabel: 'Delete Event',
+              onConfirm: async () => {
+                const nextEvents = appState.events.filter((item) => item.id !== id);
+                await persistState({ ...appState, events: nextEvents });
+                showToast('Event deleted');
+              },
+            });
           });
         });
       }
@@ -2614,17 +3578,15 @@
       }
 
       // =======================================================================
-      // 9. LIVE TV SCOREBOARD & 4-SECOND CONFETTI CELEBRATION
+      // 10. LIVE TV SCOREBOARD & 4-SECOND CONFETTI CELEBRATION
       // =======================================================================
       function renderTvScreen() {
-        // Clock
         const now = new Date();
         document.getElementById('tv-clock').textContent = now.toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
         });
 
-        // Left Top: Giant House Standings Bars
         const standings = computeHouseStandings(appState);
         const maxPts = Math.max(1, standings[0]?.points || 1);
         document.getElementById('tv-house-bars').innerHTML = standings
@@ -2653,7 +3615,6 @@
           })
           .join('');
 
-        // Left Bottom: Leading Individual Champions (Top Boy & Top Girl)
         const athletes = computeTopAthletes(appState);
         const topBoy = athletes.find((a) => a.division === 'boys') || athletes[0];
         const topGirl = athletes.find((a) => a.division === 'girls');
@@ -2668,7 +3629,6 @@
             `;
           }
           const hName = appState.houses[champ.house]?.name || champ.house;
-          const theme = HOUSE_THEME[champ.house] || HOUSE_THEME.red;
           return `
             <div class="rounded-xl bg-slate-800/80 border border-slate-700/80 p-3.5 flex items-center justify-between gap-2">
               <div class="min-w-0">
@@ -2689,7 +3649,6 @@
         document.getElementById('tv-champions-grid').innerHTML =
           renderChampCard('Top Boy', topBoy) + renderChampCard('Top Girl', topGirl);
 
-        // Right Top: LIVE Match / Ongoing Event Box
         const liveBox = document.getElementById('tv-live-box');
         const liveTeamEvent = appState.events.find(
           (e) => e.status === 'LIVE' && e.type === 'team' && e.liveMatch
@@ -2749,12 +3708,11 @@
         } else {
           liveBox.innerHTML = `
             <div class="text-center text-slate-400 text-sm">
-              All scheduled events have concluded. Final House Championship Standings shown on the left.
+              Events scheduled for ${escapeHtml(appState.schoolName)} will appear here as they begin.
             </div>
           `;
         }
 
-        // Right Bottom: Recent Winners Carousel
         renderTvCarousel();
       }
 
@@ -2769,7 +3727,7 @@
         if (finished.length === 0) {
           counter.textContent = '0 / 0';
           body.innerHTML =
-            '<div class="text-center text-slate-400 text-sm">Published event winners will rotate here automatically.</div>';
+            '<div class="text-center text-slate-400 text-sm pt-6">Published event winners will rotate here automatically.</div>';
           return;
         }
 
@@ -2798,7 +3756,7 @@
                   <span class="px-2.5 py-1 rounded-md text-xs font-extrabold tracking-wide shrink-0 ${badgeColor}">${label}</span>
                   <div class="min-w-0">
                     <div class="text-lg font-bold text-white truncate">
-                      ${w.chestNo ? `<span class="font-mono text-slate-400 mr-1.5">#${escapeHtml(w.chestNo)}</span>` : ''}${escapeHtml(w.name)}
+                      ${w.chestNo ? `<span class="font-mono text-slate-400 mr-1.5">#${escapeHtml(w.chestNo)} </span>` : ''}${escapeHtml(w.name)}
                     </div>
                   </div>
                 </div>
@@ -2858,6 +3816,7 @@
         clearTimeout(celebrationTimeout);
         celebrationTimeout = setTimeout(() => {
           overlay.classList.add('hidden');
+          document.querySelectorAll('.confetti-piece').forEach((el) => el.remove());
         }, 4000);
       }
 
@@ -2875,7 +3834,7 @@
       }
 
       // =======================================================================
-      // 10. PRINTABLE A4 SHEET
+      // 11. PRINTABLE A4 SHEET
       // =======================================================================
       function renderPrintSheet() {
         const standings = computeHouseStandings(appState);
@@ -2887,7 +3846,7 @@
         document.getElementById('print-sheet').innerHTML = `
           <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
             <h1 style="font-size: 20px; font-weight: 800; margin: 0;">${escapeHtml(appState.schoolName)}</h1>
-            <p style="font-size: 12px; color: #475569; margin: 4px 0 0;">Official Sports Day Summary Report · Printed ${new Date().toLocaleString()}</p>
+            <p style="font-size: 12px; color: #475569; margin: 4px 0 0;">School Code: ${escapeHtml(activeSchoolCode || appState.schoolCode || '')} · Official Sports Day Summary · Printed ${new Date().toLocaleString()}</p>
           </div>
 
           <h2 style="font-size: 14px; font-weight: 700; margin: 0 0 8px;">1. House Championship Standings</h2>
@@ -2968,7 +3927,7 @@
       }
 
       // =======================================================================
-      // 11. MASTER RENDER & EVENT WIRING
+      // 12. MASTER RENDER & EVENT WIRING
       // =======================================================================
       function renderAll() {
         updateRoleUI();
@@ -2983,7 +3942,227 @@
       }
 
       function wireEventListeners() {
-        // Filter Tabs
+        // Welcome Portal
+        const welcomeCodeInput = document.getElementById('welcome-code-input');
+        welcomeCodeInput.addEventListener('input', (e) => {
+          e.target.value = e.target.value.toUpperCase();
+        });
+
+        document.getElementById('form-welcome-code').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          await enterSchoolWorkspace(welcomeCodeInput.value);
+        });
+
+        document.getElementById('btn-try-demo').addEventListener('click', async () => {
+          await enterSchoolWorkspace(DEMO_SCHOOL_CODE);
+        });
+
+        document.getElementById('btn-switch-school').addEventListener('click', switchSchoolToWelcome);
+        document.getElementById('btn-suspended-switch').addEventListener('click', switchSchoolToWelcome);
+
+        // Master Admin Trigger & Login Modal
+        const pinModal = document.getElementById('pin-modal');
+        const pinInput = document.getElementById('pin-input');
+        const pinError = document.getElementById('pin-error');
+
+        const openPinModal = () => {
+          pinInput.value = '';
+          pinError.classList.add('hidden');
+          pinModal.classList.remove('hidden');
+          setTimeout(() => pinInput.focus(), 50);
+        };
+
+        document.getElementById('btn-welcome-master').addEventListener('click', openPinModal);
+        document.getElementById('btn-official-login').addEventListener('click', openPinModal);
+        document.getElementById('btn-close-pin').addEventListener('click', () => {
+          pinModal.classList.add('hidden');
+        });
+
+        document.getElementById('form-pin-login').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const pin = pinInput.value.trim();
+          const schoolMeta = activeSchoolCode ? masterRegistry.schools[activeSchoolCode] : null;
+          const resolved = validateWorkspacePin(pin, {
+            masterPin: masterRegistry.masterPin,
+            adminPin: activeSchoolCode ? schoolMeta?.adminPin || appState.adminPin : undefined,
+            officialPin: activeSchoolCode ? schoolMeta?.officialPin || appState.officialPin : undefined,
+          });
+
+          if (resolved === 'master') {
+            currentRole = 'master';
+            pinModal.classList.add('hidden');
+            setView('master');
+            showToast('Master Control Dashboard unlocked');
+          } else if (resolved === 'admin') {
+            currentRole = 'admin';
+            pinModal.classList.add('hidden');
+            updateRoleUI();
+            setView('admin');
+            showToast('Signed in as School Admin');
+          } else if (resolved === 'official') {
+            currentRole = 'official';
+            pinModal.classList.add('hidden');
+            updateRoleUI();
+            setView('scoring');
+            showToast('Signed in as Ground Official');
+          } else {
+            pinError.textContent = 'Invalid PIN. Please check your assigned PIN and try again.';
+            pinError.classList.remove('hidden');
+          }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+          currentRole = 'public';
+          updateRoleUI();
+          setView('home');
+          showToast('Switched to Public View');
+        });
+
+        document.getElementById('btn-exit-master').addEventListener('click', () => {
+          currentRole = 'public';
+          if (activeSchoolCode && masterRegistry.schools[activeSchoolCode]?.status === 'Active') {
+            updateRoleUI();
+            setView('home');
+          } else {
+            setView('welcome');
+          }
+        });
+
+        // Master Control Dashboard Forms
+        const masterCodeInput = document.getElementById('master-new-code');
+        masterCodeInput.addEventListener('input', (e) => {
+          e.target.value = e.target.value.toUpperCase();
+        });
+
+        document.getElementById('form-master-create-school').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const errEl = document.getElementById('master-create-error');
+          const name = document.getElementById('master-new-name').value.trim();
+          const code = normalizeSchoolCode(masterCodeInput.value);
+          const status = document.getElementById('master-new-status').value;
+          const adminPin = document.getElementById('master-new-admin-pin').value.trim();
+          const officialPin = document.getElementById('master-new-official-pin').value.trim();
+
+          if (!code || code === '_MASTER_REGISTRY') {
+            errEl.textContent = 'Please enter a valid unique School Code (letters/numbers).';
+            errEl.classList.remove('hidden');
+            return;
+          }
+          if (masterRegistry.schools[code]) {
+            errEl.textContent = `School Code "${code}" already exists.`;
+            errEl.classList.remove('hidden');
+            return;
+          }
+          if (adminPin === officialPin) {
+            errEl.textContent = 'Admin PIN and Official PIN must be different.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          errEl.classList.add('hidden');
+          e.target.reset();
+          const newMeta = {
+            code,
+            name,
+            adminPin,
+            officialPin,
+            status,
+            createdAt: Date.now(),
+          };
+          const nextSchools = { ...masterRegistry.schools, [code]: newMeta };
+          await persistRegistry({ ...masterRegistry, schools: nextSchools });
+
+          // Seed isolated school document under sports_meets/{schoolCode}
+          const initialSchool = createBlankSchoolState(code, name, adminPin, officialPin, status);
+          saveSchoolLocal(code, initialSchool);
+          if (isFirestoreReady && db && fsSetDoc) {
+            try {
+              await fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, code), initialSchool);
+            } catch (err) {}
+          }
+
+          showToast(`Created workspace ${code}`);
+        });
+
+        // Master Edit School Modal
+        document.getElementById('btn-close-master-edit').addEventListener('click', () => {
+          document.getElementById('master-edit-school-modal').classList.add('hidden');
+        });
+        document.getElementById('btn-cancel-master-edit').addEventListener('click', () => {
+          document.getElementById('master-edit-school-modal').classList.add('hidden');
+        });
+        document.getElementById('form-master-edit-school').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const code = document.getElementById('master-edit-code').value;
+          const meta = masterRegistry.schools[code];
+          if (!meta) return;
+
+          const name = document.getElementById('master-edit-name').value.trim() || meta.name;
+          const adminPin = document.getElementById('master-edit-admin-pin').value.trim() || meta.adminPin;
+          const officialPin = document.getElementById('master-edit-official-pin').value.trim() || meta.officialPin;
+          const status = document.getElementById('master-edit-status').value;
+
+          const updatedMeta = { ...meta, name, adminPin, officialPin, status };
+          await persistRegistry({
+            ...masterRegistry,
+            schools: { ...masterRegistry.schools, [code]: updatedMeta },
+          });
+
+          // Sync status & PINs to isolated school doc
+          const existingLocal = loadSchoolLocal(code);
+          if (existingLocal) {
+            saveSchoolLocal(code, { ...existingLocal, schoolName: name, adminPin, officialPin, status });
+          }
+          if (activeSchoolCode === code) {
+            appState = { ...appState, schoolName: name, adminPin, officialPin, status };
+          }
+          if (isFirestoreReady && db && fsSetDoc) {
+            try {
+              await fsSetDoc(
+                fsDoc(db, FIRESTORE_COLLECTION, code),
+                { schoolName: name, adminPin, officialPin, status },
+                { merge: true }
+              );
+            } catch (err) {}
+          }
+
+          document.getElementById('master-edit-school-modal').classList.add('hidden');
+          showToast(`Updated ${code} (${status})`);
+        });
+
+        // Master Change PIN
+        document.getElementById('form-master-pin-update').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const errEl = document.getElementById('master-pin-error');
+          const p1 = document.getElementById('master-pin-new').value.trim();
+          const p2 = document.getElementById('master-pin-confirm').value.trim();
+
+          if (p1.length < 4) {
+            errEl.textContent = 'Master PIN must be at least 4 characters.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+          if (p1 !== p2) {
+            errEl.textContent = 'PINs do not match.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          errEl.classList.add('hidden');
+          e.target.reset();
+          await persistRegistry({ ...masterRegistry, masterPin: p1 });
+          showToast('Master Admin PIN updated');
+        });
+
+        // Custom Confirmation Modal
+        document.getElementById('btn-confirm-cancel').addEventListener('click', closeConfirmModal);
+        document.getElementById('btn-confirm-ok').addEventListener('click', async () => {
+          const cb = pendingConfirmCallback;
+          closeConfirmModal();
+          if (typeof cb === 'function') await cb();
+        });
+
+        // Filter Tabs & Search
         document.querySelectorAll('.filter-tab').forEach((btn) => {
           btn.addEventListener('click', () => {
             activeFilterTab = btn.dataset.filterTab;
@@ -2991,7 +4170,6 @@
           });
         });
 
-        // Athlete Division Tabs
         document.querySelectorAll('.division-tab').forEach((btn) => {
           btn.addEventListener('click', () => {
             activeDivision = btn.dataset.division;
@@ -2999,7 +4177,6 @@
           });
         });
 
-        // Search
         document.getElementById('home-search-input').addEventListener('input', (e) => {
           searchQuery = e.target.value;
           renderEventsAndAthletes();
@@ -3025,54 +4202,12 @@
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
             if (currentView === 'tv') setView('home');
-            document.getElementById('pin-modal').classList.add('hidden');
+            pinModal.classList.add('hidden');
             document.getElementById('edit-event-modal').classList.add('hidden');
+            document.getElementById('master-edit-school-modal').classList.add('hidden');
             document.getElementById('winner-celebration-overlay').classList.add('hidden');
+            closeConfirmModal();
           }
-        });
-
-        // PIN Login Modal
-        const pinModal = document.getElementById('pin-modal');
-        const pinInput = document.getElementById('pin-input');
-        const pinError = document.getElementById('pin-error');
-
-        document.getElementById('btn-official-login').addEventListener('click', () => {
-          pinInput.value = '';
-          pinError.classList.add('hidden');
-          pinModal.classList.remove('hidden');
-          setTimeout(() => pinInput.focus(), 50);
-        });
-
-        document.getElementById('btn-close-pin').addEventListener('click', () => {
-          pinModal.classList.add('hidden');
-        });
-
-        document.getElementById('form-pin-login').addEventListener('submit', (e) => {
-          e.preventDefault();
-          const pin = pinInput.value.trim();
-          if (pin === '1111') {
-            currentRole = 'official';
-            pinModal.classList.add('hidden');
-            updateRoleUI();
-            setView('scoring');
-            showToast('Signed in as Ground Official');
-          } else if (pin === '7860') {
-            currentRole = 'admin';
-            pinModal.classList.add('hidden');
-            updateRoleUI();
-            setView('admin');
-            showToast('Signed in as Sports Admin');
-          } else {
-            pinError.textContent = 'Invalid PIN. Use 1111 for Ground Official or 7860 for Sports Admin.';
-            pinError.classList.remove('hidden');
-          }
-        });
-
-        document.getElementById('btn-logout').addEventListener('click', () => {
-          currentRole = 'public';
-          updateRoleUI();
-          setView('home');
-          showToast('Switched to Public View');
         });
 
         // Scoring Event Selection & Mode Toggle
@@ -3095,7 +4230,7 @@
           });
         });
 
-        // Mark Event Live (Individual)
+        // Mark Event Live
         document.getElementById('btn-mark-event-live').addEventListener('click', async () => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (!ev) return;
@@ -3163,7 +4298,6 @@
         document.getElementById('btn-team-a-minus').addEventListener('click', () => adjustLiveTeamScore('A', -1));
         document.getElementById('btn-team-b-plus').addEventListener('click', () => adjustLiveTeamScore('B', 1));
         document.getElementById('btn-team-b-minus').addEventListener('click', () => adjustLiveTeamScore('B', -1));
-
         document.getElementById('btn-team-set-live').addEventListener('click', () => adjustLiveTeamScore('A', 0));
 
         document.getElementById('btn-team-finish').addEventListener('click', async () => {
@@ -3253,44 +4387,66 @@
           showToast(`Match finished! ${appState.houses[firstHouse].name} wins.`);
         });
 
-        // Admin: Load Sample School Data
+        // School Admin: Load Sample School Data
         document.getElementById('btn-load-sample').addEventListener('click', async () => {
-          const sample = createSampleSchoolState();
+          const meta = masterRegistry.schools[activeSchoolCode];
+          const sample = createSampleSchoolState(
+            activeSchoolCode || DEMO_SCHOOL_CODE,
+            appState.schoolName || meta?.name || 'Annual Sports & Games Meet',
+            meta?.adminPin || appState.adminPin || '7860',
+            meta?.officialPin || appState.officialPin || '1111',
+            meta?.status || 'Active'
+          );
           await persistState(sample);
           selectedEventId = sample.events[0].id;
           populateAdminForms();
-          showToast('Sample School Data loaded (4 Houses, 8 Events, Roster)');
+          showToast('Sample School Data loaded');
         });
 
-        // Admin: Reset All Data (2-step safe click without window.confirm)
-        const resetBtn = document.getElementById('btn-admin-reset');
-        resetBtn.addEventListener('click', async () => {
-          if (!resetConfirmArmed) {
-            resetConfirmArmed = true;
-            resetBtn.textContent = 'Confirm Reset All?';
-            setTimeout(() => {
-              resetConfirmArmed = false;
-              resetBtn.textContent = 'Reset All Data';
-            }, 4000);
-            return;
-          }
-          resetConfirmArmed = false;
-          resetBtn.textContent = 'Reset All Data';
-          const blank = createBlankState();
-          blank.events = [];
-          blank.students = [];
-          await persistState(blank);
-          populateAdminForms();
-          showToast('All events and scores reset');
+        // School Admin: Reset All Data (Custom Confirmation Modal)
+        document.getElementById('btn-admin-reset').addEventListener('click', () => {
+          openConfirmModal({
+            title: 'Reset All School Data?',
+            message: `This will clear all events, scores, and the student roster for ${appState.schoolName}.`,
+            confirmLabel: 'Reset All Data',
+            onConfirm: async () => {
+              const meta = masterRegistry.schools[activeSchoolCode];
+              const blank = createBlankSchoolState(
+                activeSchoolCode,
+                appState.schoolName,
+                meta?.adminPin || appState.adminPin,
+                meta?.officialPin || appState.officialPin,
+                meta?.status || 'Active'
+              );
+              await persistState(blank);
+              populateAdminForms();
+              showToast('All events and scores reset');
+            },
+          });
         });
 
-        // Admin: Save Settings
+        // School Admin: Save Settings (includes updating Official PIN)
         document.getElementById('form-admin-settings').addEventListener('submit', async (e) => {
           e.preventDefault();
+          const schoolName = document.getElementById('admin-school-name').value.trim() || 'Annual Sports & Games Meet';
+          const tickerMessage = document.getElementById('admin-ticker-msg').value.trim() || 'Annual Sports Day Live';
+          const newOfficialPin = document.getElementById('admin-official-pin').value.trim();
+          const meta = masterRegistry.schools[activeSchoolCode];
+
+          if (!newOfficialPin) {
+            showToast('Ground Official PIN cannot be empty');
+            return;
+          }
+          if (meta && newOfficialPin === meta.adminPin) {
+            showToast('Ground Official PIN must differ from Admin PIN');
+            return;
+          }
+
           const nextState = {
             ...appState,
-            schoolName: document.getElementById('admin-school-name').value.trim() || 'Annual Sports & Games Meet',
-            tickerMessage: document.getElementById('admin-ticker-msg').value.trim() || 'Annual Sports Day Live',
+            schoolName,
+            tickerMessage,
+            officialPin: newOfficialPin,
             houses: {
               red: { ...appState.houses.red, name: document.getElementById('house-name-red').value.trim() || 'Red House' },
               blue: { ...appState.houses.blue, name: document.getElementById('house-name-blue').value.trim() || 'Blue House' },
@@ -3310,11 +4466,22 @@
               ],
             },
           };
+
+          if (meta) {
+            await persistRegistry({
+              ...masterRegistry,
+              schools: {
+                ...masterRegistry.schools,
+                [activeSchoolCode]: { ...meta, name: schoolName, officialPin: newOfficialPin },
+              },
+            });
+          }
+
           await persistState(nextState);
-          showToast('Meet settings & point rules saved');
+          showToast('Meet settings & Official PIN saved');
         });
 
-        // Admin: Quick Event Creator
+        // School Admin: Quick Event Creator
         document.getElementById('form-create-event').addEventListener('submit', async (e) => {
           e.preventDefault();
           const name = document.getElementById('new-event-name').value.trim();
@@ -3345,14 +4512,28 @@
             updatedAt: Date.now(),
           };
 
-          await persistState({ ...appState, events: [newEvent, ...appState.events] });
           selectedEventId = newEvent.id;
           e.target.reset();
+          await persistState({ ...appState, events: [newEvent, ...appState.events] });
           populateAdminForms();
           showToast(`Added event: ${name}`);
         });
 
-        // Admin: CSV Student Roster
+        // School Admin: CSV Student Roster & Template Download
+        document.getElementById('btn-download-csv-template').addEventListener('click', () => {
+          const csv = generateCsvTemplate();
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'sports_roster_template.csv';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast('Downloaded CSV template');
+        });
+
         document.getElementById('admin-csv-file').addEventListener('change', (e) => {
           const file = e.target.files?.[0];
           if (!file) return;
@@ -3375,14 +4556,21 @@
           showToast(`Imported ${parsed.length} students into roster`);
         });
 
-        document.getElementById('btn-clear-roster').addEventListener('click', async () => {
-          document.getElementById('admin-csv-textarea').value = '';
-          await persistState({ ...appState, students: [] });
-          populateAdminForms();
-          showToast('Student roster cleared');
+        document.getElementById('btn-clear-roster').addEventListener('click', () => {
+          openConfirmModal({
+            title: 'Clear Student Roster?',
+            message: 'Remove all imported chest numbers from this school workspace?',
+            confirmLabel: 'Clear Roster',
+            onConfirm: async () => {
+              document.getElementById('admin-csv-textarea').value = '';
+              await persistState({ ...appState, students: [] });
+              populateAdminForms();
+              showToast('Student roster cleared');
+            },
+          });
         });
 
-        // Admin: Edit Event Modal
+        // School Admin: Edit Event Modal
         document.getElementById('btn-close-edit-modal').addEventListener('click', () => {
           document.getElementById('edit-event-modal').classList.add('hidden');
         });
@@ -3444,11 +4632,12 @@
       }
 
       // =======================================================================
-      // 12. BOOTSTRAP
+      // 13. BOOTSTRAP
       // =======================================================================
       buildPodiumRowsUI();
       wireEventListeners();
-      renderAll();
+      setupHardwareBackSupport();
+      refreshIcons();
       initDataLayer();
     </script>
   </body>

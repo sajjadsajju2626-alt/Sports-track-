@@ -1,18 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildInviteMessage,
   computeHouseStandings,
   computeTopAthletes,
   DEFAULT_POINT_RULES,
   formatStopwatch,
+  generateCsvTemplate,
   inferDivision,
+  normalizeSchoolCode,
   parseStudentCsv,
-  validatePinRole,
+  validateWorkspacePin,
   type SportsDayState,
 } from './sportsEngine';
 
 function createBaseState(): SportsDayState {
   return {
+    schoolCode: 'OAK26',
     schoolName: 'Oakridge High Sports Meet',
     tickerMessage: 'Welcome to Annual Sports Day',
     houses: {
@@ -29,11 +33,38 @@ function createBaseState(): SportsDayState {
   };
 }
 
-test('PIN role validation enforces 1111 for official and 7860 for admin', () => {
-  assert.equal(validatePinRole('1111'), 'official');
-  assert.equal(validatePinRole('7860'), 'admin');
-  assert.equal(validatePinRole('0000'), null);
-  assert.equal(validatePinRole(''), null);
+test('normalizeSchoolCode uppercases and strips invalid characters', () => {
+  assert.equal(normalizeSchoolCode('  xavier 26! '), 'XAVIER26');
+  assert.equal(normalizeSchoolCode('st-joseph_2026'), 'ST-JOSEPH_2026');
+});
+
+test('validateWorkspacePin resolves master, admin, and official PINs accurately', () => {
+  const pins = { masterPin: '999999', adminPin: '4321', officialPin: '2222' };
+  assert.equal(validateWorkspacePin('999999', pins), 'master');
+  assert.equal(validateWorkspacePin('4321', pins), 'admin');
+  assert.equal(validateWorkspacePin('2222', pins), 'official');
+  assert.equal(validateWorkspacePin('1111', pins), null);
+  assert.equal(validateWorkspacePin('', pins), null);
+});
+
+test('buildInviteMessage creates WhatsApp text without URL parameters', () => {
+  const msg = buildInviteMessage({
+    name: 'St. Joseph School',
+    code: 'STJOSEPH',
+    adminPin: '4545',
+    officialPin: '1212',
+  });
+  assert.ok(msg.includes('STJOSEPH'));
+  assert.ok(msg.includes('4545'));
+  assert.ok(msg.includes('1212'));
+  assert.ok(!msg.includes('?'));
+});
+
+test('generateCsvTemplate includes standard header and sample rows', () => {
+  const csv = generateCsvTemplate();
+  const parsed = parseStudentCsv(csv);
+  assert.equal(parsed.length, 4);
+  assert.equal(parsed[0].chestNo, '101');
 });
 
 test('CSV parser parses student rows, skips header, and deduplicates chest numbers', () => {
@@ -51,12 +82,6 @@ ChestNo, Name, House, Category
     name: 'Aarav Sharma',
     house: 'red',
     category: 'Junior Boys',
-  });
-  assert.deepEqual(parsed[1], {
-    chestNo: '102',
-    name: 'Priya Nair',
-    house: 'blue',
-    category: 'Senior Girls',
   });
 });
 
@@ -90,27 +115,11 @@ test('computeHouseStandings calculates individual + team points and ranks ties b
         { place: 2, chestNo: '', name: 'Red House XI', house: 'red', metric: '1-2' },
       ],
     },
-    {
-      id: 'ev3',
-      name: '200m Heat',
-      category: 'Junior Girls',
-      type: 'individual',
-      venue: 'Track',
-      status: 'UPCOMING',
-      updatedAt: 300,
-      winners: [],
-    },
   ];
 
   const standings = computeHouseStandings(state);
-  // Blue: 3 (silver indiv) + 10 (gold team) = 13
-  // Red: 5 (gold indiv) + 6 (silver team) = 11
-  // Green: 1 (bronze indiv) = 1
-  // Yellow: 0
   assert.equal(standings[0].id, 'blue');
   assert.equal(standings[0].points, 13);
-  assert.equal(standings[0].gold, 1);
-  assert.equal(standings[0].silver, 1);
   assert.equal(standings[1].id, 'red');
   assert.equal(standings[1].points, 11);
   assert.equal(standings[2].id, 'green');

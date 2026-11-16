@@ -1,6 +1,7 @@
 export type HouseId = 'red' | 'blue' | 'green' | 'yellow';
 export type EventType = 'individual' | 'team';
 export type EventStatus = 'UPCOMING' | 'LIVE' | 'FINISHED';
+export type WorkspaceStatus = 'Active' | 'Suspended';
 
 export interface HouseConfig {
   id: HouseId;
@@ -48,7 +49,17 @@ export interface StudentRecord {
   category: string;
 }
 
+export interface SchoolWorkspaceMeta {
+  code: string;
+  name: string;
+  adminPin: string;
+  officialPin: string;
+  status: WorkspaceStatus;
+  createdAt: number;
+}
+
 export interface SportsDayState {
+  schoolCode?: string;
   schoolName: string;
   tickerMessage: string;
   houses: Record<HouseId, HouseConfig>;
@@ -87,6 +98,53 @@ export const DEFAULT_POINT_RULES: PointRules = {
   team: [10, 6, 4],
 };
 
+export function normalizeSchoolCode(raw: string): string {
+  return String(raw || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, '');
+}
+
+export function validateWorkspacePin(
+  pin: string,
+  pins: { masterPin: string; adminPin?: string; officialPin?: string }
+): 'master' | 'admin' | 'official' | null {
+  const trimmed = String(pin || '').trim();
+  if (!trimmed) return null;
+  if (pins.masterPin && trimmed === pins.masterPin) return 'master';
+  if (pins.adminPin && trimmed === pins.adminPin) return 'admin';
+  if (pins.officialPin && trimmed === pins.officialPin) return 'official';
+  return null;
+}
+
+export function buildInviteMessage(meta: {
+  name: string;
+  code: string;
+  adminPin: string;
+  officialPin: string;
+}): string {
+  return [
+    `*${meta.name} — Annual Sports & Games Meet*`,
+    `Open the Sports Meet portal and enter:`,
+    `School Code: *${meta.code}*`,
+    ``,
+    `Role PINs:`,
+    `• Sports Admin (PE Teacher): *${meta.adminPin}*`,
+    `• Ground Official / Referee: *${meta.officialPin}*`,
+    `(Students & parents can view live scores using the School Code without a PIN.)`,
+  ].join('\n');
+}
+
+export function generateCsvTemplate(): string {
+  return [
+    'ChestNo,Name,House,Category',
+    '101,Aarav Menon,Blue,Senior Boys',
+    '102,Ananya Rao,Green,Senior Girls',
+    '103,Rohan Verma,Red,Junior Boys',
+    '104,Meera Iyer,Yellow,Junior Girls',
+  ].join('\n');
+}
+
 export function normalizeHouseId(raw: string): HouseId | null {
   const val = raw.trim().toLowerCase();
   if (val === 'red' || val.startsWith('red ')) return 'red';
@@ -116,7 +174,6 @@ export function parseStudentCsv(csvText: string): StudentRecord[] {
     const parts = line.split(',').map((p) => p.trim());
     if (parts.length < 3) continue;
 
-    // Skip CSV header row if present
     if (
       parts[0].toLowerCase().includes('chest') &&
       parts[1].toLowerCase().includes('name')
@@ -228,11 +285,4 @@ export function formatStopwatch(ms: number): string {
   const seconds = Math.floor((clamped % 60000) / 1000);
   const centis = Math.floor((clamped % 1000) / 10);
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centis).padStart(2, '0')}`;
-}
-
-export function validatePinRole(pin: string): 'official' | 'admin' | null {
-  const trimmed = pin.trim();
-  if (trimmed === '1111') return 'official';
-  if (trimmed === '7860') return 'admin';
-  return null;
 }

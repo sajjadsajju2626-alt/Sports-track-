@@ -60,11 +60,30 @@ test('buildInviteMessage creates WhatsApp text without URL parameters', () => {
   assert.ok(!msg.includes('?'));
 });
 
-test('generateCsvTemplate includes standard header and sample rows', () => {
+test('generateCsvTemplate includes standard header and 2 sample rows', () => {
   const csv = generateCsvTemplate();
+  assert.equal(
+    csv,
+    [
+      'ChestNo,Name,House,Category',
+      '101,Aarav Sharma,Red,Junior Boys',
+      '102,Priya Nair,Blue,Senior Girls',
+    ].join('\n')
+  );
   const parsed = parseStudentCsv(csv);
-  assert.equal(parsed.length, 4);
-  assert.equal(parsed[0].chestNo, '101');
+  assert.equal(parsed.length, 2);
+  assert.deepEqual(parsed[0], {
+    chestNo: '101',
+    name: 'Aarav Sharma',
+    house: 'red',
+    category: 'Junior Boys',
+  });
+  assert.deepEqual(parsed[1], {
+    chestNo: '102',
+    name: 'Priya Nair',
+    house: 'blue',
+    category: 'Senior Girls',
+  });
 });
 
 test('CSV parser parses student rows, skips header, and deduplicates chest numbers', () => {

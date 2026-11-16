@@ -138,10 +138,8 @@ export function buildInviteMessage(meta: {
 export function generateCsvTemplate(): string {
   return [
     'ChestNo,Name,House,Category',
-    '101,Aarav Menon,Blue,Senior Boys',
-    '102,Ananya Rao,Green,Senior Girls',
-    '103,Rohan Verma,Red,Junior Boys',
-    '104,Meera Iyer,Yellow,Junior Girls',
+    '101,Aarav Sharma,Red,Junior Boys',
+    '102,Priya Nair,Blue,Senior Girls',
   ].join('\n');
 }
 

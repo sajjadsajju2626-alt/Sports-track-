@@ -1203,19 +1203,19 @@
                 class="w-full p-3 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
               ></textarea>
               <div class="flex flex-wrap items-center gap-2">
+                <label class="min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer inline-flex items-center gap-1.5">
+                  <i data-lucide="upload" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                  <span>Upload CSV File</span>
+                  <input id="admin-csv-file" type="file" accept=".csv,.txt" class="sr-only" />
+                </label>
                 <button
                   type="button"
                   id="btn-download-csv-template"
                   class="min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 inline-flex items-center gap-1.5"
                 >
                   <i data-lucide="download" class="w-3.5 h-3.5" aria-hidden="true"></i>
-                  <span>Download Template</span>
+                  <span>Download CSV Template</span>
                 </button>
-                <label class="min-h-[40px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer inline-flex items-center gap-1.5">
-                  <i data-lucide="upload" class="w-3.5 h-3.5" aria-hidden="true"></i>
-                  <span>Upload CSV</span>
-                  <input id="admin-csv-file" type="file" accept=".csv,.txt" class="sr-only" />
-                </label>
                 <button
                   type="button"
                   id="btn-save-roster"
@@ -1984,10 +1984,8 @@
       function generateCsvTemplate() {
         return [
           'ChestNo,Name,House,Category',
-          '101,Aarav Menon,Blue,Senior Boys',
-          '102,Ananya Rao,Green,Senior Girls',
-          '103,Rohan Verma,Red,Junior Boys',
-          '104,Meera Iyer,Yellow,Junior Girls',
+          '101,Aarav Sharma,Red,Junior Boys',
+          '102,Priya Nair,Blue,Senior Girls',
         ].join('\n');
       }
 
@@ -4526,12 +4524,12 @@
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'sports_roster_template.csv';
+          a.download = 'student_roster_template.csv';
           document.body.appendChild(a);
           a.click();
           a.remove();
           URL.revokeObjectURL(url);
-          showToast('Downloaded CSV template');
+          showToast('Downloaded student_roster_template.csv');
         });
 
         document.getElementById('admin-csv-file').addEventListener('change', (e) => {

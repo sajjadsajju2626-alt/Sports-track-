@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  applyAddedTimeChange,
+  applyMatchClockCommand,
+  applyMatchDurationChange,
   applyTeamScoreDelta,
   buildInviteMessage,
   buildPublicShareUrl,
@@ -13,6 +16,7 @@ import {
   DEFAULT_POINT_RULES,
   detectLiveMatchSportProfile,
   detectNewGoals,
+  evaluateMatchThresholdAlert,
   formatCricketScore,
   formatLiveMatchStatusDisplay,
   formatMatchClockMMSS,
@@ -22,12 +26,14 @@ import {
   getEditablePeriodValue,
   getEventPointRules,
   getEventTypeLabel,
+  getMatchDurationMins,
   incrementCricketOvers,
   inferDivision,
   isCricketEvent,
   isHouseGroupPodiumEvent,
   isRelayEvent,
   isStudentRegisteredForEvent,
+  MATCH_DURATION_PRESETS,
   normalizeSchoolCode,
   parseStudentCsv,
   resolveCarouselIndex,
@@ -483,7 +489,7 @@ test('Live match clock calculates elapsed MM:SS, match minute, and formatted liv
   assert.equal(computeMatchClockElapsedMs(paused, 9_999_999), 845_000);
   assert.equal(formatMatchClockMMSS(845_000), '14:05');
   assert.equal(computeMatchMinute(paused, 9_999_999), 15);
-  assert.equal(formatLiveMatchStatusDisplay(paused, 9_999_999), "1st Half · 15'");
+  assert.equal(formatLiveMatchStatusDisplay(paused, 9_999_999), '1st Half · 14:05');
 
   const running = {
     periodLabel: '1st Half',
@@ -494,7 +500,7 @@ test('Live match clock calculates elapsed MM:SS, match minute, and formatted liv
   const now = 100_000 + 15_000; // 23:15 elapsed -> 24'
   assert.equal(formatMatchClockMMSS(computeMatchClockElapsedMs(running, now)), '23:15');
   assert.equal(computeMatchMinute(running, now), 24);
-  assert.equal(formatLiveMatchStatusDisplay(running, now), "1st Half · 24'");
+  assert.equal(formatLiveMatchStatusDisplay(running, now), '1st Half · 23:15');
 
   const idle = { periodLabel: 'Scheduled', clockElapsedMs: 0, clockStartedAt: null, clockRunning: false };
   assert.equal(computeMatchMinute(idle, now), 0);
@@ -683,22 +689,24 @@ test('Sport-specific 1v1 Live Match profiles adapt controls, clocks, sets, and t
   assert.deepEqual(detectNewGoals([vbPrev], [vbNext], base.houses, 500), []);
 });
 
-test('applyTeamScoreDelta removes most recent goal for that team on -1 and combines 2nd Half with clock minute', () => {
+test('applyTeamScoreDelta removes most recent goal for that team on -1 and combines 2nd Half with MM:SS clock', () => {
   const runningSecondHalf = {
     periodLabel: '2nd Half',
+    matchPhase: '2nd Half',
     clockElapsedMs: 22 * 60_000,
     clockStartedAt: 100_000,
     clockRunning: true,
   };
-  assert.equal(formatLiveMatchStatusDisplay(runningSecondHalf, 100_000 + 10_000), "2nd Half · 23'");
+  assert.equal(formatLiveMatchStatusDisplay(runningSecondHalf, 100_000 + 10_000), '2nd Half · 22:10');
 
   const pausedHalfTime = {
     periodLabel: 'Half Time',
+    matchPhase: 'Half Time',
     clockElapsedMs: 22 * 60_000,
     clockStartedAt: null,
     clockRunning: false,
   };
-  assert.equal(formatLiveMatchStatusDisplay(pausedHalfTime, 999_999), 'Half Time');
+  assert.equal(formatLiveMatchStatusDisplay(pausedHalfTime, 999_999), 'HALF TIME');
 
   const lm = {
     teamAHouse: 'red' as const,
@@ -740,5 +748,77 @@ test('applyTeamScoreDelta removes most recent goal for that team on -1 and combi
     res3.nextMatch.timeline?.map((t) => t.id),
     ['yA1', 'gB1']
   );
+});
+
+test('Continuous running match clock, threshold alerts, referee phase controls, and added time badges', () => {
+  assert.deepEqual([...MATCH_DURATION_PRESETS], [20, 30, 40, 60, 90]);
+  assert.equal(getMatchDurationMins(undefined), 30);
+
+  let match: any = {
+    teamAHouse: 'red' as const,
+    teamBHouse: 'blue' as const,
+    scoreA: 0,
+    scoreB: 0,
+    periodLabel: 'Live Match',
+    clockElapsedMs: 0,
+    clockStartedAt: null,
+    clockRunning: false,
+  };
+
+  // Start -> defaults phase to 1st Half and runs clock
+  match = applyMatchClockCommand(match, 'start', 1_000_000);
+  assert.equal(match.clockRunning, true);
+  assert.equal(match.matchPhase, '1st Half');
+  assert.equal(formatLiveMatchStatusDisplay(match, 1_000_000 + 5_000), '1st Half · 00:05');
+
+  // Duration 30m -> half-time mark at 15:00 (900_000ms) fires 'half' alert without pausing clock!
+  const at1459 = evaluateMatchThresholdAlert(match, 1_000_000 + 14 * 60_000 + 59_000);
+  assert.equal(at1459.type, null);
+  const at1500 = evaluateMatchThresholdAlert(match, 1_000_000 + 15 * 60_000);
+  assert.equal(at1500.type, 'half');
+  match = { ...match, halfTimeAlertPlayed: true };
+
+  // Clock continues past 15:00 into 15:42 while referee sets +2' injury time
+  match = applyAddedTimeChange(match, 2);
+  assert.equal(formatLiveMatchStatusDisplay(match, 1_000_000 + 15 * 60_000 + 42_000), "1st Half · 15:42 (+2')");
+
+  // Clear added time
+  match = applyAddedTimeChange(match, 0);
+  assert.equal(formatLiveMatchStatusDisplay(match, 1_000_000 + 15 * 60_000 + 42_000), '1st Half · 15:42');
+
+  // Half Time -> pauses clock and displays HALF TIME
+  match = applyMatchClockCommand(match, 'Half Time', 1_000_000 + 16 * 60_000);
+  assert.equal(match.clockRunning, false);
+  assert.equal(match.matchPhase, 'Half Time');
+  assert.equal(formatLiveMatchStatusDisplay(match, 2_000_000), 'HALF TIME');
+
+  // 2nd Half -> resumes clock from exact half-time mark (15:00 for 30m match) and displays 2nd Half · 15:00
+  match = applyMatchClockCommand(match, '2nd Half', 2_500_000);
+  assert.equal(match.clockRunning, true);
+  assert.equal(match.matchPhase, '2nd Half');
+  assert.equal(match.clockElapsedMs, 15 * 60_000);
+  assert.equal(formatLiveMatchStatusDisplay(match, 2_500_000 + 18_000), '2nd Half · 15:18');
+
+  // Full-time mark at 30:00 (15m into 2nd half) fires 'full' alert without stopping clock
+  const at3000 = evaluateMatchThresholdAlert(match, 2_500_000 + 15 * 60_000);
+  assert.equal(at3000.type, 'full');
+  match = { ...match, fullTimeAlertPlayed: true };
+  match = applyAddedTimeChange(match, 3);
+  assert.equal(formatLiveMatchStatusDisplay(match, 2_500_000 + 15 * 60_000 + 25_000), "2nd Half · 30:25 (+3')");
+
+  // Full Time -> stops clock and displays FULL TIME
+  match = applyMatchClockCommand(match, 'Full Time', 2_500_000 + 16 * 60_000);
+  assert.equal(match.clockRunning, false);
+  assert.equal(match.matchPhase, 'Full Time');
+  assert.equal(formatLiveMatchStatusDisplay(match, 9_999_999), 'FULL TIME');
+
+  // Changing match duration to 20m recalculates thresholds cleanly
+  match = applyMatchClockCommand(match, 'reset', 5_000_000);
+  match = applyMatchDurationChange(match, 20, 5_000_000);
+  assert.equal(getMatchDurationMins(match), 20);
+  assert.equal(match.halfTimeAlertPlayed, false);
+  assert.equal(match.fullTimeAlertPlayed, false);
+  match = applyMatchClockCommand(match, 'start', 5_000_000);
+  assert.equal(evaluateMatchThresholdAlert(match, 5_000_000 + 10 * 60_000).type, 'half');
 });
 

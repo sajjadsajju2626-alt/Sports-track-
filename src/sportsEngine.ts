@@ -35,6 +35,9 @@ export interface MatchTimelineEvent {
   createdAt: number;
 }
 
+export type MatchPhase = '1st Half' | 'Half Time' | '2nd Half' | 'Full Time';
+export const MATCH_DURATION_PRESETS = [20, 30, 40, 60, 90] as const;
+
 export interface LiveMatchState {
   teamAHouse: HouseId;
   teamBHouse: HouseId;
@@ -45,6 +48,11 @@ export interface LiveMatchState {
   oversA?: string;
   oversB?: string;
   periodLabel?: string;
+  matchDurationMins?: number;
+  matchPhase?: MatchPhase | string | null;
+  addedTimeMins?: number;
+  halfTimeAlertPlayed?: boolean;
+  fullTimeAlertPlayed?: boolean;
   clockElapsedMs?: number;
   clockStartedAt?: number | null;
   clockRunning?: boolean;
@@ -660,7 +668,17 @@ export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.n
           scoreB: 0,
           ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
           ...(effective === 'team'
-            ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+            ? {
+                clockElapsedMs: 0,
+                clockStartedAt: null,
+                clockRunning: false,
+                matchDurationMins: 30,
+                matchPhase: null,
+                addedTimeMins: 0,
+                halfTimeAlertPlayed: false,
+                fullTimeAlertPlayed: false,
+                timeline: [],
+              }
             : {}),
           periodLabel: 'Scheduled',
         }
@@ -671,12 +689,51 @@ export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.n
           scoreB: 0,
           ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
           ...(effective === 'team'
-            ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+            ? {
+                clockElapsedMs: 0,
+                clockStartedAt: null,
+                clockRunning: false,
+                matchDurationMins: 30,
+                matchPhase: null,
+                addedTimeMins: 0,
+                halfTimeAlertPlayed: false,
+                fullTimeAlertPlayed: false,
+                timeline: [],
+              }
             : {}),
           periodLabel: 'Scheduled',
         },
     updatedAt: now,
   };
+}
+
+export function getMatchDurationMins(
+  liveMatch: Pick<LiveMatchState, 'matchDurationMins'> | null | undefined
+): number {
+  const raw = Number(liveMatch?.matchDurationMins);
+  if (Number.isFinite(raw) && raw >= 2) return Math.round(raw);
+  return 30;
+}
+
+export function resolveMatchPhase(
+  liveMatch: Pick<LiveMatchState, 'matchPhase' | 'periodLabel' | 'clockElapsedMs' | 'clockRunning'> | null | undefined
+): MatchPhase | '' {
+  const rawPhase = String(liveMatch?.matchPhase || '').trim().toLowerCase();
+  if (rawPhase === 'full time') return 'Full Time';
+  if (rawPhase === 'half time') return 'Half Time';
+  if (rawPhase === '2nd half') return '2nd Half';
+  if (rawPhase === '1st half') return '1st Half';
+
+  const rawPeriod = String(liveMatch?.periodLabel || '').trim().toLowerCase();
+  if (rawPeriod.includes('full time')) return 'Full Time';
+  if (rawPeriod.includes('half time')) return 'Half Time';
+  if (rawPeriod.includes('2nd half')) return '2nd Half';
+  if (rawPeriod.includes('1st half')) return '1st Half';
+
+  if (liveMatch?.clockRunning || Number(liveMatch?.clockElapsedMs || 0) > 0) {
+    return '1st Half';
+  }
+  return '';
 }
 
 export function computeMatchClockElapsedMs(
@@ -706,25 +763,212 @@ export function computeMatchMinute(
   return Math.max(1, Math.ceil(elapsedMs / 60000));
 }
 
+export function evaluateMatchThresholdAlert(
+  liveMatch:
+    | Pick<
+        LiveMatchState,
+        | 'matchDurationMins'
+        | 'matchPhase'
+        | 'periodLabel'
+        | 'clockElapsedMs'
+        | 'clockStartedAt'
+        | 'clockRunning'
+        | 'halfTimeAlertPlayed'
+        | 'fullTimeAlertPlayed'
+      >
+    | null
+    | undefined,
+  nowMs: number = Date.now()
+): { type: 'half' | 'full' | null; halfMarkMs: number; fullMarkMs: number } {
+  const durationMins = getMatchDurationMins(liveMatch);
+  const fullMarkMs = durationMins * 60_000;
+  const halfMarkMs = Math.round((durationMins / 2) * 60_000);
+  if (!liveMatch?.clockRunning) {
+    return { type: null, halfMarkMs, fullMarkMs };
+  }
+  const phase = resolveMatchPhase(liveMatch);
+  const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+
+  if (elapsedMs >= fullMarkMs && !liveMatch.fullTimeAlertPlayed) {
+    return { type: 'full', halfMarkMs, fullMarkMs };
+  }
+  if ((phase === '1st Half' || phase === '') && elapsedMs >= halfMarkMs && !liveMatch.halfTimeAlertPlayed) {
+    return { type: 'half', halfMarkMs, fullMarkMs };
+  }
+  return { type: null, halfMarkMs, fullMarkMs };
+}
+
+export function applyMatchClockCommand(
+  liveMatch: LiveMatchState,
+  command: 'start' | 'pause' | 'reset' | MatchPhase,
+  nowMs: number = Date.now()
+): LiveMatchState {
+  const durationMins = getMatchDurationMins(liveMatch);
+  const halfMarkMs = Math.round((durationMins / 2) * 60_000);
+  const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+  const currentPhase = resolveMatchPhase(liveMatch);
+
+  if (command === 'start') {
+    if (liveMatch.clockRunning) return liveMatch;
+    const nextPhase: MatchPhase =
+      currentPhase === 'Half Time'
+        ? '2nd Half'
+        : currentPhase === 'Full Time' || currentPhase === ''
+          ? '1st Half'
+          : currentPhase;
+    return {
+      ...liveMatch,
+      matchDurationMins: durationMins,
+      matchPhase: nextPhase,
+      periodLabel: nextPhase,
+      clockElapsedMs: elapsedMs,
+      clockStartedAt: nowMs,
+      clockRunning: true,
+    };
+  }
+
+  if (command === 'pause') {
+    return {
+      ...liveMatch,
+      matchDurationMins: durationMins,
+      clockElapsedMs: elapsedMs,
+      clockStartedAt: null,
+      clockRunning: false,
+    };
+  }
+
+  if (command === 'reset') {
+    return {
+      ...liveMatch,
+      matchDurationMins: durationMins,
+      matchPhase: '1st Half',
+      periodLabel: '1st Half',
+      addedTimeMins: 0,
+      halfTimeAlertPlayed: false,
+      fullTimeAlertPlayed: false,
+      clockElapsedMs: 0,
+      clockStartedAt: null,
+      clockRunning: false,
+    };
+  }
+
+  if (command === '1st Half') {
+    return {
+      ...liveMatch,
+      matchDurationMins: durationMins,
+      matchPhase: '1st Half',
+      periodLabel: '1st Half',
+    };
+  }
+
+  if (command === 'Half Time') {
+    return {
+      ...liveMatch,
+      matchDurationMins: durationMins,
+      matchPhase: 'Half Time',
+      periodLabel: 'Half Time',
+      addedTimeMins: 0,
+      halfTimeAlertPlayed: true,
+      clockElapsedMs: elapsedMs,
+      clockStartedAt: null,
+      clockRunning: false,
+    };
+  }
+
+  if (command === '2nd Half') {
+    const alreadyRunningSecondHalf =
+      currentPhase === '2nd Half' && Boolean(liveMatch.clockRunning) && elapsedMs >= halfMarkMs;
+    if (alreadyRunningSecondHalf) {
+      return {
+        ...liveMatch,
+        matchDurationMins: durationMins,
+        matchPhase: '2nd Half',
+        periodLabel: '2nd Half',
+      };
+    }
+    return {
+      ...liveMatch,
+      matchDurationMins: durationMins,
+      matchPhase: '2nd Half',
+      periodLabel: '2nd Half',
+      addedTimeMins: 0,
+      halfTimeAlertPlayed: true,
+      fullTimeAlertPlayed: false,
+      clockElapsedMs: halfMarkMs,
+      clockStartedAt: nowMs,
+      clockRunning: true,
+    };
+  }
+
+  // 'Full Time'
+  return {
+    ...liveMatch,
+    matchDurationMins: durationMins,
+    matchPhase: 'Full Time',
+    periodLabel: 'Full Time',
+    addedTimeMins: 0,
+    fullTimeAlertPlayed: true,
+    clockElapsedMs: elapsedMs,
+    clockStartedAt: null,
+    clockRunning: false,
+  };
+}
+
+export function applyMatchDurationChange(
+  liveMatch: LiveMatchState,
+  durationMins: number,
+  nowMs: number = Date.now()
+): LiveMatchState {
+  const safeMins = Math.max(2, Math.round(Number(durationMins) || 30));
+  const halfMarkMs = Math.round((safeMins / 2) * 60_000);
+  const fullMarkMs = safeMins * 60_000;
+  const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+  return {
+    ...liveMatch,
+    matchDurationMins: safeMins,
+    halfTimeAlertPlayed: elapsedMs >= halfMarkMs,
+    fullTimeAlertPlayed: elapsedMs >= fullMarkMs,
+  };
+}
+
+export function applyAddedTimeChange(liveMatch: LiveMatchState, addedMins: number): LiveMatchState {
+  const safeAdded = Math.max(0, Math.floor(Number(addedMins) || 0));
+  return {
+    ...liveMatch,
+    addedTimeMins: safeAdded,
+  };
+}
+
 export function formatLiveMatchStatusDisplay(
-  liveMatch: Pick<LiveMatchState, 'periodLabel' | 'clockElapsedMs' | 'clockStartedAt' | 'clockRunning'> | null | undefined,
+  liveMatch:
+    | Pick<
+        LiveMatchState,
+        'periodLabel' | 'matchPhase' | 'addedTimeMins' | 'clockElapsedMs' | 'clockStartedAt' | 'clockRunning'
+      >
+    | null
+    | undefined,
   nowMs: number = Date.now()
 ): string {
+  const phase = resolveMatchPhase(liveMatch);
+  if (phase === 'Half Time') return 'HALF TIME';
+  if (phase === 'Full Time') return 'FULL TIME';
+
   const rawPeriod = String(liveMatch?.periodLabel || '').trim();
   const lowerPeriod = rawPeriod.toLowerCase();
   const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(lowerPeriod);
   const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
   const hasClock = Boolean(liveMatch?.clockRunning) || elapsedMs > 0;
-  const minute = computeMatchMinute(liveMatch, nowMs);
+  const mmss = formatMatchClockMMSS(elapsedMs);
+  const added = Math.max(0, Math.floor(Number(liveMatch?.addedTimeMins || 0)));
+  const addedSuffix = added > 0 ? ` (+${added}')` : '';
 
-  if (lowerPeriod === 'half time' && !liveMatch?.clockRunning) {
-    return rawPeriod;
+  if (phase === '1st Half' || phase === '2nd Half') {
+    return `${phase} · ${mmss}${addedSuffix}`;
   }
 
   if (hasClock) {
-    if (isDefault) return `Live · ${minute}'`;
-    if (rawPeriod.includes("'")) return rawPeriod;
-    return `${rawPeriod} · ${minute}'`;
+    const label = isDefault ? '1st Half' : rawPeriod;
+    return `${label} · ${mmss}${addedSuffix}`;
   }
   return rawPeriod || 'Live Match';
 }

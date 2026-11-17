@@ -968,15 +968,24 @@
               </p>
             </div>
 
-            <!-- Live Match Clock & Period Bar (Football / Kabaddi / Basketball) -->
-            <div id="team-clock-bar" class="rounded-2xl bg-slate-900 text-white px-4 py-3.5 sm:px-5 sm:py-4">
+            <!-- Continuous Live Match Clock, Match Duration, Phase & Injury Time Bar -->
+            <div id="team-clock-bar" class="rounded-2xl bg-slate-900 text-white px-4 py-4 sm:px-5 sm:py-4 space-y-3.5">
+              <!-- Row 1: Live Timer + Match Duration (Mins) + Start/Pause/Reset -->
               <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
                 <div class="flex flex-wrap items-center gap-4 sm:gap-6">
                   <div>
-                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                      Live Match Clock
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Live Match Clock
+                      </span>
+                      <span
+                        id="team-clock-phase-badge"
+                        class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold uppercase tracking-wider text-emerald-300"
+                      >
+                        1st Half
+                      </span>
                     </div>
-                    <div class="flex items-baseline gap-2.5 mt-0.5">
+                    <div class="flex items-baseline gap-2.5 mt-1">
                       <div
                         id="team-clock-display"
                         class="font-mono text-3xl sm:text-4xl font-bold tabular-nums tracking-tight"
@@ -989,36 +998,33 @@
                       >
                         0'
                       </span>
+                      <span
+                        id="team-clock-added-badge"
+                        class="hidden px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-400/40 font-mono text-xs font-bold text-amber-300 tabular-nums"
+                      >
+                        +0'
+                      </span>
+                    </div>
+                    <div id="team-clock-threshold-note" class="text-[11px] text-slate-400 mt-0.5 tabular-nums">
+                      Half 15:00 · Full 30:00
                     </div>
                   </div>
 
-                  <div class="flex flex-wrap items-end gap-2.5">
-                    <div class="w-40">
-                      <label id="team-period-select-label" for="team-period-select" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                        Half / Period
-                      </label>
-                      <select
-                        id="team-period-select"
-                        class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-sm font-semibold text-white"
-                      >
-                        <option value="1st Half">1st Half</option>
-                        <option value="Half Time">Half Time</option>
-                        <option value="2nd Half">2nd Half</option>
-                        <option value="Extra Time">Extra Time</option>
-                        <option value="__custom__">Custom / Note</option>
-                      </select>
+                  <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                      Match Duration (Mins)
                     </div>
-                    <div id="team-period-input-wrap" class="hidden w-full sm:w-56">
-                      <label for="team-period-input" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
-                        Match Period / Timer
-                      </label>
-                      <input
-                        id="team-period-input"
-                        type="text"
-                        placeholder="e.g. 2nd Half · 65' or Penalties"
-                        value=""
-                        class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-600 bg-slate-800 text-sm font-medium text-white placeholder:text-slate-400"
-                      />
+                    <div
+                      id="team-duration-buttons"
+                      role="group"
+                      aria-label="Match Duration (Mins)"
+                      class="inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-slate-800 border border-slate-700"
+                    >
+                      <button type="button" data-duration-mins="20" class="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/70 transition-colors">20m</button>
+                      <button type="button" data-duration-mins="30" class="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold bg-amber-400 text-slate-950 transition-colors">30m</button>
+                      <button type="button" data-duration-mins="40" class="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/70 transition-colors">40m</button>
+                      <button type="button" data-duration-mins="60" class="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/70 transition-colors">60m</button>
+                      <button type="button" data-duration-mins="90" class="min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/70 transition-colors">90m</button>
                     </div>
                   </div>
                 </div>
@@ -1047,6 +1053,33 @@
                   >
                     Reset
                   </button>
+                </div>
+              </div>
+
+              <!-- Row 2: Referee Phase Controls & Added / Injury Time -->
+              <div class="pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">
+                    Referee Phase
+                  </span>
+                  <div id="team-phase-buttons" class="inline-flex flex-wrap items-center gap-1.5">
+                    <button type="button" data-match-phase="1st Half" class="min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">1st Half</button>
+                    <button type="button" data-match-phase="Half Time" class="min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">Half Time</button>
+                    <button type="button" data-match-phase="2nd Half" class="min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">2nd Half</button>
+                    <button type="button" data-match-phase="Full Time" class="min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">Full Time</button>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">
+                    Added / Injury Time
+                  </span>
+                  <div id="team-added-time-buttons" class="inline-flex flex-wrap items-center gap-1.5">
+                    <button type="button" data-added-mins="1" class="min-h-[36px] px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">+1'</button>
+                    <button type="button" data-added-mins="2" class="min-h-[36px] px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">+2'</button>
+                    <button type="button" data-added-mins="3" class="min-h-[36px] px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors">+3'</button>
+                    <button type="button" data-added-mins="0" class="min-h-[36px] px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-700 transition-colors">Clear</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2997,7 +3030,17 @@
                 scoreB: 0,
                 ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
                 ...(effective === 'team'
-                  ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+                  ? {
+                      clockElapsedMs: 0,
+                      clockStartedAt: null,
+                      clockRunning: false,
+                      matchDurationMins: 30,
+                      matchPhase: null,
+                      addedTimeMins: 0,
+                      halfTimeAlertPlayed: false,
+                      fullTimeAlertPlayed: false,
+                      timeline: [],
+                    }
                   : {}),
                 periodLabel: 'Scheduled',
               }
@@ -3008,12 +3051,49 @@
                 scoreB: 0,
                 ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
                 ...(effective === 'team'
-                  ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+                  ? {
+                      clockElapsedMs: 0,
+                      clockStartedAt: null,
+                      clockRunning: false,
+                      matchDurationMins: 30,
+                      matchPhase: null,
+                      addedTimeMins: 0,
+                      halfTimeAlertPlayed: false,
+                      fullTimeAlertPlayed: false,
+                      timeline: [],
+                    }
                   : {}),
                 periodLabel: 'Scheduled',
               },
           updatedAt: now,
         };
+      }
+
+      const MATCH_DURATION_PRESETS = [20, 30, 40, 60, 90];
+
+      function getMatchDurationMins(liveMatch) {
+        const raw = Number(liveMatch?.matchDurationMins);
+        if (Number.isFinite(raw) && raw >= 2) return Math.round(raw);
+        return 30;
+      }
+
+      function resolveMatchPhase(liveMatch) {
+        const rawPhase = String(liveMatch?.matchPhase || '').trim().toLowerCase();
+        if (rawPhase === 'full time') return 'Full Time';
+        if (rawPhase === 'half time') return 'Half Time';
+        if (rawPhase === '2nd half') return '2nd Half';
+        if (rawPhase === '1st half') return '1st Half';
+
+        const rawPeriod = String(liveMatch?.periodLabel || '').trim().toLowerCase();
+        if (rawPeriod.includes('full time')) return 'Full Time';
+        if (rawPeriod.includes('half time')) return 'Half Time';
+        if (rawPeriod.includes('2nd half')) return '2nd Half';
+        if (rawPeriod.includes('1st half')) return '1st Half';
+
+        if (liveMatch?.clockRunning || Number(liveMatch?.clockElapsedMs || 0) > 0) {
+          return '1st Half';
+        }
+        return '';
       }
 
       function computeMatchClockElapsedMs(liveMatch, nowMs = Date.now()) {
@@ -3037,22 +3117,179 @@
         return Math.max(1, Math.ceil(elapsedMs / 60000));
       }
 
+      function evaluateMatchThresholdAlert(liveMatch, nowMs = Date.now()) {
+        const durationMins = getMatchDurationMins(liveMatch);
+        const fullMarkMs = durationMins * 60000;
+        const halfMarkMs = Math.round((durationMins / 2) * 60000);
+        if (!liveMatch?.clockRunning) {
+          return { type: null, halfMarkMs, fullMarkMs };
+        }
+        const phase = resolveMatchPhase(liveMatch);
+        const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+
+        if (elapsedMs >= fullMarkMs && !liveMatch.fullTimeAlertPlayed) {
+          return { type: 'full', halfMarkMs, fullMarkMs };
+        }
+        if ((phase === '1st Half' || phase === '') && elapsedMs >= halfMarkMs && !liveMatch.halfTimeAlertPlayed) {
+          return { type: 'half', halfMarkMs, fullMarkMs };
+        }
+        return { type: null, halfMarkMs, fullMarkMs };
+      }
+
+      function applyMatchClockCommand(liveMatch, command, nowMs = Date.now()) {
+        const durationMins = getMatchDurationMins(liveMatch);
+        const halfMarkMs = Math.round((durationMins / 2) * 60000);
+        const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+        const currentPhase = resolveMatchPhase(liveMatch);
+
+        if (command === 'start') {
+          if (liveMatch.clockRunning) return liveMatch;
+          const nextPhase =
+            currentPhase === 'Half Time'
+              ? '2nd Half'
+              : currentPhase === 'Full Time' || currentPhase === ''
+                ? '1st Half'
+                : currentPhase;
+          return {
+            ...liveMatch,
+            matchDurationMins: durationMins,
+            matchPhase: nextPhase,
+            periodLabel: nextPhase,
+            clockElapsedMs: elapsedMs,
+            clockStartedAt: nowMs,
+            clockRunning: true,
+          };
+        }
+
+        if (command === 'pause') {
+          return {
+            ...liveMatch,
+            matchDurationMins: durationMins,
+            clockElapsedMs: elapsedMs,
+            clockStartedAt: null,
+            clockRunning: false,
+          };
+        }
+
+        if (command === 'reset') {
+          return {
+            ...liveMatch,
+            matchDurationMins: durationMins,
+            matchPhase: '1st Half',
+            periodLabel: '1st Half',
+            addedTimeMins: 0,
+            halfTimeAlertPlayed: false,
+            fullTimeAlertPlayed: false,
+            clockElapsedMs: 0,
+            clockStartedAt: null,
+            clockRunning: false,
+          };
+        }
+
+        if (command === '1st Half') {
+          return {
+            ...liveMatch,
+            matchDurationMins: durationMins,
+            matchPhase: '1st Half',
+            periodLabel: '1st Half',
+          };
+        }
+
+        if (command === 'Half Time') {
+          return {
+            ...liveMatch,
+            matchDurationMins: durationMins,
+            matchPhase: 'Half Time',
+            periodLabel: 'Half Time',
+            addedTimeMins: 0,
+            halfTimeAlertPlayed: true,
+            clockElapsedMs: elapsedMs,
+            clockStartedAt: null,
+            clockRunning: false,
+          };
+        }
+
+        if (command === '2nd Half') {
+          const alreadyRunningSecondHalf =
+            currentPhase === '2nd Half' && Boolean(liveMatch.clockRunning) && elapsedMs >= halfMarkMs;
+          if (alreadyRunningSecondHalf) {
+            return {
+              ...liveMatch,
+              matchDurationMins: durationMins,
+              matchPhase: '2nd Half',
+              periodLabel: '2nd Half',
+            };
+          }
+          return {
+            ...liveMatch,
+            matchDurationMins: durationMins,
+            matchPhase: '2nd Half',
+            periodLabel: '2nd Half',
+            addedTimeMins: 0,
+            halfTimeAlertPlayed: true,
+            fullTimeAlertPlayed: false,
+            clockElapsedMs: halfMarkMs,
+            clockStartedAt: nowMs,
+            clockRunning: true,
+          };
+        }
+
+        // 'Full Time'
+        return {
+          ...liveMatch,
+          matchDurationMins: durationMins,
+          matchPhase: 'Full Time',
+          periodLabel: 'Full Time',
+          addedTimeMins: 0,
+          fullTimeAlertPlayed: true,
+          clockElapsedMs: elapsedMs,
+          clockStartedAt: null,
+          clockRunning: false,
+        };
+      }
+
+      function applyMatchDurationChange(liveMatch, durationMins, nowMs = Date.now()) {
+        const safeMins = Math.max(2, Math.round(Number(durationMins) || 30));
+        const halfMarkMs = Math.round((safeMins / 2) * 60000);
+        const fullMarkMs = safeMins * 60000;
+        const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+        return {
+          ...liveMatch,
+          matchDurationMins: safeMins,
+          halfTimeAlertPlayed: elapsedMs >= halfMarkMs,
+          fullTimeAlertPlayed: elapsedMs >= fullMarkMs,
+        };
+      }
+
+      function applyAddedTimeChange(liveMatch, addedMins) {
+        const safeAdded = Math.max(0, Math.floor(Number(addedMins) || 0));
+        return {
+          ...liveMatch,
+          addedTimeMins: safeAdded,
+        };
+      }
+
       function formatLiveMatchStatusDisplay(liveMatch, nowMs = Date.now()) {
+        const phase = resolveMatchPhase(liveMatch);
+        if (phase === 'Half Time') return 'HALF TIME';
+        if (phase === 'Full Time') return 'FULL TIME';
+
         const rawPeriod = String(liveMatch?.periodLabel || '').trim();
         const lowerPeriod = rawPeriod.toLowerCase();
         const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(lowerPeriod);
         const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
         const hasClock = Boolean(liveMatch?.clockRunning) || elapsedMs > 0;
-        const minute = computeMatchMinute(liveMatch, nowMs);
+        const mmss = formatMatchClockMMSS(elapsedMs);
+        const added = Math.max(0, Math.floor(Number(liveMatch?.addedTimeMins || 0)));
+        const addedSuffix = added > 0 ? ` (+${added}')` : '';
 
-        if (lowerPeriod === 'half time' && !liveMatch?.clockRunning) {
-          return rawPeriod;
+        if (phase === '1st Half' || phase === '2nd Half') {
+          return `${phase} · ${mmss}${addedSuffix}`;
         }
 
         if (hasClock) {
-          if (isDefault) return `Live · ${minute}'`;
-          if (rawPeriod.includes("'")) return rawPeriod;
-          return `${rawPeriod} · ${minute}'`;
+          const label = isDefault ? '1st Half' : rawPeriod;
+          return `${label} · ${mmss}${addedSuffix}`;
         }
         return rawPeriod || 'Live Match';
       }
@@ -3252,6 +3489,32 @@
         } catch (err) {}
       }
 
+      function playRefereeTimerBeep(alertType) {
+        // Strictly Referee-only beep inside Official Ground Scoring (never on TV Screen or Public Home)
+        if (currentView !== 'scoring' || scoringMode !== 'team') return;
+        const ctx = unlockTvAudio();
+        if (!ctx) return;
+
+        try {
+          const now = ctx.currentTime;
+          const pulses = alertType === 'full' ? [0, 0.2, 0.4] : [0, 0.22];
+          const freq = alertType === 'full' ? 1046.5 : 880;
+          pulses.forEach((offset) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + offset);
+            g.gain.setValueAtTime(0.001, now + offset);
+            g.gain.linearRampToValueAtTime(0.18, now + offset + 0.015);
+            g.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(now + offset);
+            osc.stop(now + offset + 0.15);
+          });
+        } catch (err) {}
+      }
+
       function triggerTvGoalCelebration(goal) {
         if (!goal || currentView !== 'tv') return;
         const overlay = document.getElementById('tv-goal-overlay');
@@ -3394,6 +3657,22 @@
         }
       }
 
+      function stripUndefinedDeep(value) {
+        if (Array.isArray(value)) {
+          return value.map((item) => (item === undefined ? null : stripUndefinedDeep(item)));
+        }
+        if (value && typeof value === 'object') {
+          const out = {};
+          for (const [k, v] of Object.entries(value)) {
+            if (v !== undefined) {
+              out[k] = stripUndefinedDeep(v);
+            }
+          }
+          return out;
+        }
+        return value;
+      }
+
       async function persistState(nextState, triggerCelebration = false) {
         const prevEvents = tvTrackedEventsSnapshot.length ? tvTrackedEventsSnapshot : appState.events;
         appState = nextState;
@@ -3410,10 +3689,16 @@
         checkTvGoalsAndUpdateSnapshot(prevEvents);
 
         if (isFirestoreReady && db && activeSchoolCode) {
-          fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch((err) => {
+          try {
+            const payload = stripUndefinedDeep(appState);
+            fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), payload).catch((err) => {
+              console.warn('Firestore school write saved locally', err);
+              showToast('Saved locally (Firestore sync pending)');
+            });
+          } catch (err) {
             console.warn('Firestore school write saved locally', err);
             showToast('Saved locally (Firestore sync pending)');
-          });
+          }
         }
       }
 
@@ -4910,17 +5195,6 @@
           .join('');
       }
 
-      function getActiveTeamPeriodLabel() {
-        const selectEl = document.getElementById('team-period-select');
-        const inputEl = document.getElementById('team-period-input');
-        const selVal = selectEl ? selectEl.value : '';
-        if (selVal === '__custom__') {
-          return inputEl?.value.trim() || 'Live Match';
-        }
-        if (selVal) return selVal;
-        return inputEl?.value.trim() || 'Live Match';
-      }
-
       function renderSportScoreButtons(profile) {
         const count = profile.scoreButtons.length;
         const gridClass =
@@ -4971,44 +5245,18 @@
         const { preserveTagger = false } = options;
         const profile = detectLiveMatchSportProfile(ev?.name);
 
-        const labelEl = document.getElementById('team-period-select-label');
-        const selectEl = document.getElementById('team-period-select');
-        const inputWrap = document.getElementById('team-period-input-wrap');
-        const inputEl = document.getElementById('team-period-input');
         const clockBar = document.getElementById('team-clock-bar');
         const setBar = document.getElementById('team-set-switcher-bar');
         const fbA = document.getElementById('team-a-football-controls');
         const fbB = document.getElementById('team-b-football-controls');
         const timelineCard = document.getElementById('team-timeline-card');
 
-        const rawPeriod = getEditablePeriodValue(live?.periodLabel);
-        const isPreset = profile.periodPresets.includes(rawPeriod);
-        const isCustom = Boolean(rawPeriod) && !isPreset;
-
-        if (labelEl) labelEl.textContent = profile.periodLabelTitle;
-        if (selectEl) {
-          selectEl.innerHTML = [
-            ...profile.periodPresets.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`),
-            '<option value="__custom__">Custom / Note</option>',
-          ].join('');
-          selectEl.value = isCustom ? '__custom__' : isPreset ? rawPeriod : (profile.periodPresets[0] || '__custom__');
-        }
-        if (inputEl) {
-          inputEl.value = isCustom ? rawPeriod : '';
-          inputEl.placeholder = profile.showClock
-            ? profile.id === 'basketball'
-              ? 'e.g. Q2 · 4:15'
-              : "e.g. 2nd Half · 65' or Penalties"
-            : `e.g. ${profile.periodPresets[0]} or Tie-break`;
-        }
-        if (inputWrap) {
-          inputWrap.classList.toggle('hidden', !isCustom);
-        }
-
         if (clockBar) clockBar.classList.toggle('hidden', !profile.showClock);
         if (setBar) setBar.classList.toggle('hidden', profile.showClock);
         if (!profile.showClock) {
-          renderSetSwitcherButtons(profile, isPreset ? rawPeriod : profile.periodPresets[0] || '');
+          const rawPeriod = getEditablePeriodValue(live?.periodLabel);
+          const activeSet = profile.periodPresets.includes(rawPeriod) ? rawPeriod : profile.periodPresets[0] || '';
+          renderSetSwitcherButtons(profile, activeSet);
         }
 
         renderSportScoreButtons(profile);
@@ -5094,6 +5342,9 @@
       function renderTeamClockUI(live) {
         const displayEl = document.getElementById('team-clock-display');
         const minBadge = document.getElementById('team-clock-minute-badge');
+        const phaseBadge = document.getElementById('team-clock-phase-badge');
+        const addedBadge = document.getElementById('team-clock-added-badge');
+        const thresholdNote = document.getElementById('team-clock-threshold-note');
         const btnStart = document.getElementById('btn-team-clock-start');
         const btnPause = document.getElementById('btn-team-clock-pause');
         if (!displayEl || !minBadge) return;
@@ -5101,8 +5352,70 @@
         const nowMs = Date.now();
         const elapsedMs = computeMatchClockElapsedMs(live, nowMs);
         const minute = computeMatchMinute(live, nowMs);
+        const durationMins = getMatchDurationMins(live);
+        const halfMarkMins = Math.round(durationMins / 2);
+        const phase = resolveMatchPhase(live);
+        const addedMins = Math.max(0, Math.floor(Number(live?.addedTimeMins || 0)));
+
         displayEl.textContent = formatMatchClockMMSS(elapsedMs);
         minBadge.textContent = `${minute}'`;
+
+        if (phaseBadge) {
+          phaseBadge.textContent = phase || 'Ready';
+          phaseBadge.className =
+            phase === 'Full Time'
+              ? 'px-2 py-0.5 rounded bg-slate-800 border border-slate-600 text-[10px] font-bold uppercase tracking-wider text-slate-300'
+              : phase === 'Half Time'
+                ? 'px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/40 text-[10px] font-bold uppercase tracking-wider text-amber-300'
+                : 'px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/40 text-[10px] font-bold uppercase tracking-wider text-emerald-300';
+        }
+
+        if (addedBadge) {
+          if (addedMins > 0 && phase !== 'Half Time' && phase !== 'Full Time') {
+            addedBadge.textContent = `+${addedMins}'`;
+            addedBadge.classList.remove('hidden');
+          } else {
+            addedBadge.classList.add('hidden');
+          }
+        }
+
+        if (thresholdNote) {
+          const halfStr = `${String(halfMarkMins).padStart(2, '0')}:00`;
+          const fullStr = `${String(durationMins).padStart(2, '0')}:00`;
+          if (elapsedMs >= durationMins * 60000 && phase !== 'Full Time') {
+            thresholdNote.textContent = `Full-Time (${fullStr}) reached · clock running`;
+          } else if ((phase === '1st Half' || phase === '') && elapsedMs >= halfMarkMins * 60000) {
+            thresholdNote.textContent = `Half-Time (${halfStr}) reached · clock running`;
+          } else {
+            thresholdNote.textContent = `Half ${halfStr} · Full ${fullStr}`;
+          }
+        }
+
+        document.querySelectorAll('#team-duration-buttons [data-duration-mins]').forEach((btn) => {
+          const mins = Number(btn.getAttribute('data-duration-mins'));
+          const active = mins === durationMins;
+          btn.className = active
+            ? 'min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold bg-amber-400 text-slate-950 transition-colors'
+            : 'min-h-[34px] px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-700/70 transition-colors';
+        });
+
+        document.querySelectorAll('#team-phase-buttons [data-match-phase]').forEach((btn) => {
+          const val = btn.getAttribute('data-match-phase');
+          const active = val === phase;
+          btn.className = active
+            ? 'min-h-[36px] px-3 py-1.5 rounded-lg bg-emerald-600 border border-emerald-500 text-xs font-bold text-white transition-colors'
+            : 'min-h-[36px] px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors';
+        });
+
+        document.querySelectorAll('#team-added-time-buttons [data-added-mins]').forEach((btn) => {
+          const mins = Number(btn.getAttribute('data-added-mins'));
+          const active = mins > 0 && mins === addedMins;
+          btn.className = active
+            ? 'min-h-[36px] px-2.5 py-1.5 rounded-lg bg-amber-400 border border-amber-300 font-mono text-xs font-bold text-slate-950 transition-colors'
+            : mins === 0
+              ? 'min-h-[36px] px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-700 transition-colors'
+              : 'min-h-[36px] px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors';
+        });
 
         const running = Boolean(live?.clockRunning);
         if (btnStart) {
@@ -5166,7 +5479,28 @@
         if (currentView === 'scoring' && scoringMode === 'team' && selectedEventId) {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (ev?.liveMatch?.clockRunning) {
-            renderTeamClockUI(ev.liveMatch);
+            const alertRes = evaluateMatchThresholdAlert(ev.liveMatch, nowMs);
+            if (alertRes.type) {
+              const updatedLive = {
+                ...ev.liveMatch,
+                halfTimeAlertPlayed: alertRes.type === 'half' ? true : Boolean(ev.liveMatch.halfTimeAlertPlayed),
+                fullTimeAlertPlayed: alertRes.type === 'full' ? true : Boolean(ev.liveMatch.fullTimeAlertPlayed),
+              };
+              const nextEvents = appState.events.map((item) =>
+                item.id === ev.id ? { ...item, liveMatch: updatedLive, updatedAt: nowMs } : item
+              );
+              appState = { ...appState, events: nextEvents };
+              if (activeSchoolCode) saveSchoolLocal(activeSchoolCode, appState);
+              playRefereeTimerBeep(alertRes.type);
+              showToast(
+                alertRes.type === 'full'
+                  ? 'Full-Time mark reached — clock continues running'
+                  : 'Half-Time mark reached — clock continues running'
+              );
+              renderTeamClockUI(updatedLive);
+            } else {
+              renderTeamClockUI(ev.liveMatch);
+            }
           }
         }
         document.querySelectorAll('[data-live-clock-event]').forEach((el) => {
@@ -5243,12 +5577,18 @@
         }
         document.getElementById('team-error').classList.add('hidden');
 
+        const profile = detectLiveMatchSportProfile(ev.name);
         const current = ev.liveMatch || {
           teamAHouse,
           teamBHouse,
           scoreA: 0,
           scoreB: 0,
-          periodLabel: 'Live Match',
+          periodLabel: profile.showClock ? '1st Half' : profile.periodPresets[0] || 'Live Match',
+          matchDurationMins: 30,
+          matchPhase: profile.showClock ? '1st Half' : null,
+          addedTimeMins: 0,
+          halfTimeAlertPlayed: false,
+          fullTimeAlertPlayed: false,
           clockElapsedMs: 0,
           clockStartedAt: null,
           clockRunning: false,
@@ -5259,7 +5599,12 @@
           teamBHouse,
           scoreA: Number(current.scoreA || 0),
           scoreB: Number(current.scoreB || 0),
-          periodLabel: getActiveTeamPeriodLabel(),
+          periodLabel: current.periodLabel || (profile.showClock ? '1st Half' : profile.periodPresets[0] || 'Live Match'),
+          matchDurationMins: getMatchDurationMins(current),
+          matchPhase: current.matchPhase ?? (profile.showClock ? resolveMatchPhase(current) : null),
+          addedTimeMins: Math.max(0, Math.floor(Number(current.addedTimeMins || 0))),
+          halfTimeAlertPlayed: Boolean(current.halfTimeAlertPlayed),
+          fullTimeAlertPlayed: Boolean(current.fullTimeAlertPlayed),
           clockElapsedMs: Number(current.clockElapsedMs || 0),
           clockStartedAt: current.clockStartedAt ?? null,
           clockRunning: Boolean(current.clockRunning),
@@ -6557,44 +6902,12 @@
           }, 250);
         };
 
-        document.getElementById('team-period-select').addEventListener('change', (e) => {
-          const val = e.target.value;
-          const inputWrap = document.getElementById('team-period-input-wrap');
-          const inputEl = document.getElementById('team-period-input');
-          if (val === '__custom__') {
-            if (inputWrap) inputWrap.classList.remove('hidden');
-            inputEl?.focus();
-            const customVal = inputEl?.value.trim() || '';
-            if (customVal) syncTeamPeriodLive(customVal);
-          } else if (val) {
-            if (inputWrap) inputWrap.classList.add('hidden');
-            if (inputEl) inputEl.value = '';
-            const ev = appState.events.find((x) => x.id === selectedEventId);
-            const profile = detectLiveMatchSportProfile(ev?.name);
-            if (!profile.showClock) renderSetSwitcherButtons(profile, val);
-            syncTeamPeriodLive(val);
-          }
-        });
-
-        document.getElementById('team-period-input').addEventListener('input', (e) => {
-          const val = e.target.value.trim();
-          const selectEl = document.getElementById('team-period-select');
-          if (selectEl) selectEl.value = '__custom__';
-          const ev = appState.events.find((x) => x.id === selectedEventId);
-          const profile = detectLiveMatchSportProfile(ev?.name);
-          if (!profile.showClock) renderSetSwitcherButtons(profile, val);
-          syncTeamPeriodLive(val || 'Live Match');
-        });
-
         document.getElementById('team-set-switcher-buttons').addEventListener('click', (e) => {
           const btn = e.target.closest('[data-set-preset]');
           if (!btn) return;
           const val = btn.getAttribute('data-set-preset') || '';
           const ev = appState.events.find((x) => x.id === selectedEventId);
           const profile = detectLiveMatchSportProfile(ev?.name);
-          document.getElementById('team-period-input').value = '';
-          document.getElementById('team-period-input-wrap')?.classList.add('hidden');
-          document.getElementById('team-period-select').value = profile.periodPresets.includes(val) ? val : '__custom__';
           renderSetSwitcherButtons(profile, val);
           if (ev && ev.status !== 'LIVE') {
             adjustLiveTeamState((m) => ({ ...m, periodLabel: val }));
@@ -6615,39 +6928,46 @@
           if (matchEvBtn) {
             const [side, kind] = matchEvBtn.getAttribute('data-match-event').split(':');
             logOneTapMatchEvent(side, kind);
+            return;
+          }
+          const durBtn = e.target.closest('[data-duration-mins]');
+          if (durBtn) {
+            const mins = Number(durBtn.getAttribute('data-duration-mins') || 30);
+            const nowMs = Date.now();
+            adjustLiveTeamState((m) => applyMatchDurationChange(m, mins, nowMs));
+            return;
+          }
+          const phaseBtn = e.target.closest('[data-match-phase]');
+          if (phaseBtn) {
+            const phase = phaseBtn.getAttribute('data-match-phase');
+            if (phase) {
+              unlockTvAudio();
+              const nowMs = Date.now();
+              adjustLiveTeamState((m) => applyMatchClockCommand(m, phase, nowMs));
+            }
+            return;
+          }
+          const addedBtn = e.target.closest('[data-added-mins]');
+          if (addedBtn) {
+            const mins = Number(addedBtn.getAttribute('data-added-mins') || 0);
+            adjustLiveTeamState((m) => applyAddedTimeChange(m, mins));
           }
         });
 
         document.getElementById('btn-team-clock-start').addEventListener('click', () => {
+          unlockTvAudio();
           const nowMs = Date.now();
-          adjustLiveTeamState((m) => {
-            if (m.clockRunning) return m;
-            return {
-              ...m,
-              clockElapsedMs: computeMatchClockElapsedMs(m, nowMs),
-              clockStartedAt: nowMs,
-              clockRunning: true,
-            };
-          });
+          adjustLiveTeamState((m) => applyMatchClockCommand(m, 'start', nowMs));
         });
 
         document.getElementById('btn-team-clock-pause').addEventListener('click', () => {
           const nowMs = Date.now();
-          adjustLiveTeamState((m) => ({
-            ...m,
-            clockElapsedMs: computeMatchClockElapsedMs(m, nowMs),
-            clockStartedAt: null,
-            clockRunning: false,
-          }));
+          adjustLiveTeamState((m) => applyMatchClockCommand(m, 'pause', nowMs));
         });
 
         document.getElementById('btn-team-clock-reset').addEventListener('click', () => {
-          adjustLiveTeamState((m) => ({
-            ...m,
-            clockElapsedMs: 0,
-            clockStartedAt: null,
-            clockRunning: false,
-          }));
+          const nowMs = Date.now();
+          adjustLiveTeamState((m) => applyMatchClockCommand(m, 'reset', nowMs));
         });
 
         ['A', 'B'].forEach((side) => {
@@ -6738,10 +7058,6 @@
                 );
                 document.getElementById('team-a-score').textContent = '0';
                 document.getElementById('team-b-score').textContent = '0';
-                document.getElementById('team-period-input').value = '';
-                document.getElementById('team-period-input-wrap')?.classList.add('hidden');
-                const profile = detectLiveMatchSportProfile(reverted.name);
-                document.getElementById('team-period-select').value = profile.periodPresets[0] || '__custom__';
                 renderTeamClockUI(reverted.liveMatch);
                 renderTeamTimelineList(reverted.liveMatch);
                 await persistState({ ...appState, events: nextEvents });

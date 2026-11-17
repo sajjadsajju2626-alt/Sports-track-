@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  applyTeamScoreDelta,
   buildInviteMessage,
   buildPublicShareUrl,
   computeHousePointBreakdown,
@@ -622,6 +623,11 @@ test('Sport-specific 1v1 Live Match profiles adapt controls, clocks, sets, and t
   assert.equal(fb.id, 'football');
   assert.equal(fb.showClock, true);
   assert.equal(fb.showFootballControls, true);
+  assert.deepEqual(
+    fb.scoreButtons.map((b) => b.label),
+    ['-1', '+1 Goal ⚽']
+  );
+  assert.equal(fb.scoreButtons[1].matchEvent, 'goal');
 
   const kabaddi = detectLiveMatchSportProfile('Senior Kabaddi Final');
   assert.equal(kabaddi.id, 'kabaddi');
@@ -675,5 +681,64 @@ test('Sport-specific 1v1 Live Match profiles adapt controls, clocks, sets, and t
     liveMatch: { ...vbPrev.liveMatch, scoreA: 11 },
   };
   assert.deepEqual(detectNewGoals([vbPrev], [vbNext], base.houses, 500), []);
+});
+
+test('applyTeamScoreDelta removes most recent goal for that team on -1 and combines 2nd Half with clock minute', () => {
+  const runningSecondHalf = {
+    periodLabel: '2nd Half',
+    clockElapsedMs: 22 * 60_000,
+    clockStartedAt: 100_000,
+    clockRunning: true,
+  };
+  assert.equal(formatLiveMatchStatusDisplay(runningSecondHalf, 100_000 + 10_000), "2nd Half · 23'");
+
+  const pausedHalfTime = {
+    periodLabel: 'Half Time',
+    clockElapsedMs: 22 * 60_000,
+    clockStartedAt: null,
+    clockRunning: false,
+  };
+  assert.equal(formatLiveMatchStatusDisplay(pausedHalfTime, 999_999), 'Half Time');
+
+  const lm = {
+    teamAHouse: 'red' as const,
+    teamBHouse: 'blue' as const,
+    scoreA: 2,
+    scoreB: 1,
+    timeline: [
+      { id: 'gA1', side: 'A' as const, type: 'goal' as const, chestNo: '101', playerName: 'Aarav', minute: 5, createdAt: 100 },
+      { id: 'yA1', side: 'A' as const, type: 'yellow' as const, chestNo: '102', playerName: 'Rohan', minute: 9, createdAt: 200 },
+      { id: 'gB1', side: 'B' as const, type: 'goal' as const, chestNo: '201', playerName: 'Kabir', minute: 12, createdAt: 300 },
+      { id: 'gA2', side: 'A' as const, type: 'goal' as const, chestNo: '', playerName: 'Goal', minute: 23, createdAt: 400 },
+    ],
+  };
+
+  // -1 on Team A removes gA2 (the latest Team A goal), keeping yA1, gA1, and gB1 intact
+  const res1 = applyTeamScoreDelta(lm, 'A', -1);
+  assert.equal(res1.nextMatch.scoreA, 1);
+  assert.equal(res1.nextMatch.scoreB, 1);
+  assert.equal(res1.removedGoalId, 'gA2');
+  assert.deepEqual(
+    res1.nextMatch.timeline?.map((t) => t.id),
+    ['gA1', 'yA1', 'gB1']
+  );
+
+  // -1 again on Team A removes gA1, score becomes 0
+  const res2 = applyTeamScoreDelta(res1.nextMatch, 'A', -1);
+  assert.equal(res2.nextMatch.scoreA, 0);
+  assert.equal(res2.removedGoalId, 'gA1');
+  assert.deepEqual(
+    res2.nextMatch.timeline?.map((t) => t.id),
+    ['yA1', 'gB1']
+  );
+
+  // -1 when score is already 0 does nothing and removes nothing
+  const res3 = applyTeamScoreDelta(res2.nextMatch, 'A', -1);
+  assert.equal(res3.nextMatch.scoreA, 0);
+  assert.equal(res3.removedGoalId, null);
+  assert.deepEqual(
+    res3.nextMatch.timeline?.map((t) => t.id),
+    ['yA1', 'gB1']
+  );
 });
 

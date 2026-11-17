@@ -961,91 +961,93 @@
         <!-- MODE B: LIVE MATCH SCOREBOARD (TEAM GAMES) -->
         <div id="scoring-team-panel" class="hidden space-y-5">
           <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-6">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 class="text-lg font-bold text-slate-900">Live Match Scoreboard</h3>
-                <p class="text-xs sm:text-sm text-slate-500">
-                  Live clock, goals, cards, and score taps sync straight to Home &amp; TV Display
-                </p>
-              </div>
-              <div class="flex flex-wrap items-end gap-2.5 w-full lg:w-auto">
-                <div class="w-40 flex-1 sm:flex-none">
-                  <label id="team-period-select-label" for="team-period-select" class="block text-xs font-semibold text-slate-600 mb-1">
-                    Half / Period
-                  </label>
-                  <select
-                    id="team-period-select"
-                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-900"
-                  >
-                    <option value="">Custom / Note</option>
-                    <option value="1st Half">1st Half</option>
-                    <option value="Half Time">Half Time</option>
-                    <option value="2nd Half">2nd Half</option>
-                    <option value="Extra Time">Extra Time</option>
-                  </select>
-                </div>
-                <div class="w-full sm:w-56 flex-1 sm:flex-none">
-                  <label for="team-period-input" class="block text-xs font-semibold text-slate-600 mb-1">
-                    Match Period / Timer
-                  </label>
-                  <input
-                    id="team-period-input"
-                    type="text"
-                    placeholder="e.g. 2nd Half · 65' or Set 2"
-                    value=""
-                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-              </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Live Match Scoreboard</h3>
+              <p class="text-xs sm:text-sm text-slate-500">
+                Live clock, goals, cards, and score taps sync straight to Home &amp; TV Display
+              </p>
             </div>
 
-            <!-- Live Match Clock Bar (Football / Kabaddi / Basketball) -->
-            <div id="team-clock-bar" class="rounded-2xl bg-slate-900 text-white px-4 py-3.5 sm:px-5 sm:py-4 flex flex-wrap items-center justify-between gap-3">
-              <div class="flex items-center gap-3.5">
-                <div>
-                  <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Live Match Clock
-                  </div>
-                  <div class="flex items-baseline gap-2.5 mt-0.5">
-                    <div
-                      id="team-clock-display"
-                      class="font-mono text-3xl sm:text-4xl font-bold tabular-nums tracking-tight"
-                    >
-                      00:00
+            <!-- Live Match Clock & Period Bar (Football / Kabaddi / Basketball) -->
+            <div id="team-clock-bar" class="rounded-2xl bg-slate-900 text-white px-4 py-3.5 sm:px-5 sm:py-4">
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
+                <div class="flex flex-wrap items-center gap-4 sm:gap-6">
+                  <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      Live Match Clock
                     </div>
-                    <span
-                      id="team-clock-minute-badge"
-                      class="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-amber-300 tabular-nums"
-                    >
-                      0'
-                    </span>
+                    <div class="flex items-baseline gap-2.5 mt-0.5">
+                      <div
+                        id="team-clock-display"
+                        class="font-mono text-3xl sm:text-4xl font-bold tabular-nums tracking-tight"
+                      >
+                        00:00
+                      </div>
+                      <span
+                        id="team-clock-minute-badge"
+                        class="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-amber-300 tabular-nums"
+                      >
+                        0'
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap items-end gap-2.5">
+                    <div class="w-40">
+                      <label id="team-period-select-label" for="team-period-select" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                        Half / Period
+                      </label>
+                      <select
+                        id="team-period-select"
+                        class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-sm font-semibold text-white"
+                      >
+                        <option value="1st Half">1st Half</option>
+                        <option value="Half Time">Half Time</option>
+                        <option value="2nd Half">2nd Half</option>
+                        <option value="Extra Time">Extra Time</option>
+                        <option value="__custom__">Custom / Note</option>
+                      </select>
+                    </div>
+                    <div id="team-period-input-wrap" class="hidden w-full sm:w-56">
+                      <label for="team-period-input" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">
+                        Match Period / Timer
+                      </label>
+                      <input
+                        id="team-period-input"
+                        type="text"
+                        placeholder="e.g. 2nd Half · 65' or Penalties"
+                        value=""
+                        class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-600 bg-slate-800 text-sm font-medium text-white placeholder:text-slate-400"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  id="btn-team-clock-start"
-                  class="min-h-[42px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
-                >
-                  <i data-lucide="play" class="w-4 h-4" aria-hidden="true"></i>
-                  <span>Start</span>
-                </button>
-                <button
-                  type="button"
-                  id="btn-team-clock-pause"
-                  class="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
-                >
-                  <i data-lucide="pause" class="w-4 h-4" aria-hidden="true"></i>
-                  <span>Pause</span>
-                </button>
-                <button
-                  type="button"
-                  id="btn-team-clock-reset"
-                  class="min-h-[42px] px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs sm:text-sm font-semibold"
-                >
-                  Reset
-                </button>
+
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    id="btn-team-clock-start"
+                    class="min-h-[42px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
+                  >
+                    <i data-lucide="play" class="w-4 h-4" aria-hidden="true"></i>
+                    <span>Start</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-team-clock-pause"
+                    class="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
+                  >
+                    <i data-lucide="pause" class="w-4 h-4" aria-hidden="true"></i>
+                    <span>Pause</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-team-clock-reset"
+                    class="min-h-[42px] px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs sm:text-sm font-semibold"
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1094,33 +1096,26 @@
                   </button>
                   <button
                     type="button"
-                    data-team-score-delta="A:1"
-                    class="min-h-[48px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-lg font-bold text-white"
-                    aria-label="Increase Team A score by 1"
+                    data-match-event="A:goal"
+                    class="min-h-[48px] px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm sm:text-base font-bold text-white inline-flex items-center justify-center gap-1.5"
+                    aria-label="Add 1 goal for Team A"
                   >
-                    +1
+                    <span>+1 Goal ⚽</span>
                   </button>
                 </div>
-                <div id="team-a-football-controls" class="space-y-2.5 pt-1">
-                  <div class="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      data-match-event="A:goal"
-                      class="min-h-[42px] px-2 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center justify-center gap-1"
-                    >
-                      <span>+1 Goal ⚽</span>
-                    </button>
+                <div id="team-a-football-controls" class="space-y-2.5 pt-0.5">
+                  <div class="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
                       data-match-event="A:yellow"
-                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs font-bold inline-flex items-center justify-center gap-1"
+                      class="min-h-[42px] px-2.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1"
                     >
                       <span>Yellow 🟨</span>
                     </button>
                     <button
                       type="button"
                       data-match-event="A:red"
-                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-900 text-xs font-bold inline-flex items-center justify-center gap-1"
+                      class="min-h-[42px] px-2.5 py-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-900 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1"
                     >
                       <span>Red 🟥</span>
                     </button>
@@ -1187,33 +1182,26 @@
                   </button>
                   <button
                     type="button"
-                    data-team-score-delta="B:1"
-                    class="min-h-[48px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-lg font-bold text-white"
-                    aria-label="Increase Team B score by 1"
+                    data-match-event="B:goal"
+                    class="min-h-[48px] px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm sm:text-base font-bold text-white inline-flex items-center justify-center gap-1.5"
+                    aria-label="Add 1 goal for Team B"
                   >
-                    +1
+                    <span>+1 Goal ⚽</span>
                   </button>
                 </div>
-                <div id="team-b-football-controls" class="space-y-2.5 pt-1">
-                  <div class="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      data-match-event="B:goal"
-                      class="min-h-[42px] px-2 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center justify-center gap-1"
-                    >
-                      <span>+1 Goal ⚽</span>
-                    </button>
+                <div id="team-b-football-controls" class="space-y-2.5 pt-0.5">
+                  <div class="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
                       data-match-event="B:yellow"
-                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs font-bold inline-flex items-center justify-center gap-1"
+                      class="min-h-[42px] px-2.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1"
                     >
                       <span>Yellow 🟨</span>
                     </button>
                     <button
                       type="button"
                       data-match-event="B:red"
-                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-900 text-xs font-bold inline-flex items-center justify-center gap-1"
+                      class="min-h-[42px] px-2.5 py-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-900 text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-1"
                     >
                       <span>Red 🟥</span>
                     </button>
@@ -2662,7 +2650,7 @@
           periodPresets: ['1st Half', 'Half Time', '2nd Half', 'Extra Time'],
           scoreButtons: [
             { delta: -1, label: '-1', tone: 'minus' },
-            { delta: 1, label: '+1', tone: 'primary' },
+            { delta: 1, label: '+1 Goal ⚽', tone: 'goal', matchEvent: 'goal' },
           ],
         };
       }
@@ -3051,10 +3039,15 @@
 
       function formatLiveMatchStatusDisplay(liveMatch, nowMs = Date.now()) {
         const rawPeriod = String(liveMatch?.periodLabel || '').trim();
-        const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(rawPeriod.toLowerCase());
+        const lowerPeriod = rawPeriod.toLowerCase();
+        const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(lowerPeriod);
         const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
         const hasClock = Boolean(liveMatch?.clockRunning) || elapsedMs > 0;
         const minute = computeMatchMinute(liveMatch, nowMs);
+
+        if (lowerPeriod === 'half time' && !liveMatch?.clockRunning) {
+          return rawPeriod;
+        }
 
         if (hasClock) {
           if (isDefault) return `Live · ${minute}'`;
@@ -3062,6 +3055,43 @@
           return `${rawPeriod} · ${minute}'`;
         }
         return rawPeriod || 'Live Match';
+      }
+
+      function applyTeamScoreDelta(liveMatch, side, delta) {
+        const s = side === 'B' ? 'B' : 'A';
+        const prevScore = s === 'A' ? Number(liveMatch.scoreA || 0) : Number(liveMatch.scoreB || 0);
+        const nextScore = Math.max(0, prevScore + delta);
+        const nextTimeline = Array.isArray(liveMatch.timeline) ? [...liveMatch.timeline] : [];
+        let removedGoalId = null;
+
+        if (delta < 0 && prevScore > 0) {
+          let targetIdx = -1;
+          let bestCreatedAt = -Infinity;
+          for (let i = 0; i < nextTimeline.length; i += 1) {
+            const item = nextTimeline[i];
+            if (item.side === s && item.type === 'goal') {
+              const ts = Number(item.createdAt || 0);
+              if (ts >= bestCreatedAt) {
+                bestCreatedAt = ts;
+                targetIdx = i;
+              }
+            }
+          }
+          if (targetIdx !== -1) {
+            removedGoalId = nextTimeline[targetIdx].id;
+            nextTimeline.splice(targetIdx, 1);
+          }
+        }
+
+        return {
+          removedGoalId,
+          nextMatch: {
+            ...liveMatch,
+            scoreA: s === 'A' ? nextScore : liveMatch.scoreA,
+            scoreB: s === 'B' ? nextScore : liveMatch.scoreB,
+            timeline: nextTimeline,
+          },
+        };
       }
 
       function formatTimelineItemLabel(item) {
@@ -4880,6 +4910,17 @@
           .join('');
       }
 
+      function getActiveTeamPeriodLabel() {
+        const selectEl = document.getElementById('team-period-select');
+        const inputEl = document.getElementById('team-period-input');
+        const selVal = selectEl ? selectEl.value : '';
+        if (selVal === '__custom__') {
+          return inputEl?.value.trim() || 'Live Match';
+        }
+        if (selVal) return selVal;
+        return inputEl?.value.trim() || 'Live Match';
+      }
+
       function renderSportScoreButtons(profile) {
         const count = profile.scoreButtons.length;
         const gridClass =
@@ -4890,12 +4931,27 @@
           wrap.className = gridClass;
           wrap.innerHTML = profile.scoreButtons
             .map((btn) => {
+              const isGoalBtn = btn.matchEvent === 'goal' || btn.tone === 'goal';
               const cls =
                 btn.tone === 'minus'
                   ? 'min-h-[48px] px-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-sm sm:text-base font-bold text-slate-800'
-                  : btn.tone === 'accent'
-                    ? 'min-h-[48px] px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-mono text-xs sm:text-sm font-bold text-white leading-tight'
-                    : 'min-h-[48px] px-2 rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-sm sm:text-base font-bold text-white leading-tight';
+                  : isGoalBtn
+                    ? 'min-h-[48px] px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm sm:text-base font-bold text-white inline-flex items-center justify-center gap-1.5 leading-tight'
+                    : btn.tone === 'accent'
+                      ? 'min-h-[48px] px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-mono text-xs sm:text-sm font-bold text-white leading-tight'
+                      : 'min-h-[48px] px-2 rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-sm sm:text-base font-bold text-white leading-tight';
+              if (btn.matchEvent) {
+                return `
+                  <button
+                    type="button"
+                    data-match-event="${side}:${escapeHtml(btn.matchEvent)}"
+                    class="${cls}"
+                    aria-label="Add 1 goal for Team ${side}"
+                  >
+                    <span>${escapeHtml(btn.label)}</span>
+                  </button>
+                `;
+              }
               return `
                 <button
                   type="button"
@@ -4917,6 +4973,7 @@
 
         const labelEl = document.getElementById('team-period-select-label');
         const selectEl = document.getElementById('team-period-select');
+        const inputWrap = document.getElementById('team-period-input-wrap');
         const inputEl = document.getElementById('team-period-input');
         const clockBar = document.getElementById('team-clock-bar');
         const setBar = document.getElementById('team-set-switcher-bar');
@@ -4924,28 +4981,34 @@
         const fbB = document.getElementById('team-b-football-controls');
         const timelineCard = document.getElementById('team-timeline-card');
 
+        const rawPeriod = getEditablePeriodValue(live?.periodLabel);
+        const isPreset = profile.periodPresets.includes(rawPeriod);
+        const isCustom = Boolean(rawPeriod) && !isPreset;
+
         if (labelEl) labelEl.textContent = profile.periodLabelTitle;
         if (selectEl) {
-          const currentInput = inputEl ? inputEl.value.trim() : getEditablePeriodValue(live?.periodLabel);
           selectEl.innerHTML = [
-            '<option value="">Custom / Note</option>',
             ...profile.periodPresets.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`),
+            '<option value="__custom__">Custom / Note</option>',
           ].join('');
-          selectEl.value = profile.periodPresets.includes(currentInput) ? currentInput : '';
+          selectEl.value = isCustom ? '__custom__' : isPreset ? rawPeriod : (profile.periodPresets[0] || '__custom__');
         }
         if (inputEl) {
+          inputEl.value = isCustom ? rawPeriod : '';
           inputEl.placeholder = profile.showClock
             ? profile.id === 'basketball'
               ? 'e.g. Q2 · 4:15'
-              : "e.g. 2nd Half · 65'"
+              : "e.g. 2nd Half · 65' or Penalties"
             : `e.g. ${profile.periodPresets[0]} or Tie-break`;
+        }
+        if (inputWrap) {
+          inputWrap.classList.toggle('hidden', !isCustom);
         }
 
         if (clockBar) clockBar.classList.toggle('hidden', !profile.showClock);
         if (setBar) setBar.classList.toggle('hidden', profile.showClock);
         if (!profile.showClock) {
-          const currentPeriod = inputEl ? inputEl.value.trim() : getEditablePeriodValue(live?.periodLabel);
-          renderSetSwitcherButtons(profile, currentPeriod);
+          renderSetSwitcherButtons(profile, isPreset ? rawPeriod : profile.periodPresets[0] || '');
         }
 
         renderSportScoreButtons(profile);
@@ -5014,7 +5077,6 @@
         document.getElementById('team-b-house').value = live.teamBHouse;
         document.getElementById('team-a-score').textContent = String(live.scoreA);
         document.getElementById('team-b-score').textContent = String(live.scoreB);
-        document.getElementById('team-period-input').value = periodEditable;
         applyLiveMatchSportProfile(ev, live, { preserveTagger: false });
         renderTeamClockUI(live);
         renderTeamTimelineList(live);
@@ -5197,7 +5259,7 @@
           teamBHouse,
           scoreA: Number(current.scoreA || 0),
           scoreB: Number(current.scoreB || 0),
-          periodLabel: document.getElementById('team-period-input').value.trim() || 'Live Match',
+          periodLabel: getActiveTeamPeriodLabel(),
           clockElapsedMs: Number(current.clockElapsedMs || 0),
           clockStartedAt: current.clockStartedAt ?? null,
           clockRunning: Boolean(current.clockRunning),
@@ -5219,11 +5281,16 @@
       }
 
       async function adjustLiveTeamScore(side, delta) {
-        await adjustLiveTeamState((m) => ({
-          ...m,
-          scoreA: side === 'A' ? Math.max(0, m.scoreA + delta) : m.scoreA,
-          scoreB: side === 'B' ? Math.max(0, m.scoreB + delta) : m.scoreB,
-        }));
+        let removedGoalId = null;
+        await adjustLiveTeamState((m) => {
+          const res = applyTeamScoreDelta(m, side, delta);
+          removedGoalId = res.removedGoalId;
+          return res.nextMatch;
+        });
+        const s = side === 'B' ? 'B' : 'A';
+        if (removedGoalId && inlineTaggerState[s].itemId === removedGoalId) {
+          hideInlineTagger(s);
+        }
       }
 
       async function logOneTapMatchEvent(side, kind) {
@@ -6492,9 +6559,16 @@
 
         document.getElementById('team-period-select').addEventListener('change', (e) => {
           const val = e.target.value;
+          const inputWrap = document.getElementById('team-period-input-wrap');
           const inputEl = document.getElementById('team-period-input');
-          if (val) {
-            inputEl.value = val;
+          if (val === '__custom__') {
+            if (inputWrap) inputWrap.classList.remove('hidden');
+            inputEl?.focus();
+            const customVal = inputEl?.value.trim() || '';
+            if (customVal) syncTeamPeriodLive(customVal);
+          } else if (val) {
+            if (inputWrap) inputWrap.classList.add('hidden');
+            if (inputEl) inputEl.value = '';
             const ev = appState.events.find((x) => x.id === selectedEventId);
             const profile = detectLiveMatchSportProfile(ev?.name);
             if (!profile.showClock) renderSetSwitcherButtons(profile, val);
@@ -6504,9 +6578,10 @@
 
         document.getElementById('team-period-input').addEventListener('input', (e) => {
           const val = e.target.value.trim();
+          const selectEl = document.getElementById('team-period-select');
+          if (selectEl) selectEl.value = '__custom__';
           const ev = appState.events.find((x) => x.id === selectedEventId);
           const profile = detectLiveMatchSportProfile(ev?.name);
-          document.getElementById('team-period-select').value = profile.periodPresets.includes(val) ? val : '';
           if (!profile.showClock) renderSetSwitcherButtons(profile, val);
           syncTeamPeriodLive(val || 'Live Match');
         });
@@ -6517,8 +6592,9 @@
           const val = btn.getAttribute('data-set-preset') || '';
           const ev = appState.events.find((x) => x.id === selectedEventId);
           const profile = detectLiveMatchSportProfile(ev?.name);
-          document.getElementById('team-period-input').value = val;
-          document.getElementById('team-period-select').value = profile.periodPresets.includes(val) ? val : '';
+          document.getElementById('team-period-input').value = '';
+          document.getElementById('team-period-input-wrap')?.classList.add('hidden');
+          document.getElementById('team-period-select').value = profile.periodPresets.includes(val) ? val : '__custom__';
           renderSetSwitcherButtons(profile, val);
           if (ev && ev.status !== 'LIVE') {
             adjustLiveTeamState((m) => ({ ...m, periodLabel: val }));
@@ -6527,14 +6603,19 @@
           }
         });
 
-        ['team-a-score-buttons', 'team-b-score-buttons'].forEach((wrapId) => {
-          document.getElementById(wrapId).addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-team-score-delta]');
-            if (!btn) return;
-            const [side, deltaStr] = btn.getAttribute('data-team-score-delta').split(':');
+        document.getElementById('scoring-team-panel').addEventListener('click', (e) => {
+          const deltaBtn = e.target.closest('[data-team-score-delta]');
+          if (deltaBtn) {
+            const [side, deltaStr] = deltaBtn.getAttribute('data-team-score-delta').split(':');
             const delta = Number(deltaStr || 0);
             if (delta !== 0) adjustLiveTeamScore(side, delta);
-          });
+            return;
+          }
+          const matchEvBtn = e.target.closest('[data-match-event]');
+          if (matchEvBtn) {
+            const [side, kind] = matchEvBtn.getAttribute('data-match-event').split(':');
+            logOneTapMatchEvent(side, kind);
+          }
         });
 
         document.getElementById('btn-team-clock-start').addEventListener('click', () => {
@@ -6567,13 +6648,6 @@
             clockStartedAt: null,
             clockRunning: false,
           }));
-        });
-
-        document.querySelectorAll('[data-match-event]').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const [side, kind] = btn.getAttribute('data-match-event').split(':');
-            logOneTapMatchEvent(side, kind);
-          });
         });
 
         ['A', 'B'].forEach((side) => {
@@ -6665,7 +6739,9 @@
                 document.getElementById('team-a-score').textContent = '0';
                 document.getElementById('team-b-score').textContent = '0';
                 document.getElementById('team-period-input').value = '';
-                document.getElementById('team-period-select').value = '';
+                document.getElementById('team-period-input-wrap')?.classList.add('hidden');
+                const profile = detectLiveMatchSportProfile(reverted.name);
+                document.getElementById('team-period-select').value = profile.periodPresets[0] || '__custom__';
                 renderTeamClockUI(reverted.liveMatch);
                 renderTeamTimelineList(reverted.liveMatch);
                 await persistState({ ...appState, events: nextEvents });

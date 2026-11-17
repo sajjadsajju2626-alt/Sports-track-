@@ -258,7 +258,8 @@ export type LiveMatchSportProfileId = 'football' | 'kabaddi' | 'basketball' | 's
 export interface LiveMatchScoreButton {
   delta: number;
   label: string;
-  tone: 'minus' | 'primary' | 'accent';
+  tone: 'minus' | 'primary' | 'accent' | 'goal';
+  matchEvent?: MatchTimelineEventType;
 }
 
 export interface LiveMatchSportProfile {
@@ -323,7 +324,7 @@ export function detectLiveMatchSportProfile(eventName: string | undefined): Live
     periodPresets: ['1st Half', 'Half Time', '2nd Half', 'Extra Time'],
     scoreButtons: [
       { delta: -1, label: '-1', tone: 'minus' },
-      { delta: 1, label: '+1', tone: 'primary' },
+      { delta: 1, label: '+1 Goal ⚽', tone: 'goal', matchEvent: 'goal' },
     ],
   };
 }
@@ -710,10 +711,15 @@ export function formatLiveMatchStatusDisplay(
   nowMs: number = Date.now()
 ): string {
   const rawPeriod = String(liveMatch?.periodLabel || '').trim();
-  const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(rawPeriod.toLowerCase());
+  const lowerPeriod = rawPeriod.toLowerCase();
+  const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(lowerPeriod);
   const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
   const hasClock = Boolean(liveMatch?.clockRunning) || elapsedMs > 0;
   const minute = computeMatchMinute(liveMatch, nowMs);
+
+  if (lowerPeriod === 'half time' && !liveMatch?.clockRunning) {
+    return rawPeriod;
+  }
 
   if (hasClock) {
     if (isDefault) return `Live · ${minute}'`;
@@ -721,6 +727,47 @@ export function formatLiveMatchStatusDisplay(
     return `${rawPeriod} · ${minute}'`;
   }
   return rawPeriod || 'Live Match';
+}
+
+export function applyTeamScoreDelta(
+  liveMatch: LiveMatchState,
+  side: 'A' | 'B',
+  delta: number
+): { nextMatch: LiveMatchState; removedGoalId: string | null } {
+  const s: 'A' | 'B' = side === 'B' ? 'B' : 'A';
+  const prevScore = s === 'A' ? Number(liveMatch.scoreA || 0) : Number(liveMatch.scoreB || 0);
+  const nextScore = Math.max(0, prevScore + delta);
+  const nextTimeline = Array.isArray(liveMatch.timeline) ? [...liveMatch.timeline] : [];
+  let removedGoalId: string | null = null;
+
+  if (delta < 0 && prevScore > 0) {
+    let targetIdx = -1;
+    let bestCreatedAt = -Infinity;
+    for (let i = 0; i < nextTimeline.length; i += 1) {
+      const item = nextTimeline[i];
+      if (item.side === s && item.type === 'goal') {
+        const ts = Number(item.createdAt || 0);
+        if (ts >= bestCreatedAt) {
+          bestCreatedAt = ts;
+          targetIdx = i;
+        }
+      }
+    }
+    if (targetIdx !== -1) {
+      removedGoalId = nextTimeline[targetIdx].id;
+      nextTimeline.splice(targetIdx, 1);
+    }
+  }
+
+  return {
+    removedGoalId,
+    nextMatch: {
+      ...liveMatch,
+      scoreA: s === 'A' ? nextScore : liveMatch.scoreA,
+      scoreB: s === 'B' ? nextScore : liveMatch.scoreB,
+      timeline: nextTimeline,
+    },
+  };
 }
 
 export function formatTimelineItemLabel(item: MatchTimelineEvent): string {

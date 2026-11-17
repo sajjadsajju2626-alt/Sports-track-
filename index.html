@@ -805,7 +805,7 @@
                 class="w-full min-h-[46px] px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm sm:text-base font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
               ></select>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 data-scoring-mode="individual"
@@ -821,6 +821,14 @@
                 class="min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap"
               >
                 Live Match Board
+              </button>
+              <button
+                type="button"
+                data-scoring-mode="cricket"
+                id="btn-mode-cricket"
+                class="min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap"
+              >
+                Live Cricket Board
               </button>
             </div>
           </div>
@@ -893,7 +901,15 @@
             class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-5"
           >
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <h3 class="text-lg font-bold text-slate-900">Podium Winners</h3>
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 id="individual-podium-title" class="text-lg font-bold text-slate-900">Podium Winners</h3>
+                <span
+                  id="relay-mode-badge"
+                  class="hidden px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold"
+                >
+                  House / Group Podium · House Points Only
+                </span>
+              </div>
               <span id="individual-points-hint" class="text-xs font-mono text-slate-500">
                 Points: 1st = 5 · 2nd = 3 · 3rd = 1
               </span>
@@ -1061,6 +1077,171 @@
             </div>
           </div>
         </div>
+
+        <!-- MODE C: LIVE CRICKET SCOREBOARD -->
+        <div id="scoring-cricket-panel" class="hidden space-y-5">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Live Cricket Scoreboard</h3>
+                <p class="text-xs sm:text-sm text-slate-500">
+                  Update runs, wickets, and overs — syncs live to Public Home and TV Display
+                </p>
+              </div>
+              <div class="w-full sm:w-64">
+                <label for="cricket-period-input" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Innings / Match Note
+                </label>
+                <input
+                  id="cricket-period-input"
+                  type="text"
+                  placeholder="e.g. 1st Innings or Need 18 off 12"
+                  value=""
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                />
+              </div>
+            </div>
+
+            <div id="cricket-error" role="alert" class="hidden rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm font-medium text-red-800"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <!-- Cricket Team A -->
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                <div>
+                  <label for="cricket-a-house" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Team A House
+                  </label>
+                  <select
+                    id="cricket-a-house"
+                    class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900"
+                  ></select>
+                </div>
+
+                <div class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center">
+                  <div id="cricket-a-score-display" class="font-mono text-4xl sm:text-5xl font-extrabold tabular-nums text-slate-900">
+                    0/0 (0.0 Ov)
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Runs</div>
+                  <div class="grid grid-cols-4 gap-2">
+                    <button type="button" data-cricket-run="A:-1" class="min-h-[46px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-base font-bold text-slate-800" aria-label="Decrease Team A runs by 1">-1</button>
+                    <button type="button" data-cricket-run="A:1" class="min-h-[46px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-base font-bold text-white" aria-label="Add 1 run to Team A">+1</button>
+                    <button type="button" data-cricket-run="A:4" class="min-h-[46px] rounded-xl bg-blue-600 hover:bg-blue-700 font-mono text-base font-bold text-white" aria-label="Add 4 runs to Team A">+4</button>
+                    <button type="button" data-cricket-run="A:6" class="min-h-[46px] rounded-xl bg-emerald-600 hover:bg-emerald-700 font-mono text-base font-bold text-white" aria-label="Add 6 runs to Team A">+6</button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Wickets</div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button type="button" data-cricket-wkt="A:-1" class="min-h-[44px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-sm font-bold text-slate-800" aria-label="Decrease Team A wickets by 1">-1 Wkt</button>
+                      <button type="button" data-cricket-wkt="A:1" class="min-h-[44px] rounded-xl bg-red-600 hover:bg-red-700 font-mono text-sm font-bold text-white" aria-label="Add 1 wicket to Team A">+1 Wkt</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="cricket-a-overs" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Overs</label>
+                    <div class="flex items-center gap-1.5">
+                      <input
+                        id="cricket-a-overs"
+                        type="text"
+                        inputmode="decimal"
+                        value="0.0"
+                        placeholder="0.0"
+                        class="w-full min-h-[44px] px-2.5 py-2 rounded-xl border border-slate-300 bg-white font-mono text-sm font-bold text-center text-slate-900"
+                      />
+                      <button type="button" data-cricket-ball="A:1" class="min-h-[44px] px-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-xs font-bold text-slate-800 shrink-0" aria-label="Add 1 legal ball to Team A overs">+1B</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cricket Team B -->
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                <div>
+                  <label for="cricket-b-house" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Team B House
+                  </label>
+                  <select
+                    id="cricket-b-house"
+                    class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-300 bg-white font-semibold text-slate-900"
+                  ></select>
+                </div>
+
+                <div class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center">
+                  <div id="cricket-b-score-display" class="font-mono text-4xl sm:text-5xl font-extrabold tabular-nums text-slate-900">
+                    0/0 (0.0 Ov)
+                  </div>
+                </div>
+
+                <div>
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Runs</div>
+                  <div class="grid grid-cols-4 gap-2">
+                    <button type="button" data-cricket-run="B:-1" class="min-h-[46px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-base font-bold text-slate-800" aria-label="Decrease Team B runs by 1">-1</button>
+                    <button type="button" data-cricket-run="B:1" class="min-h-[46px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-base font-bold text-white" aria-label="Add 1 run to Team B">+1</button>
+                    <button type="button" data-cricket-run="B:4" class="min-h-[46px] rounded-xl bg-blue-600 hover:bg-blue-700 font-mono text-base font-bold text-white" aria-label="Add 4 runs to Team B">+4</button>
+                    <button type="button" data-cricket-run="B:6" class="min-h-[46px] rounded-xl bg-emerald-600 hover:bg-emerald-700 font-mono text-base font-bold text-white" aria-label="Add 6 runs to Team B">+6</button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Wickets</div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button type="button" data-cricket-wkt="B:-1" class="min-h-[44px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-sm font-bold text-slate-800" aria-label="Decrease Team B wickets by 1">-1 Wkt</button>
+                      <button type="button" data-cricket-wkt="B:1" class="min-h-[44px] rounded-xl bg-red-600 hover:bg-red-700 font-mono text-sm font-bold text-white" aria-label="Add 1 wicket to Team B">+1 Wkt</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="cricket-b-overs" class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Overs</label>
+                    <div class="flex items-center gap-1.5">
+                      <input
+                        id="cricket-b-overs"
+                        type="text"
+                        inputmode="decimal"
+                        value="0.0"
+                        placeholder="0.0"
+                        class="w-full min-h-[44px] px-2.5 py-2 rounded-xl border border-slate-300 bg-white font-mono text-sm font-bold text-center text-slate-900"
+                      />
+                      <button type="button" data-cricket-ball="B:1" class="min-h-[44px] px-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-xs font-bold text-slate-800 shrink-0" aria-label="Add 1 legal ball to Team B overs">+1B</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-200 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div class="w-full sm:w-64">
+                <label for="cricket-third-house" class="block text-xs font-semibold text-slate-600 mb-1.5">
+                  Optional 3rd Place House (Bronze)
+                </label>
+                <select
+                  id="cricket-third-house"
+                  class="w-full min-h-[44px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm text-slate-900"
+                ></select>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  id="btn-cricket-set-live"
+                  class="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800"
+                >
+                  Broadcast as LIVE Match
+                </button>
+                <button
+                  type="button"
+                  id="btn-cricket-finish"
+                  class="min-h-[48px] px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold inline-flex items-center gap-2"
+                >
+                  <i data-lucide="award" class="w-5 h-5" aria-hidden="true"></i>
+                  <span>Finish Match &amp; Award Winner</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- =================================================================== -->
@@ -1203,7 +1384,7 @@
                   </div>
                 </div>
                 <div>
-                  <span class="block text-xs font-semibold text-slate-600 mb-1.5">Team Game Points (1st / 2nd / 3rd)</span>
+                  <span class="block text-xs font-semibold text-slate-600 mb-1.5">Team / Relay Points (1st / 2nd / 3rd)</span>
                   <div class="grid grid-cols-3 gap-1.5">
                     <input id="pts-team-1" type="number" min="0" aria-label="Team 1st points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
                     <input id="pts-team-2" type="number" min="0" aria-label="Team 2nd points" class="min-h-[40px] px-2 py-1.5 rounded-lg border border-slate-300 text-sm font-mono text-center" />
@@ -1302,14 +1483,16 @@
                 </div>
                 <div>
                   <label for="new-event-type" class="block text-xs font-semibold text-slate-600 mb-1">
-                    Scoring Type
+                    Event Type
                   </label>
                   <select
                     id="new-event-type"
                     class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm"
                   >
-                    <option value="individual">Individual / Athletics</option>
-                    <option value="team">Team Game</option>
+                    <option value="individual">Individual Event</option>
+                    <option value="group">House / Group Podium</option>
+                    <option value="team">1 vs 1 Live Match</option>
+                    <option value="cricket">Cricket Match</option>
                   </select>
                 </div>
                 <div>
@@ -1765,10 +1948,19 @@
               <input id="edit-event-category" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
             </div>
             <div>
+              <label for="edit-event-type" class="block text-xs font-semibold text-slate-600 mb-1">Event Type</label>
+              <select id="edit-event-type" class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm">
+                <option value="individual">Individual Event</option>
+                <option value="group">House / Group Podium</option>
+                <option value="team">1 vs 1 Live Match</option>
+                <option value="cricket">Cricket Match</option>
+              </select>
+            </div>
+            <div>
               <label for="edit-event-venue" class="block text-xs font-semibold text-slate-600 mb-1">Venue</label>
               <input id="edit-event-venue" type="text" required class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 text-sm" />
             </div>
-            <div>
+            <div class="sm:col-span-2">
               <label for="edit-event-status" class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
               <select id="edit-event-status" class="w-full min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm">
                 <option value="UPCOMING">UPCOMING</option>
@@ -2134,6 +2326,66 @@
         return 'open';
       }
 
+      function resolveEffectiveEventType(ev) {
+        if (!ev) return 'individual';
+        const rawType = String(ev.type || '').trim().toLowerCase();
+        const name = String(ev.name || '');
+
+        if (rawType === 'cricket' || /cricket/i.test(name)) return 'cricket';
+        if (rawType === 'group' || rawType === 'relay' || /(relay|march\s*past)/i.test(name)) {
+          return 'group';
+        }
+        if (rawType === 'team') return 'team';
+        return 'individual';
+      }
+
+      function isRelayEvent(ev) {
+        return resolveEffectiveEventType(ev) === 'group';
+      }
+
+      function isHouseGroupPodiumEvent(ev) {
+        return resolveEffectiveEventType(ev) === 'group';
+      }
+
+      function isCricketEvent(ev) {
+        return resolveEffectiveEventType(ev) === 'cricket';
+      }
+
+      function getEventPointRules(state, ev) {
+        const effective = resolveEffectiveEventType(ev);
+        if (effective === 'team' || effective === 'group' || effective === 'cricket') {
+          return state.pointRules.team;
+        }
+        return state.pointRules.individual;
+      }
+
+      function getEventTypeLabel(ev) {
+        const effective = resolveEffectiveEventType(ev);
+        if (effective === 'group') return 'House / Group Podium';
+        if (effective === 'cricket') return 'Cricket Match';
+        if (effective === 'team') return '1 vs 1 Live Match';
+        return 'Individual Event';
+      }
+
+      function formatCricketScore(runs, wickets, overs) {
+        const safeRuns = Math.max(0, Math.floor(Number(runs) || 0));
+        const safeWickets = Math.max(0, Math.min(10, Math.floor(Number(wickets) || 0)));
+        const cleanOvers = String(overs ?? '').trim();
+        const base = `${safeRuns}/${safeWickets}`;
+        return cleanOvers ? `${base} (${cleanOvers} Ov)` : base;
+      }
+
+      function incrementCricketOvers(oversStr, deltaBalls) {
+        const raw = String(oversStr || '0.0').trim();
+        const match = raw.match(/^(\d+)(?:\.(\d))?$/);
+        const wholeOvers = match ? Number(match[1]) : 0;
+        const subBalls = match && match[2] !== undefined ? Math.min(5, Math.max(0, Number(match[2]))) : 0;
+        const totalBalls = Math.max(0, wholeOvers * 6 + subBalls + Math.trunc(deltaBalls));
+        const nextOvers = Math.floor(totalBalls / 6);
+        const nextBalls = totalBalls % 6;
+        return `${nextOvers}.${nextBalls}`;
+      }
+
       function parseCsvRow(line) {
         const fields = [];
         let current = '';
@@ -2230,7 +2482,7 @@
 
         for (const ev of state.events) {
           if (ev.status !== 'FINISHED') continue;
-          const rules = ev.type === 'team' ? state.pointRules.team : state.pointRules.individual;
+          const rules = getEventPointRules(state, ev);
           for (const w of ev.winners || []) {
             if (!w.house || !totals[w.house]) continue;
             totals[w.house].points += Number(rules[w.place - 1] || 0);
@@ -2256,7 +2508,7 @@
 
         for (const ev of state.events || []) {
           if (ev.status !== 'FINISHED') continue;
-          const rules = ev.type === 'team' ? state.pointRules.team : state.pointRules.individual;
+          const rules = getEventPointRules(state, ev);
           const entries = [];
           let eventPoints = 0;
           let gold = 0;
@@ -2314,7 +2566,7 @@
       function computeTopAthletes(state) {
         const map = new Map();
         for (const ev of state.events) {
-          if (ev.status !== 'FINISHED' || ev.type !== 'individual') continue;
+          if (ev.status !== 'FINISHED' || resolveEffectiveEventType(ev) !== 'individual') continue;
           const rules = state.pointRules.individual;
           const division = inferDivision(ev.category);
 
@@ -2405,13 +2657,27 @@
       }
 
       function createRevertedUpcomingEvent(ev, now = Date.now()) {
+        const effective = resolveEffectiveEventType(ev);
         return {
           ...ev,
           status: 'UPCOMING',
           winners: [],
           liveMatch: ev.liveMatch
-            ? { ...ev.liveMatch, scoreA: 0, scoreB: 0, periodLabel: 'Scheduled' }
-            : { teamAHouse: 'red', teamBHouse: 'blue', scoreA: 0, scoreB: 0, periodLabel: 'Scheduled' },
+            ? {
+                ...ev.liveMatch,
+                scoreA: 0,
+                scoreB: 0,
+                ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+                periodLabel: 'Scheduled',
+              }
+            : {
+                teamAHouse: 'red',
+                teamBHouse: 'blue',
+                scoreA: 0,
+                scoreB: 0,
+                ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+                periodLabel: 'Scheduled',
+              },
           updatedAt: now,
         };
       }
@@ -2513,12 +2779,10 @@
         renderAll();
 
         if (isFirestoreReady && db && activeSchoolCode) {
-          try {
-            await fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState);
-          } catch (err) {
+          fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch((err) => {
             console.warn('Firestore school write saved locally', err);
             showToast('Saved locally (Firestore sync pending)');
-          }
+          });
         }
       }
 
@@ -3203,7 +3467,7 @@
                             <div class="flex items-start justify-between gap-2">
                               <div class="min-w-0">
                                 <div class="text-xs font-bold text-slate-900 truncate">${escapeHtml(ev.eventName)}</div>
-                                <div class="text-[11px] text-slate-500 truncate">${escapeHtml(ev.category)} · ${ev.type === 'team' ? 'Team' : 'Individual'}</div>
+                                <div class="text-[11px] text-slate-500 truncate">${escapeHtml(ev.category)} · ${getEventTypeLabel(ev)}</div>
                               </div>
                               <div class="text-right shrink-0">
                                 <span class="font-mono text-xs font-extrabold text-slate-900 tabular-nums">+${ev.points} ${ev.points === 1 ? 'pt' : 'pts'}</span>
@@ -3359,10 +3623,41 @@
                   ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   : 'bg-slate-100 text-slate-700 border-slate-200';
 
-            const typeLabel = ev.type === 'team' ? 'Team Game' : 'Individual';
+            const effectiveType = resolveEffectiveEventType(ev);
+            const typeLabel = getEventTypeLabel(ev);
 
             let bodyHtml = '';
-            if (ev.status === 'LIVE' && ev.type === 'team' && ev.liveMatch) {
+            if (ev.status === 'LIVE' && effectiveType === 'cricket' && ev.liveMatch) {
+              const hA = appState.houses[ev.liveMatch.teamAHouse]?.name || ev.liveMatch.teamAHouse;
+              const hB = appState.houses[ev.liveMatch.teamBHouse]?.name || ev.liveMatch.teamBHouse;
+              const tA = HOUSE_THEME[ev.liveMatch.teamAHouse] || HOUSE_THEME.red;
+              const tB = HOUSE_THEME[ev.liveMatch.teamBHouse] || HOUSE_THEME.blue;
+              const cricketA = formatCricketScore(ev.liveMatch.scoreA, ev.liveMatch.wicketsA, ev.liveMatch.oversA ?? '0.0');
+              const cricketB = formatCricketScore(ev.liveMatch.scoreB, ev.liveMatch.wicketsB, ev.liveMatch.oversB ?? '0.0');
+              bodyHtml = `
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                  <div class="text-[11px] font-semibold text-slate-500 mb-2">
+                    ${escapeHtml(ev.liveMatch.periodLabel || 'Live Cricket')}
+                  </div>
+                  <div class="space-y-2 bg-slate-50 rounded-xl p-3">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="inline-block w-2 h-2 rounded-full ${tA.bar} shrink-0"></span>
+                        <span class="text-sm font-bold text-slate-900 truncate">${escapeHtml(hA)}</span>
+                      </div>
+                      <span class="font-mono text-sm sm:text-base font-extrabold tabular-nums text-slate-900 shrink-0">${escapeHtml(cricketA)}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="inline-block w-2 h-2 rounded-full ${tB.bar} shrink-0"></span>
+                        <span class="text-sm font-bold text-slate-900 truncate">${escapeHtml(hB)}</span>
+                      </div>
+                      <span class="font-mono text-sm sm:text-base font-extrabold tabular-nums text-slate-900 shrink-0">${escapeHtml(cricketB)}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else if (ev.status === 'LIVE' && effectiveType === 'team' && ev.liveMatch) {
               const hA = appState.houses[ev.liveMatch.teamAHouse]?.name || ev.liveMatch.teamAHouse;
               const hB = appState.houses[ev.liveMatch.teamBHouse]?.name || ev.liveMatch.teamBHouse;
               const tA = HOUSE_THEME[ev.liveMatch.teamAHouse] || HOUSE_THEME.red;
@@ -3388,6 +3683,7 @@
                 </div>
               `;
             } else if (ev.status === 'FINISHED' && ev.winners && ev.winners.length > 0) {
+              const isGroupOrMatch = effectiveType !== 'individual';
               const rows = ev.winners
                 .slice()
                 .sort((a, b) => a.place - b.place)
@@ -3401,6 +3697,21 @@
                       : w.place === 2
                         ? 'text-slate-600 font-bold'
                         : 'text-orange-700 font-bold';
+                  if (isGroupOrMatch) {
+                    const displayHouse = hName;
+                    return `
+                      <div class="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="font-mono w-7 shrink-0 ${medalTone}">${medalLabel}</span>
+                          <span class="inline-block w-2 h-2 rounded-full ${theme.bar} shrink-0"></span>
+                          <span class="font-semibold text-slate-900 truncate">${escapeHtml(displayHouse)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                          ${w.metric ? `<span class="font-mono text-xs font-semibold text-slate-700 tabular-nums">${escapeHtml(w.metric)}</span>` : ''}
+                        </div>
+                      </div>
+                    `;
+                  }
                   return `
                     <div class="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
                       <div class="flex items-center gap-2 min-w-0">
@@ -3587,20 +3898,20 @@
                 <span id="autofill-hint-${p.place}" class="text-xs font-medium text-emerald-700"></span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                <div class="sm:col-span-2">
+                <div id="w-chest-wrap-${p.place}" class="sm:col-span-2">
                   <label for="w-chest-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Chest No.</label>
                   <input id="w-chest-${p.place}" data-place-chest="${p.place}" type="text" placeholder="e.g. 104" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-sm" />
                 </div>
-                <div class="sm:col-span-4">
+                <div id="w-name-wrap-${p.place}" class="sm:col-span-4">
                   <label for="w-name-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Student Name</label>
                   <input id="w-name-${p.place}" type="text" placeholder="Full name" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm" />
                 </div>
-                <div class="sm:col-span-3">
-                  <label for="w-house-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">House</label>
+                <div id="w-house-wrap-${p.place}" class="sm:col-span-3">
+                  <label id="w-house-label-${p.place}" for="w-house-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">House</label>
                   <select id="w-house-${p.place}" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm"></select>
                 </div>
-                <div class="sm:col-span-3">
-                  <label for="w-metric-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Time / Distance</label>
+                <div id="w-metric-wrap-${p.place}" class="sm:col-span-3">
+                  <label id="w-metric-label-${p.place}" for="w-metric-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Time / Distance</label>
                   <input id="w-metric-${p.place}" type="text" placeholder="e.g. 12.4s / 4.85m" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-sm" />
                 </div>
               </div>
@@ -3670,21 +3981,23 @@
           }
         });
 
-        ['team-a-house', 'team-b-house'].forEach((id, idx) => {
+        ['team-a-house', 'team-b-house', 'cricket-a-house', 'cricket-b-house'].forEach((id, idx) => {
           const sel = document.getElementById(id);
           if (sel) {
-            const prev = sel.value || (idx === 0 ? 'red' : 'blue');
+            const prev = sel.value || (idx % 2 === 0 ? 'red' : 'blue');
             sel.innerHTML = optionsHtml;
             sel.value = prev;
           }
         });
 
-        const thirdSel = document.getElementById('team-third-house');
-        if (thirdSel) {
-          const prev = thirdSel.value;
-          thirdSel.innerHTML = `<option value="">None / Not Awarded</option>${optionsHtml}`;
-          if (prev) thirdSel.value = prev;
-        }
+        ['team-third-house', 'cricket-third-house'].forEach((id) => {
+          const thirdSel = document.getElementById(id);
+          if (thirdSel) {
+            const prev = thirdSel.value;
+            thirdSel.innerHTML = `<option value="">None / Not Awarded</option>${optionsHtml}`;
+            if (prev) thirdSel.value = prev;
+          }
+        });
       }
 
       function syncScoringSelector(options = {}) {
@@ -3748,6 +4061,8 @@
         } else {
           const currentEv = appState.events.find((e) => e.id === selectedEventId);
           updateTeamLiveToggleButton(currentEv);
+          updateCricketLiveToggleButton(currentEv);
+          updatePodiumModeUI(isHouseGroupPodiumEvent(currentEv), currentEv);
         }
       }
 
@@ -3766,42 +4081,117 @@
         }
       }
 
+      function updateCricketLiveToggleButton(ev) {
+        const btn = document.getElementById('btn-cricket-set-live');
+        if (!btn) return;
+        const isLive = ev?.status === 'LIVE';
+        if (isLive) {
+          btn.textContent = 'Stop Live (Revert to Upcoming)';
+          btn.className =
+            'min-h-[48px] px-4 py-2.5 rounded-xl border border-red-300 bg-red-50/70 hover:bg-red-100/80 text-sm font-semibold text-red-700 transition-colors';
+        } else {
+          btn.textContent = 'Broadcast as LIVE Match';
+          btn.className =
+            'min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors';
+        }
+      }
+
       function setScoringMode(mode) {
         scoringMode = mode;
         const indPanel = document.getElementById('scoring-individual-panel');
         const teamPanel = document.getElementById('scoring-team-panel');
+        const cricketPanel = document.getElementById('scoring-cricket-panel');
         const btnInd = document.getElementById('btn-mode-individual');
         const btnTeam = document.getElementById('btn-mode-team');
+        const btnCricket = document.getElementById('btn-mode-cricket');
 
         indPanel.classList.toggle('hidden', mode !== 'individual');
         teamPanel.classList.toggle('hidden', mode !== 'team');
+        if (cricketPanel) cricketPanel.classList.toggle('hidden', mode !== 'cricket');
 
-        btnInd.className =
-          mode === 'individual'
-            ? 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-900 bg-slate-900 text-white whitespace-nowrap'
-            : 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap';
-        btnTeam.className =
-          mode === 'team'
-            ? 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-900 bg-slate-900 text-white whitespace-nowrap'
-            : 'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap';
+        const activeCls =
+          'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-900 bg-slate-900 text-white whitespace-nowrap';
+        const idleCls =
+          'min-h-[46px] px-4 py-2 rounded-xl text-sm font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 whitespace-nowrap';
+
+        btnInd.className = mode === 'individual' ? activeCls : idleCls;
+        btnTeam.className = mode === 'team' ? activeCls : idleCls;
+        if (btnCricket) btnCricket.className = mode === 'cricket' ? activeCls : idleCls;
+      }
+
+      function updatePodiumModeUI(isGroupPodium, ev) {
+        const titleEl = document.getElementById('individual-podium-title');
+        const relayBadge = document.getElementById('relay-mode-badge');
+        const pointsHint = document.getElementById('individual-points-hint');
+
+        if (titleEl) {
+          titleEl.textContent = isGroupPodium ? 'House / Group Podium' : 'Podium Winners';
+        }
+        if (relayBadge) {
+          relayBadge.classList.toggle('hidden', !isGroupPodium);
+        }
+        if (pointsHint) {
+          const [p1, p2, p3] = isGroupPodium
+            ? appState.pointRules.team
+            : appState.pointRules.individual;
+          pointsHint.textContent = isGroupPodium
+            ? `House Podium Points: 1st = ${p1} · 2nd = ${p2} · 3rd = ${p3}`
+            : `Points: 1st = ${p1} · 2nd = ${p2} · 3rd = ${p3}`;
+        }
+
+        [1, 2, 3].forEach((place) => {
+          const chestWrap = document.getElementById(`w-chest-wrap-${place}`);
+          const nameWrap = document.getElementById(`w-name-wrap-${place}`);
+          const houseWrap = document.getElementById(`w-house-wrap-${place}`);
+          const houseLabel = document.getElementById(`w-house-label-${place}`);
+          const metricWrap = document.getElementById(`w-metric-wrap-${place}`);
+          const metricLabel = document.getElementById(`w-metric-label-${place}`);
+          const metricInput = document.getElementById(`w-metric-${place}`);
+          const hintEl = document.getElementById(`autofill-hint-${place}`);
+
+          if (chestWrap) chestWrap.classList.toggle('hidden', isGroupPodium);
+          if (nameWrap) nameWrap.classList.toggle('hidden', isGroupPodium);
+          if (houseWrap) houseWrap.className = isGroupPodium ? 'sm:col-span-6' : 'sm:col-span-3';
+          if (houseLabel) houseLabel.textContent = isGroupPodium ? 'Winning House' : 'House';
+          if (metricWrap) metricWrap.className = isGroupPodium ? 'sm:col-span-6' : 'sm:col-span-3';
+          if (metricLabel) metricLabel.textContent = isGroupPodium ? 'Timing / Score Note (Optional)' : 'Time / Distance';
+          if (metricInput) {
+            metricInput.placeholder = isGroupPodium ? 'e.g. 44.82s or 92 pts' : 'e.g. 12.4s / 4.85m';
+          }
+          if (isGroupPodium && hintEl) {
+            hintEl.textContent = 'Select House (no chest no. required)';
+            hintEl.className = 'text-xs font-medium text-indigo-700';
+          }
+        });
+      }
+
+      function renderCricketScoreDisplays(live) {
+        const scoreA = live?.scoreA ?? 0;
+        const wktA = live?.wicketsA ?? 0;
+        const ovA = live?.oversA ?? '0.0';
+        const scoreB = live?.scoreB ?? 0;
+        const wktB = live?.wicketsB ?? 0;
+        const ovB = live?.oversB ?? '0.0';
+        document.getElementById('cricket-a-score-display').textContent = formatCricketScore(scoreA, wktA, ovA);
+        document.getElementById('cricket-b-score-display').textContent = formatCricketScore(scoreB, wktB, ovB);
       }
 
       function loadSelectedEventIntoScoringForm() {
         const ev = appState.events.find((e) => e.id === selectedEventId);
         if (!ev) return;
 
-        setScoringMode(ev.type === 'team' ? 'team' : 'individual');
+        const effective = resolveEffectiveEventType(ev);
+        const isGroupPodium = effective === 'group';
+        const targetMode = effective === 'cricket' ? 'cricket' : effective === 'team' ? 'team' : 'individual';
+        setScoringMode(targetMode);
         document.getElementById('individual-error').classList.add('hidden');
         document.getElementById('team-error').classList.add('hidden');
-
-        const [p1, p2, p3] = appState.pointRules.individual;
-        document.getElementById('individual-points-hint').textContent =
-          `Points: 1st = ${p1} · 2nd = ${p2} · 3rd = ${p3}`;
+        document.getElementById('cricket-error').classList.add('hidden');
 
         [1, 2, 3].forEach((place) => {
           const w = (ev.winners || []).find((x) => x.place === place);
-          document.getElementById(`w-chest-${place}`).value = w?.chestNo || '';
-          document.getElementById(`w-name-${place}`).value = w?.name || '';
+          document.getElementById(`w-chest-${place}`).value = isGroupPodium ? '' : w?.chestNo || '';
+          document.getElementById(`w-name-${place}`).value = isGroupPodium ? '' : w?.name || '';
           document.getElementById(`w-house-${place}`).value = w?.house || '';
           document.getElementById(`w-metric-${place}`).value = w?.metric || '';
           const hintEl = document.getElementById(`autofill-hint-${place}`);
@@ -3809,11 +4199,17 @@
           hintEl.className = 'text-xs font-medium text-emerald-700';
         });
 
+        updatePodiumModeUI(isGroupPodium, ev);
+
         const live = ev.liveMatch || {
           teamAHouse: 'red',
           teamBHouse: 'blue',
           scoreA: 0,
           scoreB: 0,
+          wicketsA: 0,
+          wicketsB: 0,
+          oversA: '0.0',
+          oversB: '0.0',
           periodLabel: 'Live Match',
         };
         document.getElementById('team-a-house').value = live.teamAHouse;
@@ -3822,6 +4218,63 @@
         document.getElementById('team-b-score').textContent = String(live.scoreB);
         document.getElementById('team-period-input').value = getEditablePeriodValue(live.periodLabel);
         updateTeamLiveToggleButton(ev);
+
+        document.getElementById('cricket-a-house').value = live.teamAHouse;
+        document.getElementById('cricket-b-house').value = live.teamBHouse;
+        document.getElementById('cricket-a-overs').value = live.oversA ?? '0.0';
+        document.getElementById('cricket-b-overs').value = live.oversB ?? '0.0';
+        document.getElementById('cricket-period-input').value = getEditablePeriodValue(live.periodLabel);
+        renderCricketScoreDisplays(live);
+        updateCricketLiveToggleButton(ev);
+      }
+
+      async function adjustLiveCricketState(patchFn) {
+        const ev = appState.events.find((x) => x.id === selectedEventId);
+        if (!ev) return;
+        const teamAHouse = document.getElementById('cricket-a-house').value;
+        const teamBHouse = document.getElementById('cricket-b-house').value;
+        if (teamAHouse === teamBHouse) {
+          const errEl = document.getElementById('cricket-error');
+          errEl.textContent = 'Select two different Houses for Team A and Team B.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        document.getElementById('cricket-error').classList.add('hidden');
+
+        const current = ev.liveMatch || {
+          teamAHouse,
+          teamBHouse,
+          scoreA: 0,
+          scoreB: 0,
+          wicketsA: 0,
+          wicketsB: 0,
+          oversA: '0.0',
+          oversB: '0.0',
+          periodLabel: 'Live Cricket',
+        };
+        const baseMatch = {
+          teamAHouse,
+          teamBHouse,
+          scoreA: Number(current.scoreA || 0),
+          scoreB: Number(current.scoreB || 0),
+          wicketsA: Number(current.wicketsA || 0),
+          wicketsB: Number(current.wicketsB || 0),
+          oversA: String(document.getElementById('cricket-a-overs').value || current.oversA || '0.0').trim() || '0.0',
+          oversB: String(document.getElementById('cricket-b-overs').value || current.oversB || '0.0').trim() || '0.0',
+          periodLabel: document.getElementById('cricket-period-input').value.trim() || 'Live Cricket',
+        };
+        const nextMatch = patchFn ? patchFn(baseMatch) : baseMatch;
+        document.getElementById('cricket-a-overs').value = nextMatch.oversA;
+        document.getElementById('cricket-b-overs').value = nextMatch.oversB;
+        renderCricketScoreDisplays(nextMatch);
+
+        const nextEvents = appState.events.map((item) =>
+          item.id === ev.id
+            ? { ...item, type: 'cricket', status: 'LIVE', liveMatch: nextMatch, updatedAt: Date.now() }
+            : item
+        );
+        updateCricketLiveToggleButton({ ...ev, status: 'LIVE' });
+        await persistState({ ...appState, events: nextEvents });
       }
 
       async function adjustLiveTeamScore(side, delta) {
@@ -3909,7 +4362,7 @@
                   <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">${escapeHtml(ev.status)}</span>
                 </div>
                 <div class="text-xs text-slate-500 mt-0.5">
-                  ${escapeHtml(ev.category)} · ${escapeHtml(ev.venue)} · ${ev.type === 'team' ? 'Team Game' : 'Individual'}
+                  ${escapeHtml(ev.category)} · ${escapeHtml(ev.venue)} · ${getEventTypeLabel(ev)}
                 </div>
               </div>
               <div class="flex flex-wrap items-center gap-1.5 shrink-0">
@@ -3997,6 +4450,7 @@
         document.getElementById('edit-event-id').value = ev.id;
         document.getElementById('edit-event-name').value = ev.name;
         document.getElementById('edit-event-category').value = ev.category;
+        document.getElementById('edit-event-type').value = resolveEffectiveEventType(ev);
         document.getElementById('edit-event-venue').value = ev.venue;
         document.getElementById('edit-event-status').value = ev.status;
 
@@ -4164,7 +4618,59 @@
             : '';
           const animClass = animate ? 'tv-live-enter' : '';
 
-          if (currentLive.type === 'team' && currentLive.liveMatch) {
+          const liveEffective = resolveEffectiveEventType(currentLive);
+          if (liveEffective === 'cricket' && currentLive.liveMatch) {
+            const lm = currentLive.liveMatch;
+            const hA = appState.houses[lm.teamAHouse]?.name || lm.teamAHouse;
+            const hB = appState.houses[lm.teamBHouse]?.name || lm.teamBHouse;
+            const tA = HOUSE_THEME[lm.teamAHouse] || HOUSE_THEME.red;
+            const tB = HOUSE_THEME[lm.teamBHouse] || HOUSE_THEME.blue;
+            const rawPeriod = String(lm.periodLabel || '').trim();
+            const showPeriod =
+              rawPeriod && !['live match', 'live cricket', 'scheduled'].includes(rawPeriod.toLowerCase());
+            const cricketA = formatCricketScore(lm.scoreA, lm.wicketsA, lm.oversA ?? '0.0');
+            const cricketB = formatCricketScore(lm.scoreB, lm.wicketsB, lm.oversB ?? '0.0');
+            liveBox.innerHTML = `
+              <div class="${animClass}">
+                <div class="flex items-start sm:items-center justify-between gap-3 mb-4">
+                  <div class="flex-1 min-w-0 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                    <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-red-500/20 border border-red-400/40 text-red-300 text-xs font-bold uppercase tracking-wider shrink-0">
+                      <span class="relative flex h-2 w-2" aria-hidden="true">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                      <span>LIVE CRICKET</span>
+                    </span>
+                    ${showPeriod ? `<span class="text-xs font-semibold text-slate-300">${escapeHtml(rawPeriod)}</span>` : ''}
+                    <span class="text-xs sm:text-sm text-slate-400 truncate">
+                      ${escapeHtml(currentLive.name)} · ${escapeHtml(currentLive.category)} · ${escapeHtml(currentLive.venue)}
+                    </span>
+                  </div>
+                  ${navControlsHtml}
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                  <div class="rounded-xl bg-slate-800/80 border border-slate-700/80 px-4 py-3 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="w-3 h-3 rounded-full ${tA.tvBar} shrink-0"></span>
+                      <span class="text-base sm:text-lg font-extrabold text-white truncate">${escapeHtml(hA)}</span>
+                    </div>
+                    <div class="font-mono text-xl sm:text-2xl font-extrabold tabular-nums text-amber-300 shrink-0">
+                      ${escapeHtml(cricketA)}
+                    </div>
+                  </div>
+                  <div class="rounded-xl bg-slate-800/80 border border-slate-700/80 px-4 py-3 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="w-3 h-3 rounded-full ${tB.tvBar} shrink-0"></span>
+                      <span class="text-base sm:text-lg font-extrabold text-white truncate">${escapeHtml(hB)}</span>
+                    </div>
+                    <div class="font-mono text-xl sm:text-2xl font-extrabold tabular-nums text-amber-300 shrink-0">
+                      ${escapeHtml(cricketB)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else if (liveEffective === 'team' && currentLive.liveMatch) {
             const lm = currentLive.liveMatch;
             const hA = appState.houses[lm.teamAHouse]?.name || lm.teamAHouse;
             const hB = appState.houses[lm.teamBHouse]?.name || lm.teamBHouse;
@@ -4269,6 +4775,7 @@
         const ev = finished[tvCarouselIndex];
         counter.textContent = `${tvCarouselIndex + 1} / ${finished.length}`;
 
+        const isGroupOrMatch = resolveEffectiveEventType(ev) !== 'individual';
         const rows = ev.winners
           .slice()
           .sort((a, b) => a.place - b.place)
@@ -4282,6 +4789,22 @@
                 : w.place === 2
                   ? 'bg-slate-300 text-slate-950'
                   : 'bg-orange-400 text-slate-950';
+            if (isGroupOrMatch) {
+              return `
+                <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-800/80 border border-slate-700/70 px-4 py-3">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="px-2.5 py-1 rounded-md text-xs font-extrabold tracking-wide shrink-0 ${badgeColor}">${label}</span>
+                    <span class="w-2.5 h-2.5 rounded-full ${theme.tvBar} shrink-0"></span>
+                    <div class="min-w-0">
+                      <div class="text-lg font-bold text-white truncate">${escapeHtml(hName)}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3 shrink-0">
+                    ${w.metric ? `<span class="font-mono text-base font-bold text-amber-300 tabular-nums">${escapeHtml(w.metric)}</span>` : ''}
+                  </div>
+                </div>
+              `;
+            }
             return `
               <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-800/80 border border-slate-700/70 px-4 py-3">
                 <div class="flex items-center gap-3 min-w-0">
@@ -4324,18 +4847,25 @@
 
         const overlay = document.getElementById('winner-celebration-overlay');
         document.getElementById('celebration-title').textContent = `${latest.name} (${latest.category})`;
+        const isGroupOrMatch = resolveEffectiveEventType(latest) !== 'individual';
         document.getElementById('celebration-winners').innerHTML = latest.winners
           .slice()
           .sort((a, b) => a.place - b.place)
           .map((w) => {
             const hName = appState.houses[w.house]?.name || w.house;
+            const showDistinctHouse = !isGroupOrMatch || w.name !== hName;
+            const rightLabel = showDistinctHouse
+              ? `${escapeHtml(hName)}${w.metric ? ` · ${escapeHtml(w.metric)}` : ''}`
+              : w.metric
+                ? escapeHtml(w.metric)
+                : 'House Podium';
             return `
               <div class="flex items-center justify-between rounded-xl bg-slate-800 px-4 py-2.5 border border-slate-700">
                 <span class="font-semibold text-white">
                   <span class="font-mono text-amber-400 mr-2">${w.place === 1 ? '1st' : w.place === 2 ? '2nd' : '3rd'}</span>
                   ${escapeHtml(w.name)}
                 </span>
-                <span class="text-xs font-bold text-slate-300">${escapeHtml(hName)}${w.metric ? ` · ${escapeHtml(w.metric)}` : ''}</span>
+                <span class="text-xs font-bold text-slate-300">${rightLabel}</span>
               </div>
             `;
           })
@@ -4435,11 +4965,16 @@
                   ? '<tr><td colspan="5" style="border: 1px solid #cbd5e1; padding: 8px; text-align: center;">No completed events recorded.</td></tr>'
                   : finished
                       .map((ev) => {
+                        const isGroupOrMatch = resolveEffectiveEventType(ev) !== 'individual';
                         const fmt = (place) => {
                           const w = (ev.winners || []).find((x) => x.place === place);
                           if (!w) return '—';
                           const h = appState.houses[w.house]?.name || w.house;
-                          return `${escapeHtml(w.name)} (${escapeHtml(h.replace(' House', ''))})${w.metric ? ` · ${escapeHtml(w.metric)}` : ''}`;
+                          const label =
+                            isGroupOrMatch && w.name === h
+                              ? escapeHtml(w.name)
+                              : `${escapeHtml(w.name)} (${escapeHtml(h.replace(' House', ''))})`;
+                          return `${label}${w.metric ? ` · ${escapeHtml(w.metric)}` : ''}`;
                         };
                         return `
                           <tr>
@@ -4858,6 +5393,7 @@
         });
         document.getElementById('btn-mode-individual').addEventListener('click', () => setScoringMode('individual'));
         document.getElementById('btn-mode-team').addEventListener('click', () => setScoringMode('team'));
+        document.getElementById('btn-mode-cricket').addEventListener('click', () => setScoringMode('cricket'));
 
         // Stopwatch Controls
         document.getElementById('btn-sw-toggle').addEventListener('click', toggleStopwatch);
@@ -4882,7 +5418,7 @@
           showToast(`${ev.name} marked LIVE`);
         });
 
-        // Submit Individual Winners
+        // Submit Individual / House Group Podium Winners
         document.getElementById('form-individual-winners').addEventListener('submit', async (e) => {
           e.preventDefault();
           const errEl = document.getElementById('individual-error');
@@ -4893,25 +5429,48 @@
             return;
           }
 
+          const isGroupPodium = isHouseGroupPodiumEvent(ev);
           const winners = [];
           for (const place of [1, 2, 3]) {
-            const chestNo = document.getElementById(`w-chest-${place}`).value.trim();
-            const name = document.getElementById(`w-name-${place}`).value.trim();
+            const chestNo = isGroupPodium ? '' : document.getElementById(`w-chest-${place}`).value.trim();
+            const rawName = isGroupPodium ? '' : document.getElementById(`w-name-${place}`).value.trim();
             const house = document.getElementById(`w-house-${place}`).value;
             const metric = document.getElementById(`w-metric-${place}`).value.trim();
 
-            if (place === 1 && (!name || !house)) {
-              errEl.textContent = '1st Place Student Name and House are required to publish results.';
-              errEl.classList.remove('hidden');
-              return;
-            }
-            if ((name && !house) || (!name && house)) {
-              errEl.textContent = `Please provide both Name and House for ${place === 2 ? '2nd' : '3rd'} Place, or leave both blank.`;
-              errEl.classList.remove('hidden');
-              return;
-            }
-            if (name && house) {
-              winners.push({ place, chestNo, name, house, metric });
+            if (isGroupPodium) {
+              if (place === 1 && !house) {
+                errEl.textContent = '1st Place House is required to publish House / Group Podium results.';
+                errEl.classList.remove('hidden');
+                return;
+              }
+              if (place > 1 && metric && !house) {
+                errEl.textContent = `Please select a House for ${place === 2 ? '2nd' : '3rd'} Place, or clear the score note.`;
+                errEl.classList.remove('hidden');
+                return;
+              }
+              if (house) {
+                winners.push({
+                  place,
+                  chestNo: '',
+                  name: appState.houses[house]?.name || house,
+                  house,
+                  metric,
+                });
+              }
+            } else {
+              if (place === 1 && (!rawName || !house)) {
+                errEl.textContent = '1st Place Student Name and House are required to publish results.';
+                errEl.classList.remove('hidden');
+                return;
+              }
+              if ((rawName && !house) || (!rawName && house)) {
+                errEl.textContent = `Please provide both Name and House for ${place === 2 ? '2nd' : '3rd'} Place, or leave both blank.`;
+                errEl.classList.remove('hidden');
+                return;
+              }
+              if (rawName && house) {
+                winners.push({ place, chestNo, name: rawName, house, metric });
+              }
             }
           }
 
@@ -4919,7 +5478,13 @@
           const now = Date.now();
           const nextEvents = appState.events.map((item) =>
             item.id === ev.id
-              ? { ...item, type: 'individual', status: 'FINISHED', winners, updatedAt: now }
+              ? {
+                  ...item,
+                  type: isGroupPodium ? 'group' : 'individual',
+                  status: 'FINISHED',
+                  winners,
+                  updatedAt: now,
+                }
               : item
           );
           await persistState(
@@ -5082,6 +5647,227 @@
           showToast(`Match finished! ${appState.houses[firstHouse].name} wins.`);
         });
 
+        // Cricket Match Live Score Controls
+        document.querySelectorAll('[data-cricket-run]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const [side, deltaStr] = btn.getAttribute('data-cricket-run').split(':');
+            const delta = Number(deltaStr || 0);
+            adjustLiveCricketState((m) => ({
+              ...m,
+              scoreA: side === 'A' ? Math.max(0, m.scoreA + delta) : m.scoreA,
+              scoreB: side === 'B' ? Math.max(0, m.scoreB + delta) : m.scoreB,
+            }));
+          });
+        });
+
+        document.querySelectorAll('[data-cricket-wkt]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const [side, deltaStr] = btn.getAttribute('data-cricket-wkt').split(':');
+            const delta = Number(deltaStr || 0);
+            adjustLiveCricketState((m) => ({
+              ...m,
+              wicketsA: side === 'A' ? Math.max(0, Math.min(10, m.wicketsA + delta)) : m.wicketsA,
+              wicketsB: side === 'B' ? Math.max(0, Math.min(10, m.wicketsB + delta)) : m.wicketsB,
+            }));
+          });
+        });
+
+        document.querySelectorAll('[data-cricket-ball]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const [side, deltaStr] = btn.getAttribute('data-cricket-ball').split(':');
+            const delta = Number(deltaStr || 0);
+            adjustLiveCricketState((m) => ({
+              ...m,
+              oversA: side === 'A' ? incrementCricketOvers(m.oversA, delta) : m.oversA,
+              oversB: side === 'B' ? incrementCricketOvers(m.oversB, delta) : m.oversB,
+            }));
+          });
+        });
+
+        const syncCricketInputLive = () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const teamAHouse = document.getElementById('cricket-a-house').value || 'red';
+          const teamBHouse = document.getElementById('cricket-b-house').value || 'blue';
+          const oversA = document.getElementById('cricket-a-overs').value.trim() || '0.0';
+          const oversB = document.getElementById('cricket-b-overs').value.trim() || '0.0';
+          const periodLabel = document.getElementById('cricket-period-input').value.trim() || 'Live Cricket';
+          const current = ev.liveMatch || {
+            teamAHouse,
+            teamBHouse,
+            scoreA: 0,
+            scoreB: 0,
+            wicketsA: 0,
+            wicketsB: 0,
+            oversA,
+            oversB,
+            periodLabel,
+          };
+          const updatedMatch = { ...current, teamAHouse, teamBHouse, oversA, oversB, periodLabel };
+          renderCricketScoreDisplays(updatedMatch);
+          if (ev.status !== 'LIVE') return;
+
+          const nextEvents = appState.events.map((item) =>
+            item.id === ev.id
+              ? { ...item, type: 'cricket', liveMatch: updatedMatch, updatedAt: Date.now() }
+              : item
+          );
+          appState = { ...appState, events: nextEvents };
+          if (activeSchoolCode) saveSchoolLocal(activeSchoolCode, appState);
+          renderEventsAndAthletes();
+          renderTvLiveBox({ animate: false });
+
+          clearTimeout(periodInputSyncTimer);
+          periodInputSyncTimer = setTimeout(() => {
+            if (isFirestoreReady && db && activeSchoolCode) {
+              fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch(() => {});
+            }
+          }, 250);
+        };
+
+        document.getElementById('cricket-period-input').addEventListener('input', syncCricketInputLive);
+        document.getElementById('cricket-a-overs').addEventListener('input', syncCricketInputLive);
+        document.getElementById('cricket-b-overs').addEventListener('input', syncCricketInputLive);
+        document.getElementById('cricket-a-house').addEventListener('change', syncCricketInputLive);
+        document.getElementById('cricket-b-house').addEventListener('change', syncCricketInputLive);
+
+        document.getElementById('btn-cricket-set-live').addEventListener('click', () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          if (ev.status === 'LIVE') {
+            openConfirmModal({
+              title: 'Stop Live Cricket Match?',
+              message: `Revert ${ev.name} back to UPCOMING status and remove it from the Live Scoreboard?`,
+              confirmLabel: 'Yes, Revert',
+              onConfirm: async () => {
+                clearTimeout(periodInputSyncTimer);
+                const reverted = createRevertedUpcomingEvent({ ...ev, type: 'cricket' }, Date.now());
+                const nextEvents = appState.events.map((item) =>
+                  item.id === ev.id ? reverted : item
+                );
+                document.getElementById('cricket-a-overs').value = '0.0';
+                document.getElementById('cricket-b-overs').value = '0.0';
+                document.getElementById('cricket-period-input').value = '';
+                renderCricketScoreDisplays(reverted.liveMatch);
+                await persistState({ ...appState, events: nextEvents });
+                updateCricketLiveToggleButton(reverted);
+                showToast(`${ev.name} reverted to UPCOMING`);
+              },
+            });
+          } else {
+            adjustLiveCricketState((m) => m);
+          }
+        });
+
+        document.getElementById('btn-cricket-finish').addEventListener('click', async () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const teamAHouse = document.getElementById('cricket-a-house').value;
+          const teamBHouse = document.getElementById('cricket-b-house').value;
+          const thirdHouse = document.getElementById('cricket-third-house').value;
+          const errEl = document.getElementById('cricket-error');
+
+          if (teamAHouse === teamBHouse) {
+            errEl.textContent = 'Team A and Team B must belong to different Houses.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          const current = ev.liveMatch || {
+            scoreA: 0,
+            scoreB: 0,
+            wicketsA: 0,
+            wicketsB: 0,
+            oversA: '0.0',
+            oversB: '0.0',
+          };
+          const runsA = Number(current.scoreA || 0);
+          const runsB = Number(current.scoreB || 0);
+          const wktA = Number(current.wicketsA || 0);
+          const wktB = Number(current.wicketsB || 0);
+          const oversA = document.getElementById('cricket-a-overs').value.trim() || current.oversA || '0.0';
+          const oversB = document.getElementById('cricket-b-overs').value.trim() || current.oversB || '0.0';
+
+          if (runsA === runsB) {
+            errEl.textContent = 'Runs are tied. Adjust runs for the winning team before finishing the match.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+
+          errEl.classList.add('hidden');
+          const aWins = runsA > runsB;
+          const firstHouse = aWins ? teamAHouse : teamBHouse;
+          const secondHouse = aWins ? teamBHouse : teamAHouse;
+          const winScore = aWins
+            ? formatCricketScore(runsA, wktA, oversA)
+            : formatCricketScore(runsB, wktB, oversB);
+          const loseScore = aWins
+            ? formatCricketScore(runsB, wktB, oversB)
+            : formatCricketScore(runsA, wktA, oversA);
+
+          const winners = [
+            {
+              place: 1,
+              chestNo: '',
+              name: appState.houses[firstHouse].name,
+              house: firstHouse,
+              metric: winScore,
+            },
+            {
+              place: 2,
+              chestNo: '',
+              name: appState.houses[secondHouse].name,
+              house: secondHouse,
+              metric: loseScore,
+            },
+          ];
+
+          if (thirdHouse && thirdHouse !== firstHouse && thirdHouse !== secondHouse) {
+            winners.push({
+              place: 3,
+              chestNo: '',
+              name: appState.houses[thirdHouse].name,
+              house: thirdHouse,
+              metric: 'Bronze',
+            });
+          }
+
+          const now = Date.now();
+          const nextEvents = appState.events.map((item) =>
+            item.id === ev.id
+              ? {
+                  ...item,
+                  type: 'cricket',
+                  status: 'FINISHED',
+                  winners,
+                  liveMatch: {
+                    teamAHouse,
+                    teamBHouse,
+                    scoreA: runsA,
+                    scoreB: runsB,
+                    wicketsA: wktA,
+                    wicketsB: wktB,
+                    oversA,
+                    oversB,
+                    periodLabel: 'Final',
+                  },
+                  updatedAt: now,
+                }
+              : item
+          );
+
+          await persistState(
+            {
+              ...appState,
+              events: nextEvents,
+              lastPublishedAt: now,
+              lastPublishedTitle: `${ev.name} (${ev.category})`,
+            },
+            true
+          );
+          showToast(`Cricket match finished! ${appState.houses[firstHouse].name} wins.`);
+        });
+
         // School Admin: Load Sample School Data
         document.getElementById('btn-load-sample').addEventListener('click', async () => {
           const meta = masterRegistry.schools[activeSchoolCode];
@@ -5193,13 +5979,16 @@
             venue,
             status: 'UPCOMING',
             winners: [],
-            ...(type === 'team'
+            ...(type === 'team' || type === 'cricket'
               ? {
                   liveMatch: {
                     teamAHouse: 'red',
                     teamBHouse: 'blue',
                     scoreA: 0,
                     scoreB: 0,
+                    ...(type === 'cricket'
+                      ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' }
+                      : {}),
                     periodLabel: 'Scheduled',
                   },
                 }
@@ -5277,23 +6066,51 @@
           const id = document.getElementById('edit-event-id').value;
           const name = document.getElementById('edit-event-name').value.trim();
           const category = document.getElementById('edit-event-category').value.trim();
+          const editType = document.getElementById('edit-event-type').value;
           const venue = document.getElementById('edit-event-venue').value.trim();
           const status = document.getElementById('edit-event-status').value;
 
+          const existingEv = appState.events.find((ev) => ev.id === id);
+          const effectiveEditType = resolveEffectiveEventType({ name, type: editType });
+          const isGroupOrMatch = effectiveEditType !== 'individual';
           const winners = [];
           for (const place of [1, 2, 3]) {
             const chestNo = document.getElementById(`edit-w-chest-${place}`).value.trim();
-            const wName = document.getElementById(`edit-w-name-${place}`).value.trim();
+            const rawWName = document.getElementById(`edit-w-name-${place}`).value.trim();
             const house = document.getElementById(`edit-w-house-${place}`).value;
             const metric = document.getElementById(`edit-w-metric-${place}`).value.trim();
-            if (wName && house) {
-              winners.push({ place, chestNo, name: wName, house, metric });
+            const resolvedName = rawWName || (isGroupOrMatch && house ? appState.houses[house]?.name || house : '');
+            if (resolvedName && house) {
+              winners.push({ place, chestNo, name: resolvedName, house, metric });
             }
           }
 
           const nextEvents = appState.events.map((ev) =>
             ev.id === id
-              ? { ...ev, name, category, venue, status, winners, updatedAt: Date.now() }
+              ? {
+                  ...ev,
+                  name,
+                  category,
+                  type: editType,
+                  venue,
+                  status,
+                  winners,
+                  ...((editType === 'team' || editType === 'cricket') && !ev.liveMatch
+                    ? {
+                        liveMatch: {
+                          teamAHouse: 'red',
+                          teamBHouse: 'blue',
+                          scoreA: 0,
+                          scoreB: 0,
+                          ...(editType === 'cricket'
+                            ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' }
+                            : {}),
+                          periodLabel: status === 'LIVE' ? 'Live Match' : 'Scheduled',
+                        },
+                      }
+                    : {}),
+                  updatedAt: Date.now(),
+                }
               : ev
           );
 

@@ -1,5 +1,6 @@
 export type HouseId = 'red' | 'blue' | 'green' | 'yellow';
-export type EventType = 'individual' | 'team';
+export type EventType = 'individual' | 'group' | 'team' | 'cricket' | 'relay';
+export type CanonicalEventType = 'individual' | 'group' | 'team' | 'cricket';
 export type EventStatus = 'UPCOMING' | 'LIVE' | 'FINISHED';
 export type WorkspaceStatus = 'Active' | 'Suspended';
 
@@ -27,6 +28,10 @@ export interface LiveMatchState {
   teamBHouse: HouseId;
   scoreA: number;
   scoreB: number;
+  wicketsA?: number;
+  wicketsB?: number;
+  oversA?: string;
+  oversB?: string;
   periodLabel?: string;
 }
 
@@ -196,6 +201,79 @@ export function inferDivision(category: string): 'boys' | 'girls' | 'open' {
   return 'open';
 }
 
+export function resolveEffectiveEventType(
+  ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
+): CanonicalEventType {
+  if (!ev) return 'individual';
+  const rawType = String(ev.type || '').trim().toLowerCase();
+  const name = String(ev.name || '');
+
+  if (rawType === 'cricket' || /cricket/i.test(name)) return 'cricket';
+  if (rawType === 'group' || rawType === 'relay' || /(relay|march\s*past)/i.test(name)) {
+    return 'group';
+  }
+  if (rawType === 'team') return 'team';
+  return 'individual';
+}
+
+export function isRelayEvent(ev: Pick<SportEvent, 'name' | 'type'> | null | undefined): boolean {
+  return resolveEffectiveEventType(ev) === 'group';
+}
+
+export function isHouseGroupPodiumEvent(
+  ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
+): boolean {
+  return resolveEffectiveEventType(ev) === 'group';
+}
+
+export function isCricketEvent(
+  ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
+): boolean {
+  return resolveEffectiveEventType(ev) === 'cricket';
+}
+
+export function getEventPointRules(
+  state: Pick<SportsDayState, 'pointRules'>,
+  ev: Pick<SportEvent, 'name' | 'type'>
+): [number, number, number] {
+  const effective = resolveEffectiveEventType(ev);
+  if (effective === 'team' || effective === 'group' || effective === 'cricket') {
+    return state.pointRules.team;
+  }
+  return state.pointRules.individual;
+}
+
+export function getEventTypeLabel(ev: Pick<SportEvent, 'name' | 'type'>): string {
+  const effective = resolveEffectiveEventType(ev);
+  if (effective === 'group') return 'House / Group Podium';
+  if (effective === 'cricket') return 'Cricket Match';
+  if (effective === 'team') return '1 vs 1 Live Match';
+  return 'Individual Event';
+}
+
+export function formatCricketScore(
+  runs: number | undefined,
+  wickets: number | undefined,
+  overs?: string | undefined
+): string {
+  const safeRuns = Math.max(0, Math.floor(Number(runs) || 0));
+  const safeWickets = Math.max(0, Math.min(10, Math.floor(Number(wickets) || 0)));
+  const cleanOvers = String(overs ?? '').trim();
+  const base = `${safeRuns}/${safeWickets}`;
+  return cleanOvers ? `${base} (${cleanOvers} Ov)` : base;
+}
+
+export function incrementCricketOvers(oversStr: string | undefined, deltaBalls: number): string {
+  const raw = String(oversStr || '0.0').trim();
+  const match = raw.match(/^(\d+)(?:\.(\d))?$/);
+  const wholeOvers = match ? Number(match[1]) : 0;
+  const subBalls = match && match[2] !== undefined ? Math.min(5, Math.max(0, Number(match[2]))) : 0;
+  const totalBalls = Math.max(0, wholeOvers * 6 + subBalls + Math.trunc(deltaBalls));
+  const nextOvers = Math.floor(totalBalls / 6);
+  const nextBalls = totalBalls % 6;
+  return `${nextOvers}.${nextBalls}`;
+}
+
 export function parseCsvRow(line: string): string[] {
   const fields: string[] = [];
   let current = '';
@@ -304,7 +382,7 @@ export function computeHouseStandings(state: SportsDayState): HouseStanding[] {
 
   for (const ev of state.events) {
     if (ev.status !== 'FINISHED') continue;
-    const ruleSet = ev.type === 'team' ? state.pointRules.team : state.pointRules.individual;
+    const ruleSet = getEventPointRules(state, ev);
 
     for (const w of ev.winners) {
       if (!w.house || !totals[w.house]) continue;
@@ -338,7 +416,7 @@ export function computeHousePointBreakdown(
 
   for (const ev of state.events) {
     if (ev.status !== 'FINISHED') continue;
-    const ruleSet = ev.type === 'team' ? state.pointRules.team : state.pointRules.individual;
+    const ruleSet = getEventPointRules(state, ev);
     const entries: HouseWinnerContribution[] = [];
     let eventPoints = 0;
     let gold = 0;
@@ -397,7 +475,7 @@ export function computeTopAthletes(state: SportsDayState): AthleteTally[] {
   const map = new Map<string, AthleteTally>();
 
   for (const ev of state.events) {
-    if (ev.status !== 'FINISHED' || ev.type !== 'individual') continue;
+    if (ev.status !== 'FINISHED' || resolveEffectiveEventType(ev) !== 'individual') continue;
     const ruleSet = state.pointRules.individual;
     const division = inferDivision(ev.category);
 
@@ -457,6 +535,7 @@ export function getEditablePeriodValue(periodLabel?: string): string {
 }
 
 export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.now()): SportEvent {
+  const effective = resolveEffectiveEventType(ev);
   return {
     ...ev,
     status: 'UPCOMING',
@@ -466,6 +545,7 @@ export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.n
           ...ev.liveMatch,
           scoreA: 0,
           scoreB: 0,
+          ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
           periodLabel: 'Scheduled',
         }
       : {
@@ -473,6 +553,7 @@ export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.n
           teamBHouse: 'blue',
           scoreA: 0,
           scoreB: 0,
+          ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
           periodLabel: 'Scheduled',
         },
     updatedAt: now,

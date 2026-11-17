@@ -8,14 +8,22 @@ import {
   computeTopAthletes,
   createRevertedUpcomingEvent,
   DEFAULT_POINT_RULES,
+  formatCricketScore,
   formatStopwatch,
   generateCsvTemplate,
   getEditablePeriodValue,
+  getEventPointRules,
+  getEventTypeLabel,
+  incrementCricketOvers,
   inferDivision,
+  isCricketEvent,
+  isHouseGroupPodiumEvent,
+  isRelayEvent,
   isStudentRegisteredForEvent,
   normalizeSchoolCode,
   parseStudentCsv,
   resolveCarouselIndex,
+  resolveEffectiveEventType,
   validateWorkspacePin,
   type SportsDayState,
 } from './sportsEngine';
@@ -349,4 +357,110 @@ test('resolveCarouselIndex keeps active live match anchored during score updates
   assert.deepEqual(resolveCarouselIndex(liveMatches, -1, 'm1', false), { index: 2, id: 'm3' });
   assert.deepEqual(resolveCarouselIndex(liveMatches, 3, 'm3', false), { index: 0, id: 'm1' });
   assert.deepEqual(resolveCarouselIndex([], 0, 'm1', true), { index: 0, id: '' });
+});
+
+test('resolveEffectiveEventType and getEventTypeLabel support all 4 event types with auto-detection', () => {
+  assert.equal(resolveEffectiveEventType({ name: '4 x 100 meters Relay', type: 'team' }), 'group');
+  assert.equal(resolveEffectiveEventType({ name: 'March Past Parade', type: 'individual' }), 'group');
+  assert.equal(resolveEffectiveEventType({ name: 'Three-Legged Race', type: 'group' }), 'group');
+  assert.equal(resolveEffectiveEventType({ name: 'Track Sprint', type: 'relay' }), 'group');
+  assert.equal(resolveEffectiveEventType({ name: 'Inter-House Cricket', type: 'team' }), 'cricket');
+  assert.equal(resolveEffectiveEventType({ name: 'Senior Cricket Final', type: 'cricket' }), 'cricket');
+  assert.equal(resolveEffectiveEventType({ name: 'Football Final', type: 'team' }), 'team');
+  assert.equal(resolveEffectiveEventType({ name: '100m Sprint', type: 'individual' }), 'individual');
+
+  assert.equal(isRelayEvent({ name: '4 x 100 meters Relay', type: 'team' }), true);
+  assert.equal(isHouseGroupPodiumEvent({ name: 'March Past', type: 'team' }), true);
+  assert.equal(isCricketEvent({ name: 'Boys Cricket Semi', type: 'team' }), true);
+
+  assert.equal(getEventTypeLabel({ name: '4 x 100 meters Relay', type: 'team' }), 'House / Group Podium');
+  assert.equal(getEventTypeLabel({ name: 'March Past', type: 'group' }), 'House / Group Podium');
+  assert.equal(getEventTypeLabel({ name: 'Inter-House Cricket', type: 'cricket' }), 'Cricket Match');
+  assert.equal(getEventTypeLabel({ name: 'Football Final', type: 'team' }), '1 vs 1 Live Match');
+  assert.equal(getEventTypeLabel({ name: '100m Sprint', type: 'individual' }), 'Individual Event');
+});
+
+test('House / Group Podium & Cricket award House points without inflating Individual Champion scores', () => {
+  const state = createBaseState();
+  state.events = [
+    {
+      id: 'ev-ind',
+      name: '100m Sprint',
+      category: 'Senior Boys',
+      type: 'individual',
+      venue: 'Main Track',
+      status: 'FINISHED',
+      updatedAt: 100,
+      winners: [
+        { place: 1, chestNo: '101', name: 'Aarav Sharma', house: 'red', metric: '11.40s' },
+      ],
+    },
+    {
+      id: 'ev-relay',
+      name: '4 x 100 meters Relay',
+      category: 'Senior Boys',
+      type: 'group',
+      venue: 'Main Track',
+      status: 'FINISHED',
+      updatedAt: 200,
+      winners: [
+        { place: 1, chestNo: '', name: 'Yellow House', house: 'yellow', metric: '44.85s' },
+        { place: 2, chestNo: '', name: 'Red House', house: 'red', metric: '45.20s' },
+        { place: 3, chestNo: '', name: 'Blue House', house: 'blue', metric: '46.10s' },
+      ],
+    },
+    {
+      id: 'ev-march',
+      name: 'March Past',
+      category: 'All Houses',
+      type: 'individual',
+      venue: 'Ground',
+      status: 'FINISHED',
+      updatedAt: 250,
+      winners: [
+        { place: 1, chestNo: '', name: 'Green House', house: 'green', metric: '94 pts' },
+      ],
+    },
+    {
+      id: 'ev-cricket',
+      name: 'Senior Boys Cricket Final',
+      category: 'Senior Boys',
+      type: 'cricket',
+      venue: 'Oval Ground',
+      status: 'FINISHED',
+      updatedAt: 300,
+      winners: [
+        { place: 1, chestNo: '', name: 'Blue House', house: 'blue', metric: '85/3 (6.4 Ov)' },
+        { place: 2, chestNo: '', name: 'Red House', house: 'red', metric: '84/4 (7.2 Ov)' },
+      ],
+    },
+  ];
+
+  assert.deepEqual(getEventPointRules(state, state.events[1]), [10, 6, 4]);
+  assert.deepEqual(getEventPointRules(state, state.events[3]), [10, 6, 4]);
+
+  const standings = computeHouseStandings(state);
+  const red = standings.find((h) => h.id === 'red');
+  const blue = standings.find((h) => h.id === 'blue');
+  const yellow = standings.find((h) => h.id === 'yellow');
+  const green = standings.find((h) => h.id === 'green');
+  assert.equal(red?.points, 17); // 5 (100m) + 6 (Relay 2nd) + 6 (Cricket 2nd)
+  assert.equal(blue?.points, 14); // 4 (Relay 3rd) + 10 (Cricket 1st)
+  assert.equal(yellow?.points, 10); // 10 (Relay 1st)
+  assert.equal(green?.points, 10); // 10 (March Past 1st)
+
+  const athletes = computeTopAthletes(state);
+  assert.equal(athletes.length, 1);
+  assert.equal(athletes[0].name, 'Aarav Sharma');
+  assert.equal(athletes[0].points, 5);
+});
+
+test('Cricket score formatting and ball-by-ball overs counter work cleanly', () => {
+  assert.equal(formatCricketScore(84, 4, '7.2'), '84/4 (7.2 Ov)');
+  assert.equal(formatCricketScore(0, 0, '0.0'), '0/0 (0.0 Ov)');
+  assert.equal(formatCricketScore(120, 14, ''), '120/10');
+  assert.equal(incrementCricketOvers('7.2', 1), '7.3');
+  assert.equal(incrementCricketOvers('7.5', 1), '8.0');
+  assert.equal(incrementCricketOvers('8.0', -1), '7.5');
+  assert.equal(incrementCricketOvers('0.0', -1), '0.0');
 });

@@ -5,11 +5,18 @@ import {
   buildPublicShareUrl,
   computeHousePointBreakdown,
   computeHouseStandings,
+  computeMatchClockElapsedMs,
+  computeMatchMinute,
   computeTopAthletes,
   createRevertedUpcomingEvent,
   DEFAULT_POINT_RULES,
+  detectLiveMatchSportProfile,
+  detectNewGoals,
   formatCricketScore,
+  formatLiveMatchStatusDisplay,
+  formatMatchClockMMSS,
   formatStopwatch,
+  formatTimelineItemLabel,
   generateCsvTemplate,
   getEditablePeriodValue,
   getEventPointRules,
@@ -464,3 +471,209 @@ test('Cricket score formatting and ball-by-ball overs counter work cleanly', () 
   assert.equal(incrementCricketOvers('8.0', -1), '7.5');
   assert.equal(incrementCricketOvers('0.0', -1), '0.0');
 });
+
+test('Live match clock calculates elapsed MM:SS, match minute, and formatted live status', () => {
+  const paused = {
+    periodLabel: '1st Half',
+    clockElapsedMs: 14 * 60_000 + 5_000,
+    clockStartedAt: null,
+    clockRunning: false,
+  };
+  assert.equal(computeMatchClockElapsedMs(paused, 9_999_999), 845_000);
+  assert.equal(formatMatchClockMMSS(845_000), '14:05');
+  assert.equal(computeMatchMinute(paused, 9_999_999), 15);
+  assert.equal(formatLiveMatchStatusDisplay(paused, 9_999_999), "1st Half · 15'");
+
+  const running = {
+    periodLabel: '1st Half',
+    clockElapsedMs: 23 * 60_000,
+    clockStartedAt: 100_000,
+    clockRunning: true,
+  };
+  const now = 100_000 + 15_000; // 23:15 elapsed -> 24'
+  assert.equal(formatMatchClockMMSS(computeMatchClockElapsedMs(running, now)), '23:15');
+  assert.equal(computeMatchMinute(running, now), 24);
+  assert.equal(formatLiveMatchStatusDisplay(running, now), "1st Half · 24'");
+
+  const idle = { periodLabel: 'Scheduled', clockElapsedMs: 0, clockStartedAt: null, clockRunning: false };
+  assert.equal(computeMatchMinute(idle, now), 0);
+  assert.equal(formatLiveMatchStatusDisplay(idle, now), 'Scheduled');
+});
+
+test('Match timeline formatting and real-time goal detection handle scorers, cards, and reverts', () => {
+  const base = createBaseState();
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't1',
+      side: 'A',
+      type: 'goal',
+      chestNo: '104',
+      playerName: 'Aarav',
+      minute: 14,
+      createdAt: 1,
+    }),
+    "⚽ Aarav (#104) 14'"
+  );
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't2',
+      side: 'A',
+      type: 'yellow',
+      chestNo: '211',
+      playerName: 'Rohan',
+      minute: 22,
+      createdAt: 2,
+    }),
+    "🟨 Rohan (#211) 22'"
+  );
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't3',
+      side: 'B',
+      type: 'red',
+      chestNo: '',
+      playerName: 'Team / Unknown',
+      minute: 38,
+      createdAt: 3,
+    }),
+    "🟥 Team / Unknown 38'"
+  );
+
+  const prevEv = {
+    id: 'ev-fb',
+    name: 'Football Final',
+    category: 'Senior Boys',
+    type: 'team' as const,
+    venue: 'Central Turf',
+    status: 'LIVE' as const,
+    winners: [],
+    updatedAt: 100,
+    liveMatch: {
+      teamAHouse: 'red' as const,
+      teamBHouse: 'blue' as const,
+      scoreA: 1,
+      scoreB: 0,
+      periodLabel: '1st Half',
+      clockElapsedMs: 24 * 60_000,
+      clockRunning: false,
+      clockStartedAt: null,
+      timeline: [
+        { id: 'g1', side: 'A' as const, type: 'goal' as const, chestNo: '104', playerName: 'Aarav', minute: 14, createdAt: 10 },
+      ],
+    },
+  };
+
+  // Yellow card only -> no goal celebration
+  const afterCard = {
+    ...prevEv,
+    liveMatch: {
+      ...prevEv.liveMatch,
+      timeline: [
+        ...prevEv.liveMatch.timeline,
+        { id: 'c1', side: 'B' as const, type: 'yellow' as const, chestNo: '211', playerName: 'Rohan', minute: 22, createdAt: 20 },
+      ],
+    },
+  };
+  assert.deepEqual(detectNewGoals([prevEv], [afterCard], base.houses, 500), []);
+
+  // Logged goal -> emits full scorer metadata
+  const afterGoal = {
+    ...afterCard,
+    liveMatch: {
+      ...afterCard.liveMatch,
+      scoreB: 1,
+      timeline: [
+        ...afterCard.liveMatch.timeline,
+        { id: 'g2', side: 'B' as const, type: 'goal' as const, chestNo: '205', playerName: 'Kabir', minute: 24, createdAt: 30 },
+      ],
+    },
+  };
+  const goals = detectNewGoals([afterCard], [afterGoal], base.houses, 500);
+  assert.equal(goals.length, 1);
+  assert.equal(goals[0].houseName, 'Blue House');
+  assert.equal(goals[0].playerName, 'Kabir');
+  assert.equal(goals[0].chestNo, '205');
+  assert.equal(goals[0].minute, 24);
+
+  // Score increment via +1 without timeline entry -> still triggers celebration for scoring house
+  const afterQuickPlus = {
+    ...afterGoal,
+    liveMatch: { ...afterGoal.liveMatch, scoreA: 2 },
+  };
+  const quickGoals = detectNewGoals([afterGoal], [afterQuickPlus], base.houses, 500);
+  assert.equal(quickGoals.length, 1);
+  assert.equal(quickGoals[0].houseName, 'Red House');
+  assert.equal(quickGoals[0].playerName, '');
+
+  // Revert clears clock & timeline
+  const reverted = createRevertedUpcomingEvent(afterGoal, 999);
+  assert.equal(reverted.liveMatch?.clockElapsedMs, 0);
+  assert.equal(reverted.liveMatch?.clockRunning, false);
+  assert.deepEqual(reverted.liveMatch?.timeline, []);
+});
+
+test('Sport-specific 1v1 Live Match profiles adapt controls, clocks, sets, and type resolution cleanly', () => {
+  // Football Final resolves to 'team' even if stored type was accidentally 'cricket'
+  assert.equal(resolveEffectiveEventType({ name: 'Football Final', type: 'cricket' as const }), 'team');
+  assert.equal(resolveEffectiveEventType({ name: 'Boys Cricket Semi', type: 'team' as const }), 'cricket');
+  assert.equal(resolveEffectiveEventType({ name: '4 x 100m Relay', type: 'team' as const }), 'group');
+
+  const fb = detectLiveMatchSportProfile('Football Final');
+  assert.equal(fb.id, 'football');
+  assert.equal(fb.showClock, true);
+  assert.equal(fb.showFootballControls, true);
+
+  const kabaddi = detectLiveMatchSportProfile('Senior Kabaddi Final');
+  assert.equal(kabaddi.id, 'kabaddi');
+  assert.equal(kabaddi.showClock, true);
+  assert.equal(kabaddi.showFootballControls, false);
+  assert.deepEqual(
+    kabaddi.scoreButtons.map((b) => b.label),
+    ['-1', '+1 Point', '+2 Super / All-Out']
+  );
+
+  const bball = detectLiveMatchSportProfile('Girls Basketball Match');
+  assert.equal(bball.id, 'basketball');
+  assert.equal(bball.showClock, true);
+  assert.equal(bball.showFootballControls, false);
+  assert.deepEqual(
+    bball.scoreButtons.map((b) => b.label),
+    ['-1', '+1', '+2', '+3']
+  );
+  assert.deepEqual(bball.periodPresets, ['Q1', 'Q2', 'Half Time', 'Q3', 'Q4', 'OT']);
+
+  const vb = detectLiveMatchSportProfile('Volleyball Final');
+  assert.equal(vb.id, 'set_match');
+  assert.equal(vb.showClock, false);
+  assert.equal(vb.showFootballControls, false);
+  assert.deepEqual(vb.periodPresets, ['Set 1', 'Set 2', 'Set 3']);
+  assert.deepEqual(
+    vb.scoreButtons.map((b) => b.label),
+    ['-1', '+1 Point']
+  );
+
+  const tug = detectLiveMatchSportProfile('Tug of War');
+  assert.equal(tug.id, 'set_match');
+  assert.equal(tug.showClock, false);
+  assert.deepEqual(tug.periodPresets, ['Round 1', 'Round 2', 'Round 3']);
+
+  // Non-goal sports (Volleyball, Kabaddi, Basketball) should NOT emit Football GOAL! overlays on point taps
+  const base = createBaseState();
+  const vbPrev = {
+    id: 'ev-vb',
+    name: 'Volleyball Final',
+    category: 'Senior Girls',
+    type: 'team' as const,
+    venue: 'Court 1',
+    status: 'LIVE' as const,
+    winners: [],
+    updatedAt: 100,
+    liveMatch: { teamAHouse: 'green' as const, teamBHouse: 'yellow' as const, scoreA: 10, scoreB: 9, periodLabel: 'Set 1' },
+  };
+  const vbNext = {
+    ...vbPrev,
+    liveMatch: { ...vbPrev.liveMatch, scoreA: 11 },
+  };
+  assert.deepEqual(detectNewGoals([vbPrev], [vbNext], base.houses, 500), []);
+});
+

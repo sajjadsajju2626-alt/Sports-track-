@@ -23,6 +23,18 @@ export interface WinnerEntry {
   metric: string;
 }
 
+export type MatchTimelineEventType = 'goal' | 'yellow' | 'red';
+
+export interface MatchTimelineEvent {
+  id: string;
+  side: 'A' | 'B';
+  type: MatchTimelineEventType;
+  chestNo: string;
+  playerName: string;
+  minute: number;
+  createdAt: number;
+}
+
 export interface LiveMatchState {
   teamAHouse: HouseId;
   teamBHouse: HouseId;
@@ -33,6 +45,22 @@ export interface LiveMatchState {
   oversA?: string;
   oversB?: string;
   periodLabel?: string;
+  clockElapsedMs?: number;
+  clockStartedAt?: number | null;
+  clockRunning?: boolean;
+  timeline?: MatchTimelineEvent[];
+}
+
+export interface GoalCelebrationPayload {
+  eventId: string;
+  eventName: string;
+  houseId: HouseId;
+  houseName: string;
+  playerName: string;
+  chestNo: string;
+  minute: number | null;
+  scoreA: number;
+  scoreB: number;
 }
 
 export interface SportEvent {
@@ -208,12 +236,96 @@ export function resolveEffectiveEventType(
   const rawType = String(ev.type || '').trim().toLowerCase();
   const name = String(ev.name || '');
 
-  if (rawType === 'cricket' || /cricket/i.test(name)) return 'cricket';
-  if (rawType === 'group' || rawType === 'relay' || /(relay|march\s*past)/i.test(name)) {
+  if (/cricket/i.test(name)) return 'cricket';
+  if (/(relay|march\s*past|three[- ]?legged)/i.test(name)) {
     return 'group';
   }
+  if (
+    /(football|soccer|futsal|kabaddi|basketball|volleyball|badminton|tug\s*of\s*war|kho[- ]?kho|hockey|handball|throwball)/i.test(
+      name
+    )
+  ) {
+    return 'team';
+  }
+  if (rawType === 'cricket') return 'cricket';
+  if (rawType === 'group' || rawType === 'relay') return 'group';
   if (rawType === 'team') return 'team';
   return 'individual';
+}
+
+export type LiveMatchSportProfileId = 'football' | 'kabaddi' | 'basketball' | 'set_match';
+
+export interface LiveMatchScoreButton {
+  delta: number;
+  label: string;
+  tone: 'minus' | 'primary' | 'accent';
+}
+
+export interface LiveMatchSportProfile {
+  id: LiveMatchSportProfileId;
+  showClock: boolean;
+  showFootballControls: boolean;
+  periodLabelTitle: string;
+  periodPresets: string[];
+  scoreButtons: LiveMatchScoreButton[];
+}
+
+export function detectLiveMatchSportProfile(eventName: string | undefined): LiveMatchSportProfile {
+  const name = String(eventName || '');
+  if (/kabaddi/i.test(name)) {
+    return {
+      id: 'kabaddi',
+      showClock: true,
+      showFootballControls: false,
+      periodLabelTitle: 'Half / Period',
+      periodPresets: ['1st Half', 'Half Time', '2nd Half', 'Extra Time'],
+      scoreButtons: [
+        { delta: -1, label: '-1', tone: 'minus' },
+        { delta: 1, label: '+1 Point', tone: 'primary' },
+        { delta: 2, label: '+2 Super / All-Out', tone: 'accent' },
+      ],
+    };
+  }
+  if (/basketball/i.test(name)) {
+    return {
+      id: 'basketball',
+      showClock: true,
+      showFootballControls: false,
+      periodLabelTitle: 'Quarter / Period',
+      periodPresets: ['Q1', 'Q2', 'Half Time', 'Q3', 'Q4', 'OT'],
+      scoreButtons: [
+        { delta: -1, label: '-1', tone: 'minus' },
+        { delta: 1, label: '+1', tone: 'primary' },
+        { delta: 2, label: '+2', tone: 'accent' },
+        { delta: 3, label: '+3', tone: 'accent' },
+      ],
+    };
+  }
+  if (/(volleyball|badminton|tug\s*of\s*war|table\s*tennis|tennis|throwball)/i.test(name)) {
+    const isRoundBased = /tug\s*of\s*war/i.test(name);
+    return {
+      id: 'set_match',
+      showClock: false,
+      showFootballControls: false,
+      periodLabelTitle: isRoundBased ? 'Round' : 'Set',
+      periodPresets: isRoundBased ? ['Round 1', 'Round 2', 'Round 3'] : ['Set 1', 'Set 2', 'Set 3'],
+      scoreButtons: [
+        { delta: -1, label: '-1', tone: 'minus' },
+        { delta: 1, label: '+1 Point', tone: 'primary' },
+      ],
+    };
+  }
+  return {
+    id: 'football',
+    showClock: true,
+    showFootballControls: true,
+    periodLabelTitle: 'Half / Period',
+    periodPresets: ['1st Half', 'Half Time', '2nd Half', 'Extra Time'],
+    scoreButtons: [
+      { delta: -1, label: '-1', tone: 'minus' },
+      { delta: 1, label: '+1', tone: 'primary' },
+    ],
+  };
 }
 
 export function isRelayEvent(ev: Pick<SportEvent, 'name' | 'type'> | null | undefined): boolean {
@@ -546,6 +658,9 @@ export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.n
           scoreA: 0,
           scoreB: 0,
           ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+          ...(effective === 'team'
+            ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+            : {}),
           periodLabel: 'Scheduled',
         }
       : {
@@ -554,10 +669,138 @@ export function createRevertedUpcomingEvent(ev: SportEvent, now: number = Date.n
           scoreA: 0,
           scoreB: 0,
           ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+          ...(effective === 'team'
+            ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+            : {}),
           periodLabel: 'Scheduled',
         },
     updatedAt: now,
   };
+}
+
+export function computeMatchClockElapsedMs(
+  liveMatch: Pick<LiveMatchState, 'clockElapsedMs' | 'clockStartedAt' | 'clockRunning'> | null | undefined,
+  nowMs: number = Date.now()
+): number {
+  const base = Math.max(0, Number(liveMatch?.clockElapsedMs || 0));
+  if (liveMatch?.clockRunning && typeof liveMatch.clockStartedAt === 'number' && liveMatch.clockStartedAt > 0) {
+    return base + Math.max(0, nowMs - liveMatch.clockStartedAt);
+  }
+  return base;
+}
+
+export function formatMatchClockMMSS(elapsedMs: number): string {
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+export function computeMatchMinute(
+  liveMatch: Pick<LiveMatchState, 'clockElapsedMs' | 'clockStartedAt' | 'clockRunning'> | null | undefined,
+  nowMs: number = Date.now()
+): number {
+  const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+  if (elapsedMs <= 0) return 0;
+  return Math.max(1, Math.ceil(elapsedMs / 60000));
+}
+
+export function formatLiveMatchStatusDisplay(
+  liveMatch: Pick<LiveMatchState, 'periodLabel' | 'clockElapsedMs' | 'clockStartedAt' | 'clockRunning'> | null | undefined,
+  nowMs: number = Date.now()
+): string {
+  const rawPeriod = String(liveMatch?.periodLabel || '').trim();
+  const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(rawPeriod.toLowerCase());
+  const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+  const hasClock = Boolean(liveMatch?.clockRunning) || elapsedMs > 0;
+  const minute = computeMatchMinute(liveMatch, nowMs);
+
+  if (hasClock) {
+    if (isDefault) return `Live · ${minute}'`;
+    if (rawPeriod.includes("'")) return rawPeriod;
+    return `${rawPeriod} · ${minute}'`;
+  }
+  return rawPeriod || 'Live Match';
+}
+
+export function formatTimelineItemLabel(item: MatchTimelineEvent): string {
+  const icon = item.type === 'goal' ? '⚽' : item.type === 'yellow' ? '🟨' : '🟥';
+  const rawName = String(item.playerName || '').trim();
+  const cleanName = rawName || (item.type === 'goal' ? 'Goal' : 'Team / Unknown');
+  const cleanChest = String(item.chestNo || '').trim();
+  const who = cleanChest ? `${cleanName} (#${cleanChest})` : cleanName;
+  const minVal = Math.max(0, Math.floor(Number(item.minute) || 0));
+  return `${icon} ${who} ${minVal}'`;
+}
+
+export function detectNewGoals(
+  prevEvents: ReadonlyArray<SportEvent>,
+  nextEvents: ReadonlyArray<SportEvent>,
+  houses: Record<HouseId, HouseConfig>,
+  nowMs: number = Date.now()
+): GoalCelebrationPayload[] {
+  const prevById = new Map<string, SportEvent>();
+  for (const ev of prevEvents || []) {
+    prevById.set(ev.id, ev);
+  }
+
+  const goals: GoalCelebrationPayload[] = [];
+  for (const nextEv of nextEvents || []) {
+    if (nextEv.status !== 'LIVE' || !nextEv.liveMatch) continue;
+    if (resolveEffectiveEventType(nextEv) !== 'team') continue;
+
+    const prevEv = prevById.get(nextEv.id);
+    if (!prevEv || prevEv.status !== 'LIVE' || !prevEv.liveMatch) continue;
+
+    const prevLm = prevEv.liveMatch;
+    const nextLm = nextEv.liveMatch;
+    const prevGoalIds = new Set(
+      (prevLm.timeline || []).filter((item) => item.type === 'goal').map((item) => item.id)
+    );
+    const newGoalItems = (nextLm.timeline || []).filter(
+      (item) => item.type === 'goal' && !prevGoalIds.has(item.id)
+    );
+
+    if (newGoalItems.length > 0) {
+      const latestGoal = newGoalItems[newGoalItems.length - 1];
+      const houseId = latestGoal.side === 'A' ? nextLm.teamAHouse : nextLm.teamBHouse;
+      const rawName = String(latestGoal.playerName || '').trim();
+      const chestNo = String(latestGoal.chestNo || '').trim();
+      goals.push({
+        eventId: nextEv.id,
+        eventName: nextEv.name,
+        houseId,
+        houseName: houses[houseId]?.name || houseId,
+        playerName: rawName === 'Goal' && !chestNo ? '' : rawName || 'Team / Unknown',
+        chestNo,
+        minute: Math.max(0, Math.floor(Number(latestGoal.minute) || 0)),
+        scoreA: nextLm.scoreA,
+        scoreB: nextLm.scoreB,
+      });
+      continue;
+    }
+
+    const isGoalSport = detectLiveMatchSportProfile(nextEv.name).id === 'football';
+    const scoreAIncreased = nextLm.scoreA > prevLm.scoreA;
+    const scoreBIncreased = nextLm.scoreB > prevLm.scoreB;
+    if (isGoalSport && (scoreAIncreased || scoreBIncreased)) {
+      const side: 'A' | 'B' = scoreAIncreased ? 'A' : 'B';
+      const houseId = side === 'A' ? nextLm.teamAHouse : nextLm.teamBHouse;
+      const minute = computeMatchMinute(nextLm, nowMs);
+      goals.push({
+        eventId: nextEv.id,
+        eventName: nextEv.name,
+        houseId,
+        houseName: houses[houseId]?.name || houseId,
+        playerName: '',
+        chestNo: '',
+        minute: minute > 0 ? minute : null,
+        scoreA: nextLm.scoreA,
+        scoreB: nextLm.scoreB,
+      });
+    }
+  }
+  return goals;
 }
 
 export function resolveCarouselIndex(

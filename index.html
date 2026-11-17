@@ -118,6 +118,25 @@
         animation: tvCardFadeIn 0.35s ease-out;
       }
 
+      @keyframes tvGoalPopIn {
+        0% {
+          opacity: 0.85;
+          transform: scale(0.94);
+        }
+        60% {
+          opacity: 1;
+          transform: scale(1.02);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .tv-goal-enter {
+        animation: tvGoalPopIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
       /* Confetti particles */
       @keyframes confettiFall {
         0% {
@@ -946,21 +965,99 @@
               <div>
                 <h3 class="text-lg font-bold text-slate-900">Live Match Scoreboard</h3>
                 <p class="text-xs sm:text-sm text-slate-500">
-                  Score taps update the Home Screen and TV Display in real time
+                  Live clock, goals, cards, and score taps sync straight to Home &amp; TV Display
                 </p>
               </div>
-              <div class="w-full sm:w-64">
-                <label for="team-period-input" class="block text-xs font-semibold text-slate-600 mb-1">
-                  Match Period / Timer
-                </label>
-                <input
-                  id="team-period-input"
-                  type="text"
-                  placeholder="e.g. 2nd Half · 65' or Set 2"
-                  value=""
-                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400"
-                />
+              <div class="flex flex-wrap items-end gap-2.5 w-full lg:w-auto">
+                <div class="w-40 flex-1 sm:flex-none">
+                  <label id="team-period-select-label" for="team-period-select" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Half / Period
+                  </label>
+                  <select
+                    id="team-period-select"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-900"
+                  >
+                    <option value="">Custom / Note</option>
+                    <option value="1st Half">1st Half</option>
+                    <option value="Half Time">Half Time</option>
+                    <option value="2nd Half">2nd Half</option>
+                    <option value="Extra Time">Extra Time</option>
+                  </select>
+                </div>
+                <div class="w-full sm:w-56 flex-1 sm:flex-none">
+                  <label for="team-period-input" class="block text-xs font-semibold text-slate-600 mb-1">
+                    Match Period / Timer
+                  </label>
+                  <input
+                    id="team-period-input"
+                    type="text"
+                    placeholder="e.g. 2nd Half · 65' or Set 2"
+                    value=""
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
               </div>
+            </div>
+
+            <!-- Live Match Clock Bar (Football / Kabaddi / Basketball) -->
+            <div id="team-clock-bar" class="rounded-2xl bg-slate-900 text-white px-4 py-3.5 sm:px-5 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center gap-3.5">
+                <div>
+                  <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    Live Match Clock
+                  </div>
+                  <div class="flex items-baseline gap-2.5 mt-0.5">
+                    <div
+                      id="team-clock-display"
+                      class="font-mono text-3xl sm:text-4xl font-bold tabular-nums tracking-tight"
+                    >
+                      00:00
+                    </div>
+                    <span
+                      id="team-clock-minute-badge"
+                      class="px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-amber-300 tabular-nums"
+                    >
+                      0'
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  id="btn-team-clock-start"
+                  class="min-h-[42px] px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
+                >
+                  <i data-lucide="play" class="w-4 h-4" aria-hidden="true"></i>
+                  <span>Start</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-team-clock-pause"
+                  class="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5"
+                >
+                  <i data-lucide="pause" class="w-4 h-4" aria-hidden="true"></i>
+                  <span>Pause</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-team-clock-reset"
+                  class="min-h-[42px] px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs sm:text-sm font-semibold"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            <!-- Set / Round Quick Switcher (Volleyball / Badminton / Tug of War) -->
+            <div id="team-set-switcher-bar" class="hidden rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div id="team-set-switcher-title" class="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Active Set / Round
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">Tap to switch active set or round on Public &amp; TV Scoreboard</p>
+              </div>
+              <div id="team-set-switcher-buttons" class="inline-flex flex-wrap items-center gap-1.5 p-1 bg-slate-200/80 rounded-xl"></div>
             </div>
 
             <div id="team-error" role="alert" class="hidden rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm font-medium text-red-800"></div>
@@ -986,23 +1083,77 @@
                     0
                   </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div id="team-a-score-buttons" class="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
-                    id="btn-team-a-minus"
-                    class="min-h-[52px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-xl font-bold text-slate-800"
+                    data-team-score-delta="A:-1"
+                    class="min-h-[48px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-lg font-bold text-slate-800"
                     aria-label="Decrease Team A score by 1"
                   >
                     -1
                   </button>
                   <button
                     type="button"
-                    id="btn-team-a-plus"
-                    class="min-h-[52px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-xl font-bold text-white"
+                    data-team-score-delta="A:1"
+                    class="min-h-[48px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-lg font-bold text-white"
                     aria-label="Increase Team A score by 1"
                   >
                     +1
                   </button>
+                </div>
+                <div id="team-a-football-controls" class="space-y-2.5 pt-1">
+                  <div class="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      data-match-event="A:goal"
+                      class="min-h-[42px] px-2 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center justify-center gap-1"
+                    >
+                      <span>+1 Goal ⚽</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-match-event="A:yellow"
+                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs font-bold inline-flex items-center justify-center gap-1"
+                    >
+                      <span>Yellow 🟨</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-match-event="A:red"
+                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-900 text-xs font-bold inline-flex items-center justify-center gap-1"
+                    >
+                      <span>Red 🟥</span>
+                    </button>
+                  </div>
+                  <!-- Non-Blocking Inline Scorer / Card Tagger -->
+                  <form id="form-inline-tagger-A" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 space-y-2">
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                      <span id="team-inline-label-A" class="font-bold text-slate-900">Tag scorer?</span>
+                      <span id="team-inline-preview-A" class="text-emerald-700 font-semibold truncate"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <input
+                        id="team-inline-chest-A"
+                        type="text"
+                        placeholder="Chest #"
+                        class="min-w-0 flex-1 min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-900"
+                      />
+                      <button
+                        type="submit"
+                        id="btn-inline-save-A"
+                        class="min-h-[36px] px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-inline-dismiss-A"
+                        class="min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shrink-0"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
 
@@ -1025,24 +1176,91 @@
                     0
                   </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div id="team-b-score-buttons" class="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
-                    id="btn-team-b-minus"
-                    class="min-h-[52px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-xl font-bold text-slate-800"
+                    data-team-score-delta="B:-1"
+                    class="min-h-[48px] rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-lg font-bold text-slate-800"
                     aria-label="Decrease Team B score by 1"
                   >
                     -1
                   </button>
                   <button
                     type="button"
-                    id="btn-team-b-plus"
-                    class="min-h-[52px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-xl font-bold text-white"
+                    data-team-score-delta="B:1"
+                    class="min-h-[48px] rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-lg font-bold text-white"
                     aria-label="Increase Team B score by 1"
                   >
                     +1
                   </button>
                 </div>
+                <div id="team-b-football-controls" class="space-y-2.5 pt-1">
+                  <div class="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      data-match-event="B:goal"
+                      class="min-h-[42px] px-2 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold inline-flex items-center justify-center gap-1"
+                    >
+                      <span>+1 Goal ⚽</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-match-event="B:yellow"
+                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 text-xs font-bold inline-flex items-center justify-center gap-1"
+                    >
+                      <span>Yellow 🟨</span>
+                    </button>
+                    <button
+                      type="button"
+                      data-match-event="B:red"
+                      class="min-h-[42px] px-2 py-1.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-900 text-xs font-bold inline-flex items-center justify-center gap-1"
+                    >
+                      <span>Red 🟥</span>
+                    </button>
+                  </div>
+                  <!-- Non-Blocking Inline Scorer / Card Tagger -->
+                  <form id="form-inline-tagger-B" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 space-y-2">
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                      <span id="team-inline-label-B" class="font-bold text-slate-900">Tag scorer?</span>
+                      <span id="team-inline-preview-B" class="text-emerald-700 font-semibold truncate"></span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <input
+                        id="team-inline-chest-B"
+                        type="text"
+                        placeholder="Chest #"
+                        class="min-w-0 flex-1 min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-900"
+                      />
+                      <button
+                        type="submit"
+                        id="btn-inline-save-B"
+                        class="min-h-[36px] px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        id="btn-inline-dismiss-B"
+                        class="min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shrink-0"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Logged Match Events Timeline -->
+            <div id="team-timeline-card" class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">
+                  Logged Goals &amp; Cards
+                </h4>
+                <span id="team-timeline-count" class="text-xs font-mono text-slate-500">0 events</span>
+              </div>
+              <div id="team-timeline-list" class="space-y-1.5 text-xs sm:text-sm text-slate-600">
+                <p class="text-xs text-slate-500 py-1">No goals or cards logged yet. Tap +1 Goal ⚽, Yellow 🟨, or Red 🟥 above.</p>
               </div>
             </div>
 
@@ -1117,9 +1335,12 @@
                   ></select>
                 </div>
 
-                <div class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center">
-                  <div id="cricket-a-score-display" class="font-mono text-4xl sm:text-5xl font-extrabold tabular-nums text-slate-900">
-                    0/0 (0.0 Ov)
+                <div class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center space-y-1">
+                  <div id="cricket-a-score-display" class="font-mono text-4xl sm:text-5xl font-extrabold tabular-nums text-slate-900 leading-none whitespace-nowrap">
+                    0/0
+                  </div>
+                  <div id="cricket-a-overs-display" class="font-mono text-xs sm:text-sm font-semibold tabular-nums text-slate-500 whitespace-nowrap">
+                    0.0 Ov
                   </div>
                 </div>
 
@@ -1170,9 +1391,12 @@
                   ></select>
                 </div>
 
-                <div class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center">
-                  <div id="cricket-b-score-display" class="font-mono text-4xl sm:text-5xl font-extrabold tabular-nums text-slate-900">
-                    0/0 (0.0 Ov)
+                <div class="rounded-xl bg-white border border-slate-200 px-4 py-3 text-center space-y-1">
+                  <div id="cricket-b-score-display" class="font-mono text-4xl sm:text-5xl font-extrabold tabular-nums text-slate-900 leading-none whitespace-nowrap">
+                    0/0
+                  </div>
+                  <div id="cricket-b-overs-display" class="font-mono text-xs sm:text-sm font-semibold tabular-nums text-slate-500 whitespace-nowrap">
+                    0.0 Ov
                   </div>
                 </div>
 
@@ -1564,7 +1788,15 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-4 shrink-0">
+        <div class="flex items-center gap-2.5 sm:gap-4 shrink-0">
+          <button
+            type="button"
+            id="btn-tv-sound-toggle"
+            aria-pressed="true"
+            class="min-h-[40px] px-3 py-2 rounded-lg bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors"
+          >
+            <span>🔊 Sound On</span>
+          </button>
           <div id="tv-clock" class="hidden sm:block font-mono text-lg font-semibold text-slate-300 tabular-nums">
             00:00
           </div>
@@ -1605,11 +1837,40 @@
 
         <!-- RIGHT SIDE (55% -> 7 of 12 cols) -->
         <div class="lg:col-span-7 flex flex-col gap-5 min-h-0">
-          <!-- Top Box: LIVE Match or Ongoing Event -->
-          <div
-            id="tv-live-box"
-            class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center min-h-[210px]"
-          ></div>
+          <!-- Top Box: LIVE Match or Ongoing Event + GOAL! Celebration Overlay -->
+          <div class="relative rounded-2xl overflow-hidden min-h-[210px]">
+            <div
+              id="tv-live-box"
+              class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-center min-h-[210px]"
+            ></div>
+
+            <!-- 4-Second Real-Time GOAL! Celebration Overlay -->
+            <div
+              id="tv-goal-overlay"
+              role="status"
+              aria-live="assertive"
+              class="hidden absolute inset-0 z-20 bg-slate-950 border-2 border-amber-400/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-2.5 shadow-2xl"
+            >
+              <div class="flex items-center justify-center gap-3">
+                <span class="text-4xl sm:text-5xl animate-bounce" aria-hidden="true">⚽</span>
+                <span class="text-4xl sm:text-6xl font-extrabold tracking-tight text-amber-300 uppercase">
+                  GOAL!
+                </span>
+              </div>
+              <div
+                id="tv-goal-house"
+                class="px-4 py-1.5 rounded-xl bg-red-600 text-white text-lg sm:text-2xl font-extrabold tracking-tight shadow-md"
+              >
+                Red House
+              </div>
+              <div id="tv-goal-scorer" class="text-sm sm:text-lg font-bold text-slate-100">
+                Aarav Menon (#104) · 24'
+              </div>
+              <div id="tv-goal-scoreline" class="font-mono text-xs sm:text-sm font-semibold text-slate-400">
+                Football Final
+              </div>
+            </div>
+          </div>
 
           <!-- Bottom Box: Auto-Rotating Recent Winners Carousel -->
           <div class="flex-1 min-h-0 bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
@@ -2331,12 +2592,79 @@
         const rawType = String(ev.type || '').trim().toLowerCase();
         const name = String(ev.name || '');
 
-        if (rawType === 'cricket' || /cricket/i.test(name)) return 'cricket';
-        if (rawType === 'group' || rawType === 'relay' || /(relay|march\s*past)/i.test(name)) {
+        if (/cricket/i.test(name)) return 'cricket';
+        if (/(relay|march\s*past|three[- ]?legged)/i.test(name)) {
           return 'group';
         }
+        if (
+          /(football|soccer|futsal|kabaddi|basketball|volleyball|badminton|tug\s*of\s*war|kho[- ]?kho|hockey|handball|throwball)/i.test(
+            name
+          )
+        ) {
+          return 'team';
+        }
+        if (rawType === 'cricket') return 'cricket';
+        if (rawType === 'group' || rawType === 'relay') return 'group';
         if (rawType === 'team') return 'team';
         return 'individual';
+      }
+
+      function detectLiveMatchSportProfile(eventName) {
+        const name = String(eventName || '');
+        if (/kabaddi/i.test(name)) {
+          return {
+            id: 'kabaddi',
+            showClock: true,
+            showFootballControls: false,
+            periodLabelTitle: 'Half / Period',
+            periodPresets: ['1st Half', 'Half Time', '2nd Half', 'Extra Time'],
+            scoreButtons: [
+              { delta: -1, label: '-1', tone: 'minus' },
+              { delta: 1, label: '+1 Point', tone: 'primary' },
+              { delta: 2, label: '+2 Super / All-Out', tone: 'accent' },
+            ],
+          };
+        }
+        if (/basketball/i.test(name)) {
+          return {
+            id: 'basketball',
+            showClock: true,
+            showFootballControls: false,
+            periodLabelTitle: 'Quarter / Period',
+            periodPresets: ['Q1', 'Q2', 'Half Time', 'Q3', 'Q4', 'OT'],
+            scoreButtons: [
+              { delta: -1, label: '-1', tone: 'minus' },
+              { delta: 1, label: '+1', tone: 'primary' },
+              { delta: 2, label: '+2', tone: 'accent' },
+              { delta: 3, label: '+3', tone: 'accent' },
+            ],
+          };
+        }
+        if (/(volleyball|badminton|tug\s*of\s*war|table\s*tennis|tennis|throwball)/i.test(name)) {
+          const isRoundBased = /tug\s*of\s*war/i.test(name);
+          return {
+            id: 'set_match',
+            showClock: false,
+            showFootballControls: false,
+            periodLabelTitle: isRoundBased ? 'Round' : 'Set',
+            periodPresets: isRoundBased ? ['Round 1', 'Round 2', 'Round 3'] : ['Set 1', 'Set 2', 'Set 3'],
+            scoreButtons: [
+              { delta: -1, label: '-1', tone: 'minus' },
+              { delta: 1, label: '+1 Point', tone: 'primary' },
+            ],
+          };
+        }
+        return {
+          id: 'football',
+          showClock: true,
+          showFootballControls: true,
+          periodLabelTitle: 'Half / Period',
+          periodPresets: ['1st Half', 'Half Time', '2nd Half', 'Extra Time'],
+          scoreButtons: [
+            { delta: -1, label: '-1', tone: 'minus' },
+            { delta: 1, label: '+1', tone: 'primary' },
+          ],
+        };
       }
 
       function isRelayEvent(ev) {
@@ -2643,10 +2971,22 @@
       let tvLiveIndex = 0;
       let tvLiveEventId = '';
       let tvLiveTimerId = null;
+      let tvSoundEnabled = true;
+      let tvAudioCtx = null;
+      let tvGoalOverlayTimer = null;
+      let tvTrackedEventsSnapshot = [];
       let periodInputSyncTimer = null;
       let lastSeenPublishedAt = 0;
       let isNavigatingFromPopstate = false;
       const expandedHouseIds = new Set();
+
+      function cloneEventsSnapshot(events) {
+        try {
+          return JSON.parse(JSON.stringify(events || []));
+        } catch (err) {
+          return [];
+        }
+      }
 
       function getEditablePeriodValue(periodLabel) {
         const trimmed = String(periodLabel || '').trim();
@@ -2668,6 +3008,9 @@
                 scoreA: 0,
                 scoreB: 0,
                 ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+                ...(effective === 'team'
+                  ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+                  : {}),
                 periodLabel: 'Scheduled',
               }
             : {
@@ -2676,10 +3019,266 @@
                 scoreA: 0,
                 scoreB: 0,
                 ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+                ...(effective === 'team'
+                  ? { clockElapsedMs: 0, clockStartedAt: null, clockRunning: false, timeline: [] }
+                  : {}),
                 periodLabel: 'Scheduled',
               },
           updatedAt: now,
         };
+      }
+
+      function computeMatchClockElapsedMs(liveMatch, nowMs = Date.now()) {
+        const base = Math.max(0, Number(liveMatch?.clockElapsedMs || 0));
+        if (liveMatch?.clockRunning && typeof liveMatch.clockStartedAt === 'number' && liveMatch.clockStartedAt > 0) {
+          return base + Math.max(0, nowMs - liveMatch.clockStartedAt);
+        }
+        return base;
+      }
+
+      function formatMatchClockMMSS(elapsedMs) {
+        const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      function computeMatchMinute(liveMatch, nowMs = Date.now()) {
+        const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+        if (elapsedMs <= 0) return 0;
+        return Math.max(1, Math.ceil(elapsedMs / 60000));
+      }
+
+      function formatLiveMatchStatusDisplay(liveMatch, nowMs = Date.now()) {
+        const rawPeriod = String(liveMatch?.periodLabel || '').trim();
+        const isDefault = !rawPeriod || ['live match', 'scheduled'].includes(rawPeriod.toLowerCase());
+        const elapsedMs = computeMatchClockElapsedMs(liveMatch, nowMs);
+        const hasClock = Boolean(liveMatch?.clockRunning) || elapsedMs > 0;
+        const minute = computeMatchMinute(liveMatch, nowMs);
+
+        if (hasClock) {
+          if (isDefault) return `Live · ${minute}'`;
+          if (rawPeriod.includes("'")) return rawPeriod;
+          return `${rawPeriod} · ${minute}'`;
+        }
+        return rawPeriod || 'Live Match';
+      }
+
+      function formatTimelineItemLabel(item) {
+        const icon = item.type === 'goal' ? '⚽' : item.type === 'yellow' ? '🟨' : '🟥';
+        const rawName = String(item.playerName || '').trim();
+        const cleanName = rawName || (item.type === 'goal' ? 'Goal' : 'Team / Unknown');
+        const cleanChest = String(item.chestNo || '').trim();
+        const who = cleanChest ? `${cleanName} (#${cleanChest})` : cleanName;
+        const minVal = Math.max(0, Math.floor(Number(item.minute) || 0));
+        return `${icon} ${who} ${minVal}'`;
+      }
+
+      function detectNewGoals(prevEvents, nextEvents, houses, nowMs = Date.now()) {
+        const prevById = new Map();
+        for (const ev of prevEvents || []) {
+          prevById.set(ev.id, ev);
+        }
+
+        const goals = [];
+        for (const nextEv of nextEvents || []) {
+          if (nextEv.status !== 'LIVE' || !nextEv.liveMatch) continue;
+          if (resolveEffectiveEventType(nextEv) !== 'team') continue;
+
+          const prevEv = prevById.get(nextEv.id);
+          if (!prevEv || prevEv.status !== 'LIVE' || !prevEv.liveMatch) continue;
+
+          const prevLm = prevEv.liveMatch;
+          const nextLm = nextEv.liveMatch;
+          const prevGoalIds = new Set(
+            (prevLm.timeline || []).filter((item) => item.type === 'goal').map((item) => item.id)
+          );
+          const newGoalItems = (nextLm.timeline || []).filter(
+            (item) => item.type === 'goal' && !prevGoalIds.has(item.id)
+          );
+
+          if (newGoalItems.length > 0) {
+            const latestGoal = newGoalItems[newGoalItems.length - 1];
+            const houseId = latestGoal.side === 'A' ? nextLm.teamAHouse : nextLm.teamBHouse;
+            const rawName = String(latestGoal.playerName || '').trim();
+            const chestNo = String(latestGoal.chestNo || '').trim();
+            goals.push({
+              eventId: nextEv.id,
+              eventName: nextEv.name,
+              houseId,
+              houseName: houses[houseId]?.name || houseId,
+              playerName: rawName === 'Goal' && !chestNo ? '' : rawName || 'Team / Unknown',
+              chestNo,
+              minute: Math.max(0, Math.floor(Number(latestGoal.minute) || 0)),
+              scoreA: nextLm.scoreA,
+              scoreB: nextLm.scoreB,
+            });
+            continue;
+          }
+
+          const isGoalSport = detectLiveMatchSportProfile(nextEv.name).id === 'football';
+          const scoreAIncreased = nextLm.scoreA > prevLm.scoreA;
+          const scoreBIncreased = nextLm.scoreB > prevLm.scoreB;
+          if (isGoalSport && (scoreAIncreased || scoreBIncreased)) {
+            const side = scoreAIncreased ? 'A' : 'B';
+            const houseId = side === 'A' ? nextLm.teamAHouse : nextLm.teamBHouse;
+            const minute = computeMatchMinute(nextLm, nowMs);
+            goals.push({
+              eventId: nextEv.id,
+              eventName: nextEv.name,
+              houseId,
+              houseName: houses[houseId]?.name || houseId,
+              playerName: '',
+              chestNo: '',
+              minute: minute > 0 ? minute : null,
+              scoreA: nextLm.scoreA,
+              scoreB: nextLm.scoreB,
+            });
+          }
+        }
+        return goals;
+      }
+
+      function unlockTvAudio() {
+        try {
+          const AudioCtor = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtor) return null;
+          if (!tvAudioCtx) {
+            tvAudioCtx = new AudioCtor();
+          }
+          if (tvAudioCtx.state === 'suspended') {
+            tvAudioCtx.resume().catch(() => {});
+          }
+          return tvAudioCtx;
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function updateTvSoundButtonUI() {
+        const btn = document.getElementById('btn-tv-sound-toggle');
+        if (!btn) return;
+        btn.setAttribute('aria-pressed', String(tvSoundEnabled));
+        if (tvSoundEnabled) {
+          btn.className =
+            'min-h-[40px] px-3 py-2 rounded-lg bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors';
+          btn.innerHTML = '<span>🔊 Sound On</span>';
+        } else {
+          btn.className =
+            'min-h-[40px] px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 transition-colors';
+          btn.innerHTML = '<span>🔇 Muted</span>';
+        }
+      }
+
+      function playStadiumGoalFanfare() {
+        if (!tvSoundEnabled) return;
+        const ctx = unlockTvAudio();
+        if (!ctx) return;
+
+        try {
+          const now = ctx.currentTime;
+          const masterGain = ctx.createGain();
+          masterGain.gain.setValueAtTime(0.001, now);
+          masterGain.gain.exponentialRampToValueAtTime(0.28, now + 0.04);
+          masterGain.gain.exponentialRampToValueAtTime(0.001, now + 1.45);
+          masterGain.connect(ctx.destination);
+
+          // Stadium horn triad swell (C4 - E4 - G4)
+          const hornFilter = ctx.createBiquadFilter();
+          hornFilter.type = 'lowpass';
+          hornFilter.frequency.setValueAtTime(1400, now);
+          hornFilter.connect(masterGain);
+
+          [261.63, 329.63, 392.0].forEach((freq) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now);
+            g.gain.setValueAtTime(0.001, now);
+            g.gain.linearRampToValueAtTime(0.24, now + 0.06);
+            g.gain.setValueAtTime(0.24, now + 0.45);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+            osc.connect(g);
+            g.connect(hornFilter);
+            osc.start(now);
+            osc.stop(now + 0.9);
+          });
+
+          // Upbeat celebration chime arpeggio (C5 - E5 - G5 - C6)
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const start = now + 0.22 + idx * 0.14;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, start);
+            g.gain.setValueAtTime(0.001, start);
+            g.gain.linearRampToValueAtTime(0.32, start + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.001, start + 0.55);
+            osc.connect(g);
+            g.connect(masterGain);
+            osc.start(start);
+            osc.stop(start + 0.6);
+          });
+        } catch (err) {}
+      }
+
+      function triggerTvGoalCelebration(goal) {
+        if (!goal || currentView !== 'tv') return;
+        const overlay = document.getElementById('tv-goal-overlay');
+        if (!overlay) return;
+
+        // Focus Live Match carousel onto the scoring match
+        const liveEvents = appState.events.filter((e) => e.status === 'LIVE');
+        const idx = liveEvents.findIndex((e) => e.id === goal.eventId);
+        if (idx !== -1) {
+          tvLiveIndex = idx;
+          tvLiveEventId = goal.eventId;
+          renderTvLiveBox({ animate: false });
+          startTvLiveTimer();
+        }
+
+        const houseBadge = document.getElementById('tv-goal-house');
+        const scorerEl = document.getElementById('tv-goal-scorer');
+        const scorelineEl = document.getElementById('tv-goal-scoreline');
+        const theme = HOUSE_THEME[goal.houseId] || HOUSE_THEME.red;
+
+        houseBadge.className = `px-4 py-1.5 rounded-xl ${theme.bar} text-white text-lg sm:text-2xl font-extrabold tracking-tight shadow-md`;
+        houseBadge.textContent = goal.houseName;
+
+        let scorerLine = '';
+        if (goal.playerName) {
+          const chestPart = goal.chestNo ? ` (#${goal.chestNo})` : '';
+          const minPart = goal.minute !== null && goal.minute !== undefined ? ` · ${goal.minute}'` : '';
+          scorerLine = `${goal.playerName}${chestPart}${minPart}`;
+        } else if (goal.minute !== null && goal.minute !== undefined) {
+          scorerLine = `Goal Scored · ${goal.minute}'`;
+        } else {
+          scorerLine = 'Goal Scored!';
+        }
+        scorerEl.textContent = scorerLine;
+        scorelineEl.textContent = `${goal.eventName} · ${goal.scoreA} : ${goal.scoreB}`;
+
+        overlay.classList.remove('hidden', 'tv-goal-enter');
+        void overlay.offsetWidth;
+        overlay.classList.add('tv-goal-enter');
+
+        playStadiumGoalFanfare();
+
+        clearTimeout(tvGoalOverlayTimer);
+        tvGoalOverlayTimer = setTimeout(() => {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('tv-goal-enter');
+        }, 4000);
+      }
+
+      function checkTvGoalsAndUpdateSnapshot(prevEvents) {
+        if (currentView === 'tv') {
+          const newGoals = detectNewGoals(prevEvents, appState.events, appState.houses);
+          tvTrackedEventsSnapshot = cloneEventsSnapshot(appState.events);
+          if (newGoals.length > 0) {
+            triggerTvGoalCelebration(newGoals[newGoals.length - 1]);
+          }
+        }
       }
 
       function resolveCarouselIndex(items, currentIndex, currentId, preserveById) {
@@ -2766,6 +3365,7 @@
       }
 
       async function persistState(nextState, triggerCelebration = false) {
+        const prevEvents = tvTrackedEventsSnapshot.length ? tvTrackedEventsSnapshot : appState.events;
         appState = nextState;
         if (activeSchoolCode) {
           saveSchoolLocal(activeSchoolCode, appState);
@@ -2777,6 +3377,7 @@
         }
 
         renderAll();
+        checkTvGoalsAndUpdateSnapshot(prevEvents);
 
         if (isFirestoreReady && db && activeSchoolCode) {
           fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch((err) => {
@@ -3024,6 +3625,7 @@
       function applyIncomingSchoolState(incoming) {
         if (!incoming || !incoming.houses || !Array.isArray(incoming.events)) return;
         if (JSON.stringify(incoming) === JSON.stringify(appState)) return;
+        const prevEvents = tvTrackedEventsSnapshot.length ? tvTrackedEventsSnapshot : appState.events;
         const shouldCelebrate =
           incoming.lastPublishedAt && incoming.lastPublishedAt > lastSeenPublishedAt;
         appState = incoming;
@@ -3033,6 +3635,7 @@
           showWinnerCelebration();
         }
         renderAll();
+        checkTvGoalsAndUpdateSnapshot(prevEvents);
       }
 
       function showSuspendedScreen(code) {
@@ -3100,6 +3703,8 @@
 
         if (prevView === 'tv' && view !== 'tv') {
           stopTvLiveTimer();
+          clearTimeout(tvGoalOverlayTimer);
+          document.getElementById('tv-goal-overlay')?.classList.add('hidden');
           if (document.fullscreenElement) {
             document.exitFullscreen?.().catch(() => {});
           }
@@ -3110,6 +3715,9 @@
         } else if (view === 'admin') {
           populateAdminForms();
         } else if (view === 'tv') {
+          tvTrackedEventsSnapshot = cloneEventsSnapshot(appState.events);
+          document.getElementById('tv-goal-overlay')?.classList.add('hidden');
+          updateTvSoundButtonUI();
           renderTvScreen();
           startTvLiveTimer();
         } else if (view === 'master') {
@@ -3645,14 +4253,14 @@
                         <span class="inline-block w-2 h-2 rounded-full ${tA.bar} shrink-0"></span>
                         <span class="text-sm font-bold text-slate-900 truncate">${escapeHtml(hA)}</span>
                       </div>
-                      <span class="font-mono text-sm sm:text-base font-extrabold tabular-nums text-slate-900 shrink-0">${escapeHtml(cricketA)}</span>
+                      <span class="font-mono text-sm sm:text-base font-extrabold tabular-nums text-slate-900 shrink-0 whitespace-nowrap">${escapeHtml(cricketA)}</span>
                     </div>
                     <div class="flex items-center justify-between gap-2">
                       <div class="flex items-center gap-1.5 min-w-0">
                         <span class="inline-block w-2 h-2 rounded-full ${tB.bar} shrink-0"></span>
                         <span class="text-sm font-bold text-slate-900 truncate">${escapeHtml(hB)}</span>
                       </div>
-                      <span class="font-mono text-sm sm:text-base font-extrabold tabular-nums text-slate-900 shrink-0">${escapeHtml(cricketB)}</span>
+                      <span class="font-mono text-sm sm:text-base font-extrabold tabular-nums text-slate-900 shrink-0 whitespace-nowrap">${escapeHtml(cricketB)}</span>
                     </div>
                   </div>
                 </div>
@@ -3662,10 +4270,30 @@
               const hB = appState.houses[ev.liveMatch.teamBHouse]?.name || ev.liveMatch.teamBHouse;
               const tA = HOUSE_THEME[ev.liveMatch.teamAHouse] || HOUSE_THEME.red;
               const tB = HOUSE_THEME[ev.liveMatch.teamBHouse] || HOUSE_THEME.blue;
+              const statusDisplay = formatLiveMatchStatusDisplay(ev.liveMatch);
+              const timeline = Array.isArray(ev.liveMatch.timeline) ? ev.liveMatch.timeline : [];
+              const itemsA = timeline.filter((item) => item.side === 'A');
+              const itemsB = timeline.filter((item) => item.side === 'B');
+              const timelineHtml =
+                itemsA.length > 0 || itemsB.length > 0
+                  ? `
+                    <div class="mt-2.5 grid grid-cols-2 gap-3 text-[11px] text-slate-600">
+                      <div class="space-y-0.5 min-w-0">
+                        ${itemsA.map((item) => `<div class="truncate">${escapeHtml(formatTimelineItemLabel(item))}</div>`).join('')}
+                      </div>
+                      <div class="space-y-0.5 min-w-0 text-right">
+                        ${itemsB.map((item) => `<div class="truncate">${escapeHtml(formatTimelineItemLabel(item))}</div>`).join('')}
+                      </div>
+                    </div>
+                  `
+                  : '';
               bodyHtml = `
                 <div class="mt-4 pt-3 border-t border-slate-100">
-                  <div class="text-[11px] font-semibold text-slate-500 mb-2">
-                    ${escapeHtml(ev.liveMatch.periodLabel || 'Live Match')}
+                  <div
+                    data-live-clock-event="${escapeHtml(ev.id)}"
+                    class="text-[11px] font-semibold text-slate-600 mb-2 tabular-nums"
+                  >
+                    ${escapeHtml(statusDisplay)}
                   </div>
                   <div class="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-3">
                     <div class="min-w-0">
@@ -3680,6 +4308,7 @@
                       <span class="inline-block w-2 h-2 rounded-full ${tB.bar} ml-1.5"></span>
                     </div>
                   </div>
+                  ${timelineHtml}
                 </div>
               `;
             } else if (ev.status === 'FINISHED' && ev.winners && ev.winners.length > 0) {
@@ -4063,6 +4692,9 @@
           updateTeamLiveToggleButton(currentEv);
           updateCricketLiveToggleButton(currentEv);
           updatePodiumModeUI(isHouseGroupPodiumEvent(currentEv), currentEv);
+          if (currentEv) {
+            applyLiveMatchSportProfile(currentEv, currentEv.liveMatch, { preserveTagger: true });
+          }
         }
       }
 
@@ -4165,15 +4797,180 @@
         });
       }
 
+      const inlineTaggerState = {
+        A: { itemId: '', kind: '', timerId: null },
+        B: { itemId: '', kind: '', timerId: null },
+      };
+
+      function hideInlineTagger(side) {
+        const s = side === 'B' ? 'B' : 'A';
+        clearTimeout(inlineTaggerState[s].timerId);
+        inlineTaggerState[s] = { itemId: '', kind: '', timerId: null };
+        document.getElementById(`form-inline-tagger-${s}`)?.classList.add('hidden');
+      }
+
+      function scheduleInlineTaggerAutoHide(side) {
+        const s = side === 'B' ? 'B' : 'A';
+        clearTimeout(inlineTaggerState[s].timerId);
+        inlineTaggerState[s].timerId = setTimeout(() => {
+          hideInlineTagger(s);
+        }, 5000);
+      }
+
+      function pauseInlineTaggerAutoHide(side) {
+        const s = side === 'B' ? 'B' : 'A';
+        clearTimeout(inlineTaggerState[s].timerId);
+        inlineTaggerState[s].timerId = null;
+      }
+
+      function openInlineTagger(side, itemId, kind) {
+        const s = side === 'B' ? 'B' : 'A';
+        const form = document.getElementById(`form-inline-tagger-${s}`);
+        const labelEl = document.getElementById(`team-inline-label-${s}`);
+        const previewEl = document.getElementById(`team-inline-preview-${s}`);
+        const chestInput = document.getElementById(`team-inline-chest-${s}`);
+        if (!form || !labelEl || !chestInput) return;
+
+        inlineTaggerState[s].itemId = itemId;
+        inlineTaggerState[s].kind = kind;
+
+        const isGoal = kind === 'goal';
+        const isYellow = kind === 'yellow';
+        form.className = isGoal
+          ? 'rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 space-y-2'
+          : isYellow
+            ? 'rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 space-y-2'
+            : 'rounded-xl border border-red-200 bg-red-50/90 p-2.5 space-y-2';
+
+        labelEl.textContent = isGoal
+          ? 'Tag scorer?'
+          : isYellow
+            ? 'Tag Yellow Card player?'
+            : 'Tag Red Card player?';
+        if (previewEl) previewEl.textContent = '';
+        chestInput.value = '';
+        scheduleInlineTaggerAutoHide(s);
+      }
+
+      function renderSetSwitcherButtons(profile, currentPeriod) {
+        const wrap = document.getElementById('team-set-switcher-buttons');
+        const titleEl = document.getElementById('team-set-switcher-title');
+        if (!wrap) return;
+        if (titleEl) {
+          titleEl.textContent = profile.periodLabelTitle === 'Round' ? 'Active Round' : 'Active Set';
+        }
+        const activeVal = currentPeriod || profile.periodPresets[0] || '';
+        wrap.innerHTML = profile.periodPresets
+          .map((preset) => {
+            const isActive = preset.toLowerCase() === String(activeVal).toLowerCase();
+            return `
+              <button
+                type="button"
+                data-set-preset="${escapeHtml(preset)}"
+                class="min-h-[36px] px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
+                  isActive
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                }"
+              >
+                ${escapeHtml(preset)}
+              </button>
+            `;
+          })
+          .join('');
+      }
+
+      function renderSportScoreButtons(profile) {
+        const count = profile.scoreButtons.length;
+        const gridClass =
+          count >= 4 ? 'grid grid-cols-4 gap-2' : count === 3 ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-2 gap-2.5';
+        ['A', 'B'].forEach((side) => {
+          const wrap = document.getElementById(`team-${side.toLowerCase()}-score-buttons`);
+          if (!wrap) return;
+          wrap.className = gridClass;
+          wrap.innerHTML = profile.scoreButtons
+            .map((btn) => {
+              const cls =
+                btn.tone === 'minus'
+                  ? 'min-h-[48px] px-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 font-mono text-sm sm:text-base font-bold text-slate-800'
+                  : btn.tone === 'accent'
+                    ? 'min-h-[48px] px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-mono text-xs sm:text-sm font-bold text-white leading-tight'
+                    : 'min-h-[48px] px-2 rounded-xl bg-slate-900 hover:bg-slate-800 font-mono text-sm sm:text-base font-bold text-white leading-tight';
+              return `
+                <button
+                  type="button"
+                  data-team-score-delta="${side}:${btn.delta}"
+                  class="${cls}"
+                  aria-label="Adjust Team ${side} score by ${btn.delta}"
+                >
+                  ${escapeHtml(btn.label)}
+                </button>
+              `;
+            })
+            .join('');
+        });
+      }
+
+      function applyLiveMatchSportProfile(ev, live, options = {}) {
+        const { preserveTagger = false } = options;
+        const profile = detectLiveMatchSportProfile(ev?.name);
+
+        const labelEl = document.getElementById('team-period-select-label');
+        const selectEl = document.getElementById('team-period-select');
+        const inputEl = document.getElementById('team-period-input');
+        const clockBar = document.getElementById('team-clock-bar');
+        const setBar = document.getElementById('team-set-switcher-bar');
+        const fbA = document.getElementById('team-a-football-controls');
+        const fbB = document.getElementById('team-b-football-controls');
+        const timelineCard = document.getElementById('team-timeline-card');
+
+        if (labelEl) labelEl.textContent = profile.periodLabelTitle;
+        if (selectEl) {
+          const currentInput = inputEl ? inputEl.value.trim() : getEditablePeriodValue(live?.periodLabel);
+          selectEl.innerHTML = [
+            '<option value="">Custom / Note</option>',
+            ...profile.periodPresets.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`),
+          ].join('');
+          selectEl.value = profile.periodPresets.includes(currentInput) ? currentInput : '';
+        }
+        if (inputEl) {
+          inputEl.placeholder = profile.showClock
+            ? profile.id === 'basketball'
+              ? 'e.g. Q2 · 4:15'
+              : "e.g. 2nd Half · 65'"
+            : `e.g. ${profile.periodPresets[0]} or Tie-break`;
+        }
+
+        if (clockBar) clockBar.classList.toggle('hidden', !profile.showClock);
+        if (setBar) setBar.classList.toggle('hidden', profile.showClock);
+        if (!profile.showClock) {
+          const currentPeriod = inputEl ? inputEl.value.trim() : getEditablePeriodValue(live?.periodLabel);
+          renderSetSwitcherButtons(profile, currentPeriod);
+        }
+
+        renderSportScoreButtons(profile);
+
+        if (fbA) fbA.classList.toggle('hidden', !profile.showFootballControls);
+        if (fbB) fbB.classList.toggle('hidden', !profile.showFootballControls);
+        if (timelineCard) timelineCard.classList.toggle('hidden', !profile.showFootballControls);
+
+        if (!preserveTagger || !profile.showFootballControls) {
+          hideInlineTagger('A');
+          hideInlineTagger('B');
+        }
+      }
+
       function renderCricketScoreDisplays(live) {
-        const scoreA = live?.scoreA ?? 0;
-        const wktA = live?.wicketsA ?? 0;
-        const ovA = live?.oversA ?? '0.0';
-        const scoreB = live?.scoreB ?? 0;
-        const wktB = live?.wicketsB ?? 0;
-        const ovB = live?.oversB ?? '0.0';
-        document.getElementById('cricket-a-score-display').textContent = formatCricketScore(scoreA, wktA, ovA);
-        document.getElementById('cricket-b-score-display').textContent = formatCricketScore(scoreB, wktB, ovB);
+        const scoreA = Math.max(0, Math.floor(Number(live?.scoreA) || 0));
+        const wktA = Math.max(0, Math.min(10, Math.floor(Number(live?.wicketsA) || 0)));
+        const ovA = String(live?.oversA ?? '0.0').trim() || '0.0';
+        const scoreB = Math.max(0, Math.floor(Number(live?.scoreB) || 0));
+        const wktB = Math.max(0, Math.min(10, Math.floor(Number(live?.wicketsB) || 0)));
+        const ovB = String(live?.oversB ?? '0.0').trim() || '0.0';
+        document.getElementById('cricket-a-score-display').textContent = `${scoreA}/${wktA}`;
+        document.getElementById('cricket-a-overs-display').textContent = `${ovA} Ov`;
+        document.getElementById('cricket-b-score-display').textContent = `${scoreB}/${wktB}`;
+        document.getElementById('cricket-b-overs-display').textContent = `${ovB} Ov`;
       }
 
       function loadSelectedEventIntoScoringForm() {
@@ -4212,20 +5009,114 @@
           oversB: '0.0',
           periodLabel: 'Live Match',
         };
+        const periodEditable = getEditablePeriodValue(live.periodLabel);
         document.getElementById('team-a-house').value = live.teamAHouse;
         document.getElementById('team-b-house').value = live.teamBHouse;
         document.getElementById('team-a-score').textContent = String(live.scoreA);
         document.getElementById('team-b-score').textContent = String(live.scoreB);
-        document.getElementById('team-period-input').value = getEditablePeriodValue(live.periodLabel);
+        document.getElementById('team-period-input').value = periodEditable;
+        applyLiveMatchSportProfile(ev, live, { preserveTagger: false });
+        renderTeamClockUI(live);
+        renderTeamTimelineList(live);
         updateTeamLiveToggleButton(ev);
 
         document.getElementById('cricket-a-house').value = live.teamAHouse;
         document.getElementById('cricket-b-house').value = live.teamBHouse;
         document.getElementById('cricket-a-overs').value = live.oversA ?? '0.0';
         document.getElementById('cricket-b-overs').value = live.oversB ?? '0.0';
-        document.getElementById('cricket-period-input').value = getEditablePeriodValue(live.periodLabel);
+        document.getElementById('cricket-period-input').value = periodEditable;
         renderCricketScoreDisplays(live);
         updateCricketLiveToggleButton(ev);
+      }
+
+      function renderTeamClockUI(live) {
+        const displayEl = document.getElementById('team-clock-display');
+        const minBadge = document.getElementById('team-clock-minute-badge');
+        const btnStart = document.getElementById('btn-team-clock-start');
+        const btnPause = document.getElementById('btn-team-clock-pause');
+        if (!displayEl || !minBadge) return;
+
+        const nowMs = Date.now();
+        const elapsedMs = computeMatchClockElapsedMs(live, nowMs);
+        const minute = computeMatchMinute(live, nowMs);
+        displayEl.textContent = formatMatchClockMMSS(elapsedMs);
+        minBadge.textContent = `${minute}'`;
+
+        const running = Boolean(live?.clockRunning);
+        if (btnStart) {
+          btnStart.disabled = running;
+          btnStart.classList.toggle('opacity-50', running);
+          btnStart.classList.toggle('cursor-not-allowed', running);
+        }
+        if (btnPause) {
+          btnPause.disabled = !running;
+          btnPause.classList.toggle('opacity-50', !running);
+          btnPause.classList.toggle('cursor-not-allowed', !running);
+        }
+      }
+
+      function renderTeamTimelineList(live) {
+        const listEl = document.getElementById('team-timeline-list');
+        const countEl = document.getElementById('team-timeline-count');
+        if (!listEl || !countEl) return;
+
+        const timeline = Array.isArray(live?.timeline) ? live.timeline : [];
+        countEl.textContent = `${timeline.length} ${timeline.length === 1 ? 'event' : 'events'}`;
+
+        if (timeline.length === 0) {
+          listEl.innerHTML =
+            '<p class="text-xs text-slate-500 py-1">No goals or cards logged yet. Tap +1 Goal ⚽, Yellow 🟨, or Red 🟥 above.</p>';
+          return;
+        }
+
+        const teamAHouse = live?.teamAHouse || 'red';
+        const teamBHouse = live?.teamBHouse || 'blue';
+        listEl.innerHTML = timeline
+          .slice()
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          .map((item) => {
+            const houseId = item.side === 'A' ? teamAHouse : teamBHouse;
+            const houseName = appState.houses[houseId]?.name || houseId;
+            const theme = HOUSE_THEME[houseId] || HOUSE_THEME.red;
+            return `
+              <div class="flex items-center justify-between gap-2 rounded-xl bg-white border border-slate-200 px-3 py-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="w-2.5 h-2.5 rounded-full ${theme.bar} shrink-0"></span>
+                  <span class="font-semibold text-slate-900 truncate">${escapeHtml(formatTimelineItemLabel(item))}</span>
+                  <span class="text-xs text-slate-500 shrink-0">(${escapeHtml(houseName.replace(' House', ''))})</span>
+                </div>
+                <button
+                  type="button"
+                  data-remove-match-event="${escapeHtml(item.id)}"
+                  aria-label="Remove match event"
+                  class="w-7 h-7 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-slate-500 font-bold text-sm inline-flex items-center justify-center shrink-0"
+                >
+                  ×
+                </button>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      function refreshLiveMatchClockDisplays() {
+        const nowMs = Date.now();
+        if (currentView === 'scoring' && scoringMode === 'team' && selectedEventId) {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (ev?.liveMatch?.clockRunning) {
+            renderTeamClockUI(ev.liveMatch);
+          }
+        }
+        document.querySelectorAll('[data-live-clock-event]').forEach((el) => {
+          const id = el.getAttribute('data-live-clock-event');
+          const ev = appState.events.find((x) => x.id === id);
+          if (ev && ev.status === 'LIVE' && ev.liveMatch) {
+            const nextText = formatLiveMatchStatusDisplay(ev.liveMatch, nowMs);
+            if (el.textContent !== nextText) {
+              el.textContent = nextText;
+            }
+          }
+        });
       }
 
       async function adjustLiveCricketState(patchFn) {
@@ -4277,7 +5168,7 @@
         await persistState({ ...appState, events: nextEvents });
       }
 
-      async function adjustLiveTeamScore(side, delta) {
+      async function adjustLiveTeamState(patchFn) {
         const ev = appState.events.find((x) => x.id === selectedEventId);
         if (!ev) return;
         const teamAHouse = document.getElementById('team-a-house').value;
@@ -4296,14 +5187,23 @@
           scoreA: 0,
           scoreB: 0,
           periodLabel: 'Live Match',
+          clockElapsedMs: 0,
+          clockStartedAt: null,
+          clockRunning: false,
+          timeline: [],
         };
-        const nextMatch = {
+        const baseMatch = {
           teamAHouse,
           teamBHouse,
-          scoreA: side === 'A' ? Math.max(0, current.scoreA + delta) : current.scoreA,
-          scoreB: side === 'B' ? Math.max(0, current.scoreB + delta) : current.scoreB,
+          scoreA: Number(current.scoreA || 0),
+          scoreB: Number(current.scoreB || 0),
           periodLabel: document.getElementById('team-period-input').value.trim() || 'Live Match',
+          clockElapsedMs: Number(current.clockElapsedMs || 0),
+          clockStartedAt: current.clockStartedAt ?? null,
+          clockRunning: Boolean(current.clockRunning),
+          timeline: Array.isArray(current.timeline) ? current.timeline : [],
         };
+        const nextMatch = patchFn ? patchFn(baseMatch) : baseMatch;
 
         const nextEvents = appState.events.map((item) =>
           item.id === ev.id
@@ -4312,7 +5212,53 @@
         );
         document.getElementById('team-a-score').textContent = String(nextMatch.scoreA);
         document.getElementById('team-b-score').textContent = String(nextMatch.scoreB);
+        renderTeamClockUI(nextMatch);
+        renderTeamTimelineList(nextMatch);
+        updateTeamLiveToggleButton({ ...ev, status: 'LIVE' });
         await persistState({ ...appState, events: nextEvents });
+      }
+
+      async function adjustLiveTeamScore(side, delta) {
+        await adjustLiveTeamState((m) => ({
+          ...m,
+          scoreA: side === 'A' ? Math.max(0, m.scoreA + delta) : m.scoreA,
+          scoreB: side === 'B' ? Math.max(0, m.scoreB + delta) : m.scoreB,
+        }));
+      }
+
+      async function logOneTapMatchEvent(side, kind) {
+        const ev = appState.events.find((x) => x.id === selectedEventId);
+        if (!ev) return;
+        const teamAHouse = document.getElementById('team-a-house').value || 'red';
+        const teamBHouse = document.getElementById('team-b-house').value || 'blue';
+        if (teamAHouse === teamBHouse) {
+          const errEl = document.getElementById('team-error');
+          errEl.textContent = 'Select two different Houses for Team A and Team B.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        document.getElementById('team-error').classList.add('hidden');
+
+        const s = side === 'B' ? 'B' : 'A';
+        const currentMinute = computeMatchMinute(ev.liveMatch);
+        const newItem = {
+          id: `mev-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          side: s,
+          type: kind,
+          chestNo: '',
+          playerName: kind === 'goal' ? 'Goal' : 'Team / Unknown',
+          minute: currentMinute,
+          createdAt: Date.now(),
+        };
+
+        await adjustLiveTeamState((m) => ({
+          ...m,
+          scoreA: kind === 'goal' && s === 'A' ? m.scoreA + 1 : m.scoreA,
+          scoreB: kind === 'goal' && s === 'B' ? m.scoreB + 1 : m.scoreB,
+          timeline: [...(m.timeline || []), newItem],
+        }));
+
+        openInlineTagger(s, newItem.id, kind);
       }
 
       // =======================================================================
@@ -4654,7 +5600,7 @@
                       <span class="w-3 h-3 rounded-full ${tA.tvBar} shrink-0"></span>
                       <span class="text-base sm:text-lg font-extrabold text-white truncate">${escapeHtml(hA)}</span>
                     </div>
-                    <div class="font-mono text-xl sm:text-2xl font-extrabold tabular-nums text-amber-300 shrink-0">
+                    <div class="font-mono text-xl sm:text-2xl font-extrabold tabular-nums text-amber-300 shrink-0 whitespace-nowrap">
                       ${escapeHtml(cricketA)}
                     </div>
                   </div>
@@ -4663,7 +5609,7 @@
                       <span class="w-3 h-3 rounded-full ${tB.tvBar} shrink-0"></span>
                       <span class="text-base sm:text-lg font-extrabold text-white truncate">${escapeHtml(hB)}</span>
                     </div>
-                    <div class="font-mono text-xl sm:text-2xl font-extrabold tabular-nums text-amber-300 shrink-0">
+                    <div class="font-mono text-xl sm:text-2xl font-extrabold tabular-nums text-amber-300 shrink-0 whitespace-nowrap">
                       ${escapeHtml(cricketB)}
                     </div>
                   </div>
@@ -4676,8 +5622,12 @@
             const hB = appState.houses[lm.teamBHouse]?.name || lm.teamBHouse;
             const tA = HOUSE_THEME[lm.teamAHouse] || HOUSE_THEME.red;
             const tB = HOUSE_THEME[lm.teamBHouse] || HOUSE_THEME.blue;
-            const rawPeriod = String(lm.periodLabel || '').trim();
-            const showPeriod = rawPeriod && !['live match', 'scheduled'].includes(rawPeriod.toLowerCase());
+            const statusDisplay = formatLiveMatchStatusDisplay(lm);
+            const showStatus =
+              statusDisplay && !['live match', 'scheduled'].includes(statusDisplay.toLowerCase());
+            const timeline = Array.isArray(lm.timeline) ? lm.timeline : [];
+            const itemsA = timeline.filter((item) => item.side === 'A');
+            const itemsB = timeline.filter((item) => item.side === 'B');
             liveBox.innerHTML = `
               <div class="${animClass}">
                 <div class="flex items-start sm:items-center justify-between gap-3 mb-4">
@@ -4689,24 +5639,26 @@
                       </span>
                       <span>LIVE MATCH</span>
                     </span>
-                    ${showPeriod ? `<span class="text-xs font-semibold text-slate-300">${escapeHtml(rawPeriod)}</span>` : ''}
+                    ${showStatus ? `<span data-live-clock-event="${escapeHtml(currentLive.id)}" class="text-xs font-semibold text-amber-300 tabular-nums">${escapeHtml(statusDisplay)}</span>` : ''}
                     <span class="text-xs sm:text-sm text-slate-400 truncate">
                       ${escapeHtml(currentLive.name)} · ${escapeHtml(currentLive.category)} · ${escapeHtml(currentLive.venue)}
                     </span>
                   </div>
                   ${navControlsHtml}
                 </div>
-                <div class="grid grid-cols-3 items-center gap-4 text-center">
+                <div class="grid grid-cols-3 items-start gap-4 text-center">
                   <div class="space-y-2">
                     <div class="w-4 h-4 rounded-full ${tA.tvBar} mx-auto"></div>
                     <div class="text-xl sm:text-2xl font-extrabold text-white truncate">${escapeHtml(hA)}</div>
+                    ${itemsA.length > 0 ? `<div class="space-y-1 text-xs text-slate-300">${itemsA.map((item) => `<div class="truncate">${escapeHtml(formatTimelineItemLabel(item))}</div>`).join('')}</div>` : ''}
                   </div>
-                  <div class="font-mono text-5xl sm:text-6xl font-extrabold tabular-nums text-white tracking-tight">
+                  <div class="font-mono text-5xl sm:text-6xl font-extrabold tabular-nums text-white tracking-tight pt-2">
                     ${lm.scoreA} <span class="text-slate-600">:</span> ${lm.scoreB}
                   </div>
                   <div class="space-y-2">
                     <div class="w-4 h-4 rounded-full ${tB.tvBar} mx-auto"></div>
                     <div class="text-xl sm:text-2xl font-extrabold text-white truncate">${escapeHtml(hB)}</div>
+                    ${itemsB.length > 0 ? `<div class="space-y-1 text-xs text-slate-300">${itemsB.map((item) => `<div class="truncate">${escapeHtml(formatTimelineItemLabel(item))}</div>`).join('')}</div>` : ''}
                   </div>
                 </div>
               </div>
@@ -5265,8 +6217,14 @@
 
         // Navigation Buttons
         document.getElementById('btn-open-tv').addEventListener('click', () => {
+          unlockTvAudio();
           setView('tv');
           document.documentElement.requestFullscreen?.().catch(() => {});
+        });
+        document.getElementById('btn-tv-sound-toggle').addEventListener('click', () => {
+          tvSoundEnabled = !tvSoundEnabled;
+          if (tvSoundEnabled) unlockTvAudio();
+          updateTvSoundButtonUI();
         });
         document.getElementById('btn-exit-tv').addEventListener('click', () => setView('home'));
         document.getElementById('btn-nav-home').addEventListener('click', () => setView('home'));
@@ -5499,16 +6457,19 @@
           showToast(`Published ${ev.name} results!`);
         });
 
-        // Team Match Live Score Controls & Real-time Period/Timer sync
-        document.getElementById('team-period-input').addEventListener('input', (e) => {
+        // Team Match Live Score Controls & Real-time Period/Timer/Events sync
+        const syncTeamPeriodLive = (periodLabel) => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (!ev || ev.status !== 'LIVE') return;
-          const periodLabel = e.target.value.trim() || 'Live Match';
           const current = ev.liveMatch || {
             teamAHouse: document.getElementById('team-a-house').value || 'red',
             teamBHouse: document.getElementById('team-b-house').value || 'blue',
             scoreA: 0,
             scoreB: 0,
+            clockElapsedMs: 0,
+            clockStartedAt: null,
+            clockRunning: false,
+            timeline: [],
             periodLabel,
           };
           const nextEvents = appState.events.map((item) =>
@@ -5527,12 +6488,166 @@
               fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch(() => {});
             }
           }, 250);
+        };
+
+        document.getElementById('team-period-select').addEventListener('change', (e) => {
+          const val = e.target.value;
+          const inputEl = document.getElementById('team-period-input');
+          if (val) {
+            inputEl.value = val;
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            const profile = detectLiveMatchSportProfile(ev?.name);
+            if (!profile.showClock) renderSetSwitcherButtons(profile, val);
+            syncTeamPeriodLive(val);
+          }
         });
 
-        document.getElementById('btn-team-a-plus').addEventListener('click', () => adjustLiveTeamScore('A', 1));
-        document.getElementById('btn-team-a-minus').addEventListener('click', () => adjustLiveTeamScore('A', -1));
-        document.getElementById('btn-team-b-plus').addEventListener('click', () => adjustLiveTeamScore('B', 1));
-        document.getElementById('btn-team-b-minus').addEventListener('click', () => adjustLiveTeamScore('B', -1));
+        document.getElementById('team-period-input').addEventListener('input', (e) => {
+          const val = e.target.value.trim();
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          const profile = detectLiveMatchSportProfile(ev?.name);
+          document.getElementById('team-period-select').value = profile.periodPresets.includes(val) ? val : '';
+          if (!profile.showClock) renderSetSwitcherButtons(profile, val);
+          syncTeamPeriodLive(val || 'Live Match');
+        });
+
+        document.getElementById('team-set-switcher-buttons').addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-set-preset]');
+          if (!btn) return;
+          const val = btn.getAttribute('data-set-preset') || '';
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          const profile = detectLiveMatchSportProfile(ev?.name);
+          document.getElementById('team-period-input').value = val;
+          document.getElementById('team-period-select').value = profile.periodPresets.includes(val) ? val : '';
+          renderSetSwitcherButtons(profile, val);
+          if (ev && ev.status !== 'LIVE') {
+            adjustLiveTeamState((m) => ({ ...m, periodLabel: val }));
+          } else {
+            syncTeamPeriodLive(val);
+          }
+        });
+
+        ['team-a-score-buttons', 'team-b-score-buttons'].forEach((wrapId) => {
+          document.getElementById(wrapId).addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-team-score-delta]');
+            if (!btn) return;
+            const [side, deltaStr] = btn.getAttribute('data-team-score-delta').split(':');
+            const delta = Number(deltaStr || 0);
+            if (delta !== 0) adjustLiveTeamScore(side, delta);
+          });
+        });
+
+        document.getElementById('btn-team-clock-start').addEventListener('click', () => {
+          const nowMs = Date.now();
+          adjustLiveTeamState((m) => {
+            if (m.clockRunning) return m;
+            return {
+              ...m,
+              clockElapsedMs: computeMatchClockElapsedMs(m, nowMs),
+              clockStartedAt: nowMs,
+              clockRunning: true,
+            };
+          });
+        });
+
+        document.getElementById('btn-team-clock-pause').addEventListener('click', () => {
+          const nowMs = Date.now();
+          adjustLiveTeamState((m) => ({
+            ...m,
+            clockElapsedMs: computeMatchClockElapsedMs(m, nowMs),
+            clockStartedAt: null,
+            clockRunning: false,
+          }));
+        });
+
+        document.getElementById('btn-team-clock-reset').addEventListener('click', () => {
+          adjustLiveTeamState((m) => ({
+            ...m,
+            clockElapsedMs: 0,
+            clockStartedAt: null,
+            clockRunning: false,
+          }));
+        });
+
+        document.querySelectorAll('[data-match-event]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const [side, kind] = btn.getAttribute('data-match-event').split(':');
+            logOneTapMatchEvent(side, kind);
+          });
+        });
+
+        ['A', 'B'].forEach((side) => {
+          const chestInput = document.getElementById(`team-inline-chest-${side}`);
+          const previewEl = document.getElementById(`team-inline-preview-${side}`);
+          const form = document.getElementById(`form-inline-tagger-${side}`);
+          const dismissBtn = document.getElementById(`btn-inline-dismiss-${side}`);
+
+          chestInput?.addEventListener('focus', () => pauseInlineTaggerAutoHide(side));
+          chestInput?.addEventListener('input', (e) => {
+            pauseInlineTaggerAutoHide(side);
+            const chest = e.target.value.trim();
+            if (!chest) {
+              if (previewEl) previewEl.textContent = '';
+              return;
+            }
+            const found = appState.students.find((s) => s.chestNo.toLowerCase() === chest.toLowerCase());
+            if (previewEl) {
+              previewEl.textContent = found ? found.name : `Chest #${chest}`;
+            }
+          });
+
+          dismissBtn?.addEventListener('click', () => hideInlineTagger(side));
+
+          form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const targetItemId = inlineTaggerState[side].itemId;
+            const kind = inlineTaggerState[side].kind || 'goal';
+            const chestNo = chestInput?.value.trim() || '';
+            hideInlineTagger(side);
+            if (!targetItemId) return;
+
+            const found = chestNo
+              ? appState.students.find((s) => s.chestNo.toLowerCase() === chestNo.toLowerCase())
+              : null;
+            const resolvedName = found
+              ? found.name
+              : chestNo
+                ? `Player #${chestNo}`
+                : kind === 'goal'
+                  ? 'Goal'
+                  : 'Team / Unknown';
+
+            await adjustLiveTeamState((m) => ({
+              ...m,
+              timeline: (m.timeline || []).map((item) =>
+                item.id === targetItemId ? { ...item, chestNo, playerName: resolvedName } : item
+              ),
+            }));
+            showToast(
+              chestNo ? `Tagged ${resolvedName} (#${chestNo})` : 'Saved without player number'
+            );
+          });
+        });
+
+        document.getElementById('team-timeline-list').addEventListener('click', async (e) => {
+          const removeBtn = e.target.closest('[data-remove-match-event]');
+          if (!removeBtn) return;
+          const itemId = removeBtn.getAttribute('data-remove-match-event');
+          if (inlineTaggerState.A.itemId === itemId) hideInlineTagger('A');
+          if (inlineTaggerState.B.itemId === itemId) hideInlineTagger('B');
+          await adjustLiveTeamState((m) => {
+            const existing = (m.timeline || []).find((x) => x.id === itemId);
+            if (!existing) return m;
+            const timeline = (m.timeline || []).filter((x) => x.id !== itemId);
+            return {
+              ...m,
+              scoreA: existing.type === 'goal' && existing.side === 'A' ? Math.max(0, m.scoreA - 1) : m.scoreA,
+              scoreB: existing.type === 'goal' && existing.side === 'B' ? Math.max(0, m.scoreB - 1) : m.scoreB,
+              timeline,
+            };
+          });
+          showToast('Match event removed');
+        });
         document.getElementById('btn-team-set-live').addEventListener('click', () => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (!ev) return;
@@ -5550,6 +6665,9 @@
                 document.getElementById('team-a-score').textContent = '0';
                 document.getElementById('team-b-score').textContent = '0';
                 document.getElementById('team-period-input').value = '';
+                document.getElementById('team-period-select').value = '';
+                renderTeamClockUI(reverted.liveMatch);
+                renderTeamTimelineList(reverted.liveMatch);
                 await persistState({ ...appState, events: nextEvents });
                 updateTeamLiveToggleButton(reverted);
                 showToast(`${ev.name} reverted to UPCOMING`);
@@ -5628,6 +6746,10 @@
                     teamBHouse,
                     scoreA,
                     scoreB,
+                    clockElapsedMs: computeMatchClockElapsedMs(item.liveMatch, now),
+                    clockStartedAt: null,
+                    clockRunning: false,
+                    timeline: Array.isArray(item.liveMatch?.timeline) ? item.liveMatch.timeline : [],
                     periodLabel: 'Final',
                   },
                   updatedAt: now,
@@ -6164,6 +7286,7 @@
       wireEventListeners();
       setupHardwareBackSupport();
       refreshIcons();
+      setInterval(refreshLiveMatchClockDisplays, 1000);
       initDataLayer();
     </script>
   </body>

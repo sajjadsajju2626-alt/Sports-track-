@@ -13,6 +13,7 @@ import {
   computeMatchClockElapsedMs,
   computeMatchMinute,
   computeTopAthletes,
+  createReopenedEvent,
   createRevertedUpcomingEvent,
   DEFAULT_POINT_RULES,
   detectLiveMatchSportProfile,
@@ -36,6 +37,7 @@ import {
   incrementCricketOvers,
   inferDivision,
   isCricketEvent,
+  isEventCompletedStatus,
   isFieldEvent,
   isHouseGroupPodiumEvent,
   isRelayEvent,
@@ -51,7 +53,9 @@ import {
   resolveCarouselIndex,
   resolveEffectiveEventType,
   resolveEventParticipants,
+  resolveRestoredSession,
   resolveTimelineTagInput,
+  sanitizePersistedSession,
   validateWorkspacePin,
   type SportsDayState,
 } from './sportsEngine';
@@ -1102,4 +1106,100 @@ test('Field Event detection, Track Stopwatch gating, meter formatting, and Best 
   assert.equal(ranked[2].house, 'yellow');
   assert.equal(ranked[2].metric, '32.75m');
 });
+
+test('Session persistence restores school, role, tab, and selected event; Re-open reverts completed events cleanly', () => {
+  // 1. Valid Admin session on Official Scoring tab with selected event restores identically
+  const savedAdmin = sanitizePersistedSession({
+    schoolCode: 'demofest',
+    role: 'admin',
+    view: 'scoring',
+    selectedEventId: 'smp-6',
+  });
+  assert.deepEqual(savedAdmin, {
+    schoolCode: 'DEMOFEST',
+    role: 'admin',
+    view: 'scoring',
+    selectedEventId: 'smp-6',
+  });
+
+  const restoredAdmin = resolveRestoredSession(savedAdmin, 'DEMOFEST', ['smp-1', 'smp-6', 'smp-7']);
+  assert.deepEqual(restoredAdmin, {
+    role: 'admin',
+    view: 'scoring',
+    selectedEventId: 'smp-6',
+  });
+
+  // 2. Switching to a different school code ignores previous school's role/tab/event
+  const differentSchool = resolveRestoredSession(savedAdmin, 'XAVIER26', ['ev-1', 'ev-2']);
+  assert.deepEqual(differentSchool, {
+    role: 'public',
+    view: 'home',
+    selectedEventId: 'ev-1',
+  });
+
+  // 3. Unauthorized tab for a role safely falls back to home (e.g. Official trying to restore Admin tab)
+  const savedOfficialAdminTab = sanitizePersistedSession({
+    schoolCode: 'DEMOFEST',
+    role: 'official',
+    view: 'admin',
+    selectedEventId: 'smp-7',
+  });
+  assert.deepEqual(resolveRestoredSession(savedOfficialAdminTab, 'DEMOFEST', ['smp-1', 'smp-7']), {
+    role: 'official',
+    view: 'home',
+    selectedEventId: 'smp-7',
+  });
+
+  // 4. TV Screen restores cleanly for Public or Admin roles
+  const savedTv = sanitizePersistedSession({
+    schoolCode: 'DEMOFEST',
+    role: 'public',
+    view: 'tv',
+    selectedEventId: '',
+  });
+  assert.deepEqual(resolveRestoredSession(savedTv, 'DEMOFEST', ['smp-1']), {
+    role: 'public',
+    view: 'tv',
+    selectedEventId: 'smp-1',
+  });
+
+  // 5. Re-open completed event retracts winners and transitions cleanly to LIVE or UPCOMING
+  assert.equal(isEventCompletedStatus('FINISHED'), true);
+  assert.equal(isEventCompletedStatus('COMPLETED'), true);
+  assert.equal(isEventCompletedStatus('LIVE'), false);
+  assert.equal(isEventCompletedStatus('UPCOMING'), false);
+
+  const completedMatch = {
+    id: 'm-1',
+    name: 'Football Final',
+    category: 'Senior Boys',
+    type: 'team' as const,
+    venue: 'Main Field',
+    status: 'FINISHED' as const,
+    winners: [
+      { place: 1 as const, chestNo: '', name: 'Blue House', house: 'blue' as const, metric: '2 - 1' },
+    ],
+    liveMatch: {
+      teamAHouse: 'red' as const,
+      teamBHouse: 'blue' as const,
+      scoreA: 1,
+      scoreB: 2,
+      periodLabel: 'Final',
+    },
+    updatedAt: 1000,
+  };
+
+  const reopenedLive = createReopenedEvent(completedMatch, 'LIVE', 2000);
+  assert.equal(reopenedLive.status, 'LIVE');
+  assert.deepEqual(reopenedLive.winners, []);
+  assert.equal(reopenedLive.liveMatch?.scoreA, 1);
+  assert.equal(reopenedLive.liveMatch?.scoreB, 2);
+  assert.equal(reopenedLive.liveMatch?.periodLabel, 'Live Match');
+
+  const reopenedUpcoming = createReopenedEvent(completedMatch, 'UPCOMING', 3000);
+  assert.equal(reopenedUpcoming.status, 'UPCOMING');
+  assert.deepEqual(reopenedUpcoming.winners, []);
+  assert.equal(reopenedUpcoming.liveMatch?.periodLabel, 'Scheduled');
+});
+
 

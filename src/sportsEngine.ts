@@ -1544,3 +1544,122 @@ export function rankFieldTrials(
   }));
 }
 
+export type SessionRole = 'public' | 'official' | 'admin' | 'master';
+export type SessionView = 'home' | 'scoring' | 'admin' | 'tv' | 'master';
+
+export interface PersistedSessionState {
+  schoolCode: string;
+  role: SessionRole;
+  view: SessionView;
+  selectedEventId: string;
+}
+
+export function sanitizePersistedSession(raw: unknown): PersistedSessionState | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  const schoolCode = normalizeSchoolCode(String(obj.schoolCode || ''));
+  const rawRole = String(obj.role || 'public').trim().toLowerCase();
+  const role: SessionRole =
+    rawRole === 'admin' || rawRole === 'official' || rawRole === 'master' ? rawRole : 'public';
+  const rawView = String(obj.view || 'home').trim().toLowerCase();
+  const view: SessionView =
+    rawView === 'scoring' || rawView === 'admin' || rawView === 'tv' || rawView === 'master'
+      ? rawView
+      : 'home';
+  const selectedEventId = String(obj.selectedEventId || '').trim();
+
+  if (!schoolCode && role !== 'master') return null;
+  return { schoolCode, role, view, selectedEventId };
+}
+
+export function resolveRestoredSession(
+  saved: PersistedSessionState | null | undefined,
+  targetSchoolCode: string,
+  availableEventIds: ReadonlyArray<string>
+): { role: SessionRole; view: SessionView; selectedEventId: string } {
+  const defaultEventId = availableEventIds[0] || '';
+  const targetNorm = normalizeSchoolCode(targetSchoolCode);
+  if (!saved || !targetNorm || normalizeSchoolCode(saved.schoolCode) !== targetNorm) {
+    return { role: 'public', view: 'home', selectedEventId: defaultEventId };
+  }
+
+  const role: SessionRole = saved.role === 'master' ? 'public' : saved.role;
+  let view: SessionView = saved.view;
+  if (view === 'admin' && role !== 'admin') {
+    view = 'home';
+  } else if (view === 'scoring' && role !== 'official' && role !== 'admin') {
+    view = 'home';
+  } else if (view === 'master') {
+    view = 'home';
+  }
+
+  const selectedEventId =
+    saved.selectedEventId && availableEventIds.includes(saved.selectedEventId)
+      ? saved.selectedEventId
+      : defaultEventId;
+
+  return { role, view, selectedEventId };
+}
+
+export function isEventCompletedStatus(status: string | undefined | null): boolean {
+  const norm = String(status || '').trim().toUpperCase();
+  return norm === 'FINISHED' || norm === 'COMPLETED';
+}
+
+export function createReopenedEvent(
+  ev: SportEvent,
+  targetStatus: 'LIVE' | 'UPCOMING',
+  now: number = Date.now()
+): SportEvent {
+  const effective = resolveEffectiveEventType(ev);
+  if (targetStatus === 'UPCOMING') {
+    return {
+      ...ev,
+      status: 'UPCOMING',
+      winners: [],
+      ...(ev.liveMatch
+        ? {
+            liveMatch: {
+              ...ev.liveMatch,
+              clockRunning: false,
+              clockStartedAt: null,
+              periodLabel: 'Scheduled',
+            },
+          }
+        : {}),
+      updatedAt: now,
+    };
+  }
+
+  // targetStatus === 'LIVE'
+  const baseLiveMatch = ev.liveMatch
+    ? {
+        ...ev.liveMatch,
+        periodLabel:
+          ev.liveMatch.periodLabel && ev.liveMatch.periodLabel.toLowerCase() !== 'final' && ev.liveMatch.periodLabel.toLowerCase() !== 'scheduled'
+            ? ev.liveMatch.periodLabel
+            : effective === 'cricket'
+              ? 'Live Cricket'
+              : 'Live Match',
+      }
+    : effective === 'team' || effective === 'cricket'
+      ? {
+          teamAHouse: 'red' as HouseId,
+          teamBHouse: 'blue' as HouseId,
+          scoreA: 0,
+          scoreB: 0,
+          ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+          periodLabel: effective === 'cricket' ? 'Live Cricket' : 'Live Match',
+        }
+      : undefined;
+
+  return {
+    ...ev,
+    status: 'LIVE',
+    winners: [],
+    ...(baseLiveMatch ? { liveMatch: baseLiveMatch } : {}),
+    updatedAt: now,
+  };
+}
+
+

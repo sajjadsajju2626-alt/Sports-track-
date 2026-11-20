@@ -1023,20 +1023,31 @@
             <div class="space-y-4" id="podium-rows-container"></div>
 
             <div class="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <button
-                type="button"
-                id="btn-mark-event-live"
-                class="min-h-[46px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 font-semibold text-sm"
-              >
-                Set Event Status: LIVE
-              </button>
-              <button
-                type="submit"
-                class="min-h-[48px] px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-sm"
-              >
-                <i data-lucide="check-circle-2" class="w-5 h-5" aria-hidden="true"></i>
-                <span>SUBMIT &amp; PUBLISH</span>
-              </button>
+              <div class="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  id="btn-mark-event-live"
+                  class="min-h-[46px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 font-semibold text-sm transition-colors"
+                >
+                  Set Event Status: LIVE
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2.5 sm:justify-end">
+                <button
+                  type="button"
+                  id="btn-individual-reopen"
+                  class="hidden min-h-[48px] px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-sm transition-colors"
+                >
+                  ↺ Re-open Event (Undo Complete)
+                </button>
+                <button
+                  type="submit"
+                  class="min-h-[48px] px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <i data-lucide="check-circle-2" class="w-5 h-5" aria-hidden="true"></i>
+                  <span>SUBMIT &amp; PUBLISH</span>
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -1417,9 +1428,16 @@
                 <button
                   type="button"
                   id="btn-team-set-live"
-                  class="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800"
+                  class="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors"
                 >
-                  Broadcast as LIVE Match
+                  Set Event Status: LIVE
+                </button>
+                <button
+                  type="button"
+                  id="btn-team-reopen"
+                  class="hidden min-h-[48px] px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-sm font-semibold transition-colors"
+                >
+                  ↺ Re-open Event (Undo Complete)
                 </button>
                 <button
                   type="button"
@@ -1588,9 +1606,16 @@
                 <button
                   type="button"
                   id="btn-cricket-set-live"
-                  class="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800"
+                  class="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors"
                 >
-                  Broadcast as LIVE Match
+                  Set Event Status: LIVE
+                </button>
+                <button
+                  type="button"
+                  id="btn-cricket-reopen"
+                  class="hidden min-h-[48px] px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-sm font-semibold transition-colors"
+                >
+                  ↺ Re-open Event (Undo Complete)
                 </button>
                 <button
                   type="button"
@@ -2500,6 +2525,65 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- RE-OPEN COMPLETED EVENT MODAL (UNDO COMPLETE -> LIVE OR UPCOMING)     -->
+    <!-- ===================================================================== -->
+    <div
+      id="reopen-event-modal"
+      class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="reopen-modal-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 id="reopen-modal-title" class="text-lg font-bold text-slate-900">
+              Re-open Completed Event
+            </h3>
+            <p id="reopen-modal-subtitle" class="text-xs sm:text-sm text-slate-500 mt-1">
+              Revert this completed event to LIVE or UPCOMING so results can be corrected. Finalized points will be retracted until re-published.
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-close-reopen-modal"
+            aria-label="Close re-open modal"
+            class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 inline-flex items-center justify-center shrink-0"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          <button
+            type="button"
+            id="btn-reopen-as-live"
+            class="min-h-[46px] px-4 py-2.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-red-800 text-sm font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <span>🔴 Re-open as LIVE</span>
+          </button>
+          <button
+            type="button"
+            id="btn-reopen-as-upcoming"
+            class="min-h-[46px] px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <span>↺ Revert to UPCOMING</span>
+          </button>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button
+            type="button"
+            id="btn-cancel-reopen-modal"
+            class="min-h-[40px] px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-600"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- PRINTABLE A4 RESULTS REPORT (PRINT ONLY)                              -->
     <!-- ===================================================================== -->
     <div id="print-sheet" class="hidden print-only p-4 text-black space-y-6"></div>
@@ -2525,6 +2609,7 @@
       const MASTER_REGISTRY_DOC_ID = '_master_registry';
       const REGISTRY_STORAGE_KEY = 'sports_meets_master_registry_v1';
       const LAST_CODE_STORAGE_KEY = 'sports_meets_last_code_v1';
+      const SESSION_STORAGE_KEY = 'sports_meets_session_v1';
       const SCHOOL_STORAGE_PREFIX = 'sports_meets_school_';
       const DEMO_SCHOOL_CODE = 'DEMOFEST';
 
@@ -3062,6 +3147,105 @@
         }));
       }
 
+      function sanitizePersistedSession(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const schoolCode = normalizeSchoolCode(String(raw.schoolCode || ''));
+        const rawRole = String(raw.role || 'public').trim().toLowerCase();
+        const role =
+          rawRole === 'admin' || rawRole === 'official' || rawRole === 'master' ? rawRole : 'public';
+        const rawView = String(raw.view || 'home').trim().toLowerCase();
+        const view =
+          rawView === 'scoring' || rawView === 'admin' || rawView === 'tv' || rawView === 'master'
+            ? rawView
+            : 'home';
+        const selectedEventIdVal = String(raw.selectedEventId || '').trim();
+        if (!schoolCode && role !== 'master') return null;
+        return { schoolCode, role, view, selectedEventId: selectedEventIdVal };
+      }
+
+      function resolveRestoredSession(saved, targetSchoolCode, availableEventIds) {
+        const defaultEventId = availableEventIds[0] || '';
+        const targetNorm = normalizeSchoolCode(targetSchoolCode);
+        if (!saved || !targetNorm || normalizeSchoolCode(saved.schoolCode) !== targetNorm) {
+          return { role: 'public', view: 'home', selectedEventId: defaultEventId };
+        }
+
+        const role = saved.role === 'master' ? 'public' : saved.role;
+        let view = saved.view;
+        if (view === 'admin' && role !== 'admin') {
+          view = 'home';
+        } else if (view === 'scoring' && role !== 'official' && role !== 'admin') {
+          view = 'home';
+        } else if (view === 'master') {
+          view = 'home';
+        }
+
+        const resolvedEventId =
+          saved.selectedEventId && availableEventIds.includes(saved.selectedEventId)
+            ? saved.selectedEventId
+            : defaultEventId;
+
+        return { role, view, selectedEventId: resolvedEventId };
+      }
+
+      function isEventCompletedStatus(status) {
+        const norm = String(status || '').trim().toUpperCase();
+        return norm === 'FINISHED' || norm === 'COMPLETED';
+      }
+
+      function createReopenedEvent(ev, targetStatus, now = Date.now()) {
+        const effective = resolveEffectiveEventType(ev);
+        if (targetStatus === 'UPCOMING') {
+          return {
+            ...ev,
+            status: 'UPCOMING',
+            winners: [],
+            ...(ev.liveMatch
+              ? {
+                  liveMatch: {
+                    ...ev.liveMatch,
+                    clockRunning: false,
+                    clockStartedAt: null,
+                    periodLabel: 'Scheduled',
+                  },
+                }
+              : {}),
+            updatedAt: now,
+          };
+        }
+
+        const baseLiveMatch = ev.liveMatch
+          ? {
+              ...ev.liveMatch,
+              periodLabel:
+                ev.liveMatch.periodLabel &&
+                ev.liveMatch.periodLabel.toLowerCase() !== 'final' &&
+                ev.liveMatch.periodLabel.toLowerCase() !== 'scheduled'
+                  ? ev.liveMatch.periodLabel
+                  : effective === 'cricket'
+                    ? 'Live Cricket'
+                    : 'Live Match',
+            }
+          : effective === 'team' || effective === 'cricket'
+            ? {
+                teamAHouse: 'red',
+                teamBHouse: 'blue',
+                scoreA: 0,
+                scoreB: 0,
+                ...(effective === 'cricket' ? { wicketsA: 0, wicketsB: 0, oversA: '0.0', oversB: '0.0' } : {}),
+                periodLabel: effective === 'cricket' ? 'Live Cricket' : 'Live Match',
+              }
+            : undefined;
+
+        return {
+          ...ev,
+          status: 'LIVE',
+          winners: [],
+          ...(baseLiveMatch ? { liveMatch: baseLiveMatch } : {}),
+          updatedAt: now,
+        };
+      }
+
       function getEventPointRules(state, ev) {
         const effective = resolveEffectiveEventType(ev);
         if (effective === 'team' || effective === 'group' || effective === 'cricket') {
@@ -3361,7 +3545,44 @@
       let periodInputSyncTimer = null;
       let lastSeenPublishedAt = 0;
       let isNavigatingFromPopstate = false;
+      let pendingRestoredEventId = '';
       const expandedHouseIds = new Set();
+
+      function loadPersistedSession() {
+        try {
+          const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+          if (!raw) return null;
+          return sanitizePersistedSession(JSON.parse(raw));
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function savePersistedSession() {
+        try {
+          if (currentView === 'welcome' || currentView === 'suspended') return;
+          if (!activeSchoolCode && currentRole !== 'master') return;
+          const payload = sanitizePersistedSession({
+            schoolCode: activeSchoolCode,
+            role: currentRole,
+            view: currentView,
+            selectedEventId,
+          });
+          if (payload) {
+            localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(payload));
+          }
+          if (activeSchoolCode) {
+            localStorage.setItem(LAST_CODE_STORAGE_KEY, activeSchoolCode);
+          }
+        } catch (e) {}
+      }
+
+      function clearPersistedSession() {
+        try {
+          localStorage.removeItem(SESSION_STORAGE_KEY);
+          localStorage.removeItem(LAST_CODE_STORAGE_KEY);
+        } catch (e) {}
+      }
 
       function cloneEventsSnapshot(events) {
         try {
@@ -4392,23 +4613,41 @@
           }
         }
 
-        // Initial routing: ?code= (QR spectator link), ?autostart=1, or remembered School Code
+        // Initial routing: restore active school, role, tab, and selected event across refreshes
         const params = new URLSearchParams(window.location.search);
         const urlCode = normalizeSchoolCode(params.get('code') || params.get('school') || '');
         const autostart = params.get('autostart') === '1';
-        const rememberedCode = localStorage.getItem(LAST_CODE_STORAGE_KEY);
+        const savedSession = loadPersistedSession();
+        const rememberedCode = savedSession?.schoolCode || localStorage.getItem(LAST_CODE_STORAGE_KEY);
+
+        if (!urlCode && !autostart && savedSession?.role === 'master' && savedSession?.view === 'master' && !savedSession.schoolCode) {
+          currentRole = 'master';
+          setView('master', { pushHistory: false });
+          return;
+        }
 
         if (urlCode) {
-          const ok = await enterSchoolWorkspace(urlCode, { pushHistory: false, silentMissing: false });
+          const ok = await enterSchoolWorkspace(urlCode, {
+            pushHistory: false,
+            silentMissing: false,
+            restoreSession: savedSession,
+          });
           if (!ok) {
             setView('welcome', { pushHistory: false });
           }
         } else if (autostart) {
-          await enterSchoolWorkspace(DEMO_SCHOOL_CODE, { pushHistory: false });
+          await enterSchoolWorkspace(DEMO_SCHOOL_CODE, {
+            pushHistory: false,
+            restoreSession: savedSession,
+          });
         } else if (rememberedCode) {
-          const ok = await enterSchoolWorkspace(rememberedCode, { pushHistory: false, silentMissing: true });
+          const ok = await enterSchoolWorkspace(rememberedCode, {
+            pushHistory: false,
+            silentMissing: true,
+            restoreSession: savedSession,
+          });
           if (!ok) {
-            localStorage.removeItem(LAST_CODE_STORAGE_KEY);
+            clearPersistedSession();
             setView('welcome', { pushHistory: false });
           }
         } else {
@@ -4417,7 +4656,7 @@
       }
 
       async function enterSchoolWorkspace(rawCode, options = {}) {
-        const { pushHistory = true, silentMissing = false } = options;
+        const { pushHistory = true, silentMissing = false, restoreSession = null } = options;
         const code = normalizeSchoolCode(rawCode);
         const errEl = document.getElementById('welcome-error');
 
@@ -4504,7 +4743,21 @@
         initialState = ensureDemoRosterEnriched(initialState);
         appState = initialState;
         lastSeenPublishedAt = appState.lastPublishedAt || 0;
-        selectedEventId = appState.events[0]?.id || '';
+
+        const restored = resolveRestoredSession(
+          restoreSession,
+          code,
+          (appState.events || []).map((e) => e.id)
+        );
+        pendingRestoredEventId =
+          restoreSession && normalizeSchoolCode(restoreSession.schoolCode) === code
+            ? restoreSession.selectedEventId || ''
+            : '';
+        selectedEventId =
+          restored.selectedEventId ||
+          appState.events.find((e) => e.status !== 'FINISHED')?.id ||
+          appState.events[0]?.id ||
+          '';
         saveSchoolLocal(code, appState);
 
         // Subscribe to isolated Firestore document: sports_meets/{schoolCode}
@@ -4530,10 +4783,11 @@
           );
         }
 
-        currentRole = 'public';
+        currentRole = restored.role;
         updateRoleUI();
         renderAll();
-        setView('home', { pushHistory });
+        setView(restored.view, { pushHistory });
+        savePersistedSession();
         return true;
       }
 
@@ -4545,6 +4799,10 @@
         const shouldCelebrate =
           enriched.lastPublishedAt && enriched.lastPublishedAt > lastSeenPublishedAt;
         appState = enriched;
+        if (pendingRestoredEventId && appState.events.some((e) => e.id === pendingRestoredEventId)) {
+          selectedEventId = pendingRestoredEventId;
+          pendingRestoredEventId = '';
+        }
         if (activeSchoolCode) saveSchoolLocal(activeSchoolCode, appState);
         if (shouldCelebrate) {
           lastSeenPublishedAt = enriched.lastPublishedAt;
@@ -4573,8 +4831,10 @@
         }
         activeSchoolCode = '';
         currentRole = 'public';
+        selectedEventId = '';
+        pendingRestoredEventId = '';
         expandedHouseIds.clear();
-        localStorage.removeItem(LAST_CODE_STORAGE_KEY);
+        clearPersistedSession();
         if (window.location.search) {
           const nextParams = new URLSearchParams(window.location.search);
           if (nextParams.has('code') || nextParams.has('school')) {
@@ -4640,10 +4900,31 @@
           renderMasterDashboard();
         }
 
+        // Highlight active role navigation tab
+        [
+          { id: 'btn-nav-home', target: 'home' },
+          { id: 'btn-nav-scoring', target: 'scoring' },
+          { id: 'btn-nav-admin', target: 'admin' },
+        ].forEach(({ id, target }) => {
+          const btn = document.getElementById(id);
+          if (!btn) return;
+          const isActive = view === target;
+          btn.classList.toggle('bg-slate-900', isActive);
+          btn.classList.toggle('text-white', isActive);
+          btn.classList.toggle('border-slate-900', isActive);
+          btn.classList.toggle('bg-white', !isActive);
+          btn.classList.toggle('text-slate-700', !isActive);
+          btn.classList.toggle('border-slate-300', !isActive);
+        });
+
         if (pushHistory && !isNavigatingFromPopstate && prevView !== view) {
           try {
             window.history.pushState({ view, schoolCode: activeSchoolCode }, '');
           } catch (e) {}
+        }
+
+        if (view === 'home' || view === 'scoring' || view === 'admin' || view === 'tv' || view === 'master') {
+          savePersistedSession();
         }
 
         refreshIcons();
@@ -5632,6 +5913,7 @@
         quickWrap.querySelectorAll('[data-quick-event-id]').forEach((btn) => {
           btn.addEventListener('click', () => {
             selectedEventId = btn.getAttribute('data-quick-event-id');
+            savePersistedSession();
             syncScoringSelector();
           });
         });
@@ -5640,6 +5922,7 @@
           loadSelectedEventIntoScoringForm();
         } else {
           const currentEv = appState.events.find((e) => e.id === selectedEventId);
+          updateIndividualLiveToggleButton(currentEv);
           updateTeamLiveToggleButton(currentEv);
           updateCricketLiveToggleButton(currentEv);
           updatePodiumModeUI(isHouseGroupPodiumEvent(currentEv), currentEv);
@@ -5649,34 +5932,44 @@
         }
       }
 
-      function updateTeamLiveToggleButton(ev) {
-        const btn = document.getElementById('btn-team-set-live');
-        if (!btn) return;
+      function syncScoringStatusButtons(ev, liveBtnId, reopenBtnId) {
+        const liveBtn = document.getElementById(liveBtnId);
+        const reopenBtn = document.getElementById(reopenBtnId);
+        const isCompleted = isEventCompletedStatus(ev?.status);
         const isLive = ev?.status === 'LIVE';
-        if (isLive) {
-          btn.textContent = 'Stop Live (Revert to Upcoming)';
-          btn.className =
-            'min-h-[48px] px-4 py-2.5 rounded-xl border border-red-300 bg-red-50/70 hover:bg-red-100/80 text-sm font-semibold text-red-700 transition-colors';
-        } else {
-          btn.textContent = 'Broadcast as LIVE Match';
-          btn.className =
-            'min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors';
+
+        if (liveBtn) {
+          if (isCompleted) {
+            liveBtn.classList.add('hidden');
+          } else {
+            liveBtn.classList.remove('hidden');
+            if (isLive) {
+              liveBtn.textContent = '🔴 LIVE — Cancel / Revert to Upcoming';
+              liveBtn.className =
+                'min-h-[48px] px-4 py-2.5 rounded-xl border border-red-300 bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-700 transition-colors';
+            } else {
+              liveBtn.textContent = 'Set Event Status: LIVE';
+              liveBtn.className =
+                'min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors';
+            }
+          }
+        }
+
+        if (reopenBtn) {
+          reopenBtn.classList.toggle('hidden', !isCompleted);
         }
       }
 
+      function updateIndividualLiveToggleButton(ev) {
+        syncScoringStatusButtons(ev, 'btn-mark-event-live', 'btn-individual-reopen');
+      }
+
+      function updateTeamLiveToggleButton(ev) {
+        syncScoringStatusButtons(ev, 'btn-team-set-live', 'btn-team-reopen');
+      }
+
       function updateCricketLiveToggleButton(ev) {
-        const btn = document.getElementById('btn-cricket-set-live');
-        if (!btn) return;
-        const isLive = ev?.status === 'LIVE';
-        if (isLive) {
-          btn.textContent = 'Stop Live (Revert to Upcoming)';
-          btn.className =
-            'min-h-[48px] px-4 py-2.5 rounded-xl border border-red-300 bg-red-50/70 hover:bg-red-100/80 text-sm font-semibold text-red-700 transition-colors';
-        } else {
-          btn.textContent = 'Broadcast as LIVE Match';
-          btn.className =
-            'min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-800 transition-colors';
-        }
+        syncScoringStatusButtons(ev, 'btn-cricket-set-live', 'btn-cricket-reopen');
       }
 
       function setScoringMode(mode) {
@@ -6279,6 +6572,7 @@
         });
 
         updatePodiumModeUI(isGroupPodium, ev);
+        updateIndividualLiveToggleButton(ev);
 
         const live = ev.liveMatch || {
           teamAHouse: 'red',
@@ -7607,8 +7901,10 @@
 
         document.getElementById('btn-logout').addEventListener('click', () => {
           currentRole = 'public';
+          selectedEventId = '';
           updateRoleUI();
           setView('home');
+          savePersistedSession();
           showToast('Switched to Public View');
         });
 
@@ -7617,7 +7913,9 @@
           if (activeSchoolCode && masterRegistry.schools[activeSchoolCode]?.status === 'Active') {
             updateRoleUI();
             setView('home');
+            savePersistedSession();
           } else {
+            clearPersistedSession();
             setView('welcome');
           }
         });
@@ -7913,6 +8211,8 @@
             pinModal.classList.add('hidden');
             closeQrShareModal();
             document.getElementById('edit-event-modal').classList.add('hidden');
+            document.getElementById('participants-modal')?.classList.add('hidden');
+            document.getElementById('reopen-event-modal')?.classList.add('hidden');
             document.getElementById('master-edit-school-modal').classList.add('hidden');
             document.getElementById('winner-celebration-overlay').classList.add('hidden');
             closeConfirmModal();
@@ -7922,6 +8222,7 @@
         // Scoring Event Selection & Mode Toggle
         document.getElementById('scoring-event-select').addEventListener('change', (e) => {
           selectedEventId = e.target.value;
+          savePersistedSession();
           loadSelectedEventIntoScoringForm();
         });
         document.getElementById('btn-mode-individual').addEventListener('click', () => setScoringMode('individual'));
@@ -8051,15 +8352,67 @@
           showToast(`Auto-ranked Top ${top3.length} into Podium Winners!`);
         });
 
-        // Mark Event Live
+        // Re-open Completed Event Modal Handlers (Shared across all 3 Scoring Boards)
+        const reopenModal = document.getElementById('reopen-event-modal');
+        const closeReopenModal = () => reopenModal?.classList.add('hidden');
+        const openReopenModalForSelected = () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev || !isEventCompletedStatus(ev.status)) return;
+          const subtitleEl = document.getElementById('reopen-modal-subtitle');
+          if (subtitleEl) {
+            subtitleEl.textContent = `Revert "${ev.name} (${ev.category})" back to LIVE or UPCOMING so results can be corrected. Finalized points will be retracted until re-published.`;
+          }
+          reopenModal?.classList.remove('hidden');
+          refreshIcons();
+        };
+        const applyReopenSelectedEvent = async (targetStatus) => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) {
+            closeReopenModal();
+            return;
+          }
+          clearTimeout(periodInputSyncTimer);
+          const reopened = createReopenedEvent(ev, targetStatus, Date.now());
+          const nextEvents = appState.events.map((item) => (item.id === ev.id ? reopened : item));
+          closeReopenModal();
+          await persistState({ ...appState, events: nextEvents });
+          updateIndividualLiveToggleButton(reopened);
+          updateTeamLiveToggleButton(reopened);
+          updateCricketLiveToggleButton(reopened);
+          showToast(
+            targetStatus === 'LIVE'
+              ? `Re-opened ${ev.name} as LIVE`
+              : `Reverted ${ev.name} to UPCOMING`
+          );
+        };
+
+        document.getElementById('btn-individual-reopen')?.addEventListener('click', openReopenModalForSelected);
+        document.getElementById('btn-team-reopen')?.addEventListener('click', openReopenModalForSelected);
+        document.getElementById('btn-cricket-reopen')?.addEventListener('click', openReopenModalForSelected);
+        document.getElementById('btn-close-reopen-modal')?.addEventListener('click', closeReopenModal);
+        document.getElementById('btn-cancel-reopen-modal')?.addEventListener('click', closeReopenModal);
+        reopenModal?.addEventListener('click', (e) => {
+          if (e.target === reopenModal) closeReopenModal();
+        });
+        document.getElementById('btn-reopen-as-live')?.addEventListener('click', () => applyReopenSelectedEvent('LIVE'));
+        document.getElementById('btn-reopen-as-upcoming')?.addEventListener('click', () => applyReopenSelectedEvent('UPCOMING'));
+
+        // Toggle Event Status: LIVE <-> UPCOMING (Quick Winner Entry)
         document.getElementById('btn-mark-event-live').addEventListener('click', async () => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (!ev) return;
+          const nextStatus = ev.status === 'LIVE' ? 'UPCOMING' : 'LIVE';
+          const updatedEv = { ...ev, status: nextStatus, updatedAt: Date.now() };
           const nextEvents = appState.events.map((item) =>
-            item.id === ev.id ? { ...item, status: 'LIVE', updatedAt: Date.now() } : item
+            item.id === ev.id ? updatedEv : item
           );
           await persistState({ ...appState, events: nextEvents });
-          showToast(`${ev.name} marked LIVE`);
+          updateIndividualLiveToggleButton(updatedEv);
+          showToast(
+            nextStatus === 'LIVE'
+              ? `${ev.name} marked LIVE`
+              : `${ev.name} reverted to UPCOMING`
+          );
         });
 
         // Submit Individual / House Group Podium Winners
@@ -8336,29 +8689,22 @@
           });
           showToast('Match event removed');
         });
-        document.getElementById('btn-team-set-live').addEventListener('click', () => {
+        document.getElementById('btn-team-set-live').addEventListener('click', async () => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (!ev) return;
           if (ev.status === 'LIVE') {
-            openConfirmModal({
-              title: 'Stop Live Match?',
-              message: `Revert ${ev.name} back to UPCOMING status and remove it from the Live Scoreboard?`,
-              confirmLabel: 'Yes, Revert',
-              onConfirm: async () => {
-                clearTimeout(periodInputSyncTimer);
-                const reverted = createRevertedUpcomingEvent(ev, Date.now());
-                const nextEvents = appState.events.map((item) =>
-                  item.id === ev.id ? reverted : item
-                );
-                document.getElementById('team-a-score').textContent = '0';
-                document.getElementById('team-b-score').textContent = '0';
-                renderTeamClockUI(reverted.liveMatch);
-                renderTeamTimelineList(reverted.liveMatch);
-                await persistState({ ...appState, events: nextEvents });
-                updateTeamLiveToggleButton(reverted);
-                showToast(`${ev.name} reverted to UPCOMING`);
-              },
-            });
+            clearTimeout(periodInputSyncTimer);
+            const reverted = createRevertedUpcomingEvent(ev, Date.now());
+            const nextEvents = appState.events.map((item) =>
+              item.id === ev.id ? reverted : item
+            );
+            document.getElementById('team-a-score').textContent = '0';
+            document.getElementById('team-b-score').textContent = '0';
+            renderTeamClockUI(reverted.liveMatch);
+            renderTeamTimelineList(reverted.liveMatch);
+            await persistState({ ...appState, events: nextEvents });
+            updateTeamLiveToggleButton(reverted);
+            showToast(`${ev.name} reverted to UPCOMING`);
           } else {
             adjustLiveTeamScore('A', 0);
           }
@@ -8539,29 +8885,22 @@
         document.getElementById('cricket-a-house').addEventListener('change', syncCricketInputLive);
         document.getElementById('cricket-b-house').addEventListener('change', syncCricketInputLive);
 
-        document.getElementById('btn-cricket-set-live').addEventListener('click', () => {
+        document.getElementById('btn-cricket-set-live').addEventListener('click', async () => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
           if (!ev) return;
           if (ev.status === 'LIVE') {
-            openConfirmModal({
-              title: 'Stop Live Cricket Match?',
-              message: `Revert ${ev.name} back to UPCOMING status and remove it from the Live Scoreboard?`,
-              confirmLabel: 'Yes, Revert',
-              onConfirm: async () => {
-                clearTimeout(periodInputSyncTimer);
-                const reverted = createRevertedUpcomingEvent({ ...ev, type: 'cricket' }, Date.now());
-                const nextEvents = appState.events.map((item) =>
-                  item.id === ev.id ? reverted : item
-                );
-                document.getElementById('cricket-a-overs').value = '0.0';
-                document.getElementById('cricket-b-overs').value = '0.0';
-                document.getElementById('cricket-period-input').value = '';
-                renderCricketScoreDisplays(reverted.liveMatch);
-                await persistState({ ...appState, events: nextEvents });
-                updateCricketLiveToggleButton(reverted);
-                showToast(`${ev.name} reverted to UPCOMING`);
-              },
-            });
+            clearTimeout(periodInputSyncTimer);
+            const reverted = createRevertedUpcomingEvent({ ...ev, type: 'cricket' }, Date.now());
+            const nextEvents = appState.events.map((item) =>
+              item.id === ev.id ? reverted : item
+            );
+            document.getElementById('cricket-a-overs').value = '0.0';
+            document.getElementById('cricket-b-overs').value = '0.0';
+            document.getElementById('cricket-period-input').value = '';
+            renderCricketScoreDisplays(reverted.liveMatch);
+            await persistState({ ...appState, events: nextEvents });
+            updateCricketLiveToggleButton(reverted);
+            showToast(`${ev.name} reverted to UPCOMING`);
           } else {
             adjustLiveCricketState((m) => m);
           }

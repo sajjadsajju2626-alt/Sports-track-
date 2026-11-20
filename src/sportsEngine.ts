@@ -1383,3 +1383,164 @@ export function resolveCarouselIndex(
   const wrapped = ((currentIndex % len) + len) % len;
   return { index: wrapped, id: items[wrapped].id };
 }
+
+export function isFieldEvent(
+  ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
+): boolean {
+  if (!ev) return false;
+  const effective = resolveEffectiveEventType(ev);
+  if (effective !== 'individual') return false;
+  const name = String(ev.name || '');
+  if (/throwball/i.test(name)) return false;
+  return /(throw|javelin|shot\s*put|discus|jump|vault|hammer)/i.test(name);
+}
+
+export function isTimedTrackEvent(
+  ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
+): boolean {
+  if (!ev) return false;
+  const effective = resolveEffectiveEventType(ev);
+  if (effective === 'team' || effective === 'cricket') return false;
+  if (isFieldEvent(ev)) return false;
+  const name = String(ev.name || '');
+  return /(\b\d+\s*(?:m|meters?|metres?|km)\b|\b\d+\s*x\s*\d+|sprint|run|race|hurdles?|relay|dash|track|walk|marathon|steeple|cross\s*country|swim|cycling)/i.test(
+    name
+  );
+}
+
+export function formatFieldMetric(raw: string | undefined): string {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) return '';
+  if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
+    return `${trimmed}m`;
+  }
+  const spacedMeters = trimmed.match(/^(\d+(?:\.\d+)?)\s*m$/i);
+  if (spacedMeters) {
+    return `${spacedMeters[1]}m`;
+  }
+  return trimmed;
+}
+
+export interface ParsedFieldAttempt {
+  valid: boolean;
+  value: number | null;
+  isFoul: boolean;
+}
+
+export function parseFieldAttempt(raw: string | undefined): ParsedFieldAttempt {
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) {
+    return { valid: false, value: null, isFoul: false };
+  }
+  if (/^(f|foul|x|nm|dns|pass|-)$/i.test(trimmed)) {
+    return { valid: false, value: null, isFoul: true };
+  }
+  const numMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*m?$/i);
+  if (!numMatch) {
+    return { valid: false, value: null, isFoul: false };
+  }
+  const value = Number(numMatch[1]);
+  if (!Number.isFinite(value) || value <= 0) {
+    return { valid: false, value: null, isFoul: false };
+  }
+  return { valid: true, value, isFoul: false };
+}
+
+export interface BestFieldAttemptResult {
+  best: number | null;
+  formatted: string;
+  validMarksDesc: number[];
+  allFouls: boolean;
+}
+
+export function computeBestFieldAttempt(
+  attempts: ReadonlyArray<string | undefined>
+): BestFieldAttemptResult {
+  const parsed = (attempts || []).map((a) => parseFieldAttempt(a));
+  const validMarksDesc = parsed
+    .filter((p): p is { valid: true; value: number; isFoul: false } => p.valid && p.value !== null)
+    .map((p) => p.value)
+    .sort((a, b) => b - a);
+
+  const hasAnyFoul = parsed.some((p) => p.isFoul);
+  if (validMarksDesc.length === 0) {
+    return {
+      best: null,
+      formatted: '',
+      validMarksDesc: [],
+      allFouls: hasAnyFoul,
+    };
+  }
+  const best = validMarksDesc[0];
+  return {
+    best,
+    formatted: `${best.toFixed(2)}m`,
+    validMarksDesc,
+    allFouls: false,
+  };
+}
+
+export interface FieldTrialRow {
+  chestNo: string;
+  name?: string;
+  house?: HouseId | '';
+  attempts: [string, string, string];
+}
+
+export interface RankedFieldTrial {
+  place: number;
+  chestNo: string;
+  name: string;
+  house: HouseId | '';
+  best: number;
+  metric: string;
+  validMarksDesc: number[];
+}
+
+export function rankFieldTrials(
+  rows: ReadonlyArray<FieldTrialRow>,
+  students: ReadonlyArray<StudentRecord>
+): RankedFieldTrial[] {
+  const candidates: Array<Omit<RankedFieldTrial, 'place'>> = [];
+
+  for (const row of rows || []) {
+    const chestClean = String(row.chestNo || '').trim().replace(/^#+/, '').trim();
+    const matchedStudent = chestClean
+      ? (students || []).find((s) => String(s.chestNo || '').trim().toLowerCase() === chestClean.toLowerCase())
+      : undefined;
+
+    const resolvedName = String(matchedStudent?.name || row.name || '').trim();
+    const resolvedHouse: HouseId | '' = matchedStudent?.house || row.house || '';
+    if (!chestClean && !resolvedName) continue;
+
+    const bestResult = computeBestFieldAttempt(row.attempts || ['', '', '']);
+    if (bestResult.best === null) continue;
+
+    candidates.push({
+      chestNo: matchedStudent?.chestNo || chestClean,
+      name: resolvedName,
+      house: resolvedHouse,
+      best: bestResult.best,
+      metric: bestResult.formatted,
+      validMarksDesc: bestResult.validMarksDesc,
+    });
+  }
+
+  candidates.sort((a, b) => {
+    const maxLen = Math.max(a.validMarksDesc.length, b.validMarksDesc.length);
+    for (let i = 0; i < maxLen; i += 1) {
+      const av = a.validMarksDesc[i] ?? -1;
+      const bv = b.validMarksDesc[i] ?? -1;
+      if (bv !== av) return bv - av;
+    }
+    return String(a.chestNo || a.name).localeCompare(String(b.chestNo || b.name), undefined, {
+      numeric: true,
+    });
+  });
+
+  return candidates.map((item, idx) => ({
+    ...item,
+    place: idx + 1,
+  }));
+}
+

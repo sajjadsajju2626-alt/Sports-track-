@@ -7,6 +7,7 @@ import {
   applyTeamScoreDelta,
   buildInviteMessage,
   buildPublicShareUrl,
+  computeBestFieldAttempt,
   computeHousePointBreakdown,
   computeHouseStandings,
   computeMatchClockElapsedMs,
@@ -19,6 +20,7 @@ import {
   evaluateMatchThresholdAlert,
   filterHousePlayersForTagger,
   formatCricketScore,
+  formatFieldMetric,
   formatLiveMatchStatusDisplay,
   formatMatchClockMMSS,
   formatPlayerChipLabel,
@@ -34,14 +36,18 @@ import {
   incrementCricketOvers,
   inferDivision,
   isCricketEvent,
+  isFieldEvent,
   isHouseGroupPodiumEvent,
   isRelayEvent,
   isStudentRegisteredForEvent,
+  isTimedTrackEvent,
   MATCH_DURATION_PRESETS,
   normalizeParticipantIds,
   normalizeSchoolCode,
   normalizeTimelinePlayer,
+  parseFieldAttempt,
   parseStudentCsv,
+  rankFieldTrials,
   resolveCarouselIndex,
   resolveEffectiveEventType,
   resolveEventParticipants,
@@ -1000,3 +1006,100 @@ test('Event Participants / Squad Assignment groups by House, filters squad chips
     ['#309 Kabir']
   );
 });
+
+test('Field Event detection, Track Stopwatch gating, meter formatting, and Best of 3 Trials ranking', () => {
+  // 1. Field events hide stopwatch; timed track events show stopwatch
+  const fieldNames = [
+    'Javelin Throw',
+    'Shot Put',
+    'Discus Throw',
+    'Long Jump',
+    'High Jump',
+    'Triple Jump',
+    'Pole Vault',
+  ];
+  for (const name of fieldNames) {
+    assert.equal(isFieldEvent({ name, type: 'individual' }), true, `Expected field event: ${name}`);
+    assert.equal(isTimedTrackEvent({ name, type: 'individual' }), false, `Expected stopwatch hidden: ${name}`);
+  }
+
+  const timedTrackEvents = [
+    { name: '100m Sprint', type: 'individual' as const },
+    { name: '200m', type: 'individual' as const },
+    { name: '400m Track Run', type: 'individual' as const },
+    { name: '110m Hurdles', type: 'individual' as const },
+    { name: '4 x 100 meters Relay', type: 'group' as const },
+  ];
+  for (const ev of timedTrackEvents) {
+    assert.equal(isFieldEvent(ev), false, `Expected non-field event: ${ev.name}`);
+    assert.equal(isTimedTrackEvent(ev), true, `Expected stopwatch shown: ${ev.name}`);
+  }
+
+  // Non-timed group event (March Past) and team game (Throwball) should not be treated as field events or timed track
+  assert.equal(isFieldEvent({ name: 'March Past', type: 'group' }), false);
+  assert.equal(isTimedTrackEvent({ name: 'March Past', type: 'group' }), false);
+  assert.equal(isFieldEvent({ name: 'Throwball Final', type: 'team' }), false);
+
+  // 2. Auto-append 'm' for plain numbers while preserving existing units
+  assert.equal(formatFieldMetric('34.50'), '34.50m');
+  assert.equal(formatFieldMetric('6.12'), '6.12m');
+  assert.equal(formatFieldMetric('14'), '14m');
+  assert.equal(formatFieldMetric('34.50m'), '34.50m');
+  assert.equal(formatFieldMetric('34.50 m'), '34.50m');
+  assert.equal(formatFieldMetric(''), '');
+
+  // 3. Parse attempts (numeric + F/Foul) and compute best valid mark
+  assert.deepEqual(parseFieldAttempt('F'), { valid: false, value: null, isFoul: true });
+  assert.deepEqual(parseFieldAttempt('foul'), { valid: false, value: null, isFoul: true });
+  assert.deepEqual(parseFieldAttempt('34.50'), { valid: true, value: 34.5, isFoul: false });
+  assert.deepEqual(parseFieldAttempt('35.10m'), { valid: true, value: 35.1, isFoul: false });
+
+  const bestMixed = computeBestFieldAttempt(['F', '34.50', '35.1']);
+  assert.equal(bestMixed.best, 35.1);
+  assert.equal(bestMixed.formatted, '35.10m');
+  assert.deepEqual(bestMixed.validMarksDesc, [35.1, 34.5]);
+
+  const allFouls = computeBestFieldAttempt(['F', 'F', 'X']);
+  assert.equal(allFouls.best, null);
+  assert.equal(allFouls.allFouls, true);
+
+  // 4. Rank Top 3 with tie-breaker countback (2nd best mark) and roster autofill
+  const roster = [
+    { chestNo: '104', name: 'Aarav Menon', house: 'blue' as const, category: 'Senior Boys' },
+    { chestNo: '211', name: 'Rohan Verma', house: 'red' as const, category: 'Senior Boys' },
+    { chestNo: '309', name: 'Kabir Khan', house: 'green' as const, category: 'Senior Boys' },
+    { chestNo: '415', name: 'Devansh Joshi', house: 'yellow' as const, category: 'Senior Boys' },
+  ];
+
+  const ranked = rankFieldTrials(
+    [
+      // Tie at 35.40m between #104 and #211 — #211 wins countback (2nd best 34.90 vs 33.80)
+      { chestNo: '104', attempts: ['33.80', '35.40', 'F'] },
+      { chestNo: '211', attempts: ['34.90', 'F', '35.40'] },
+      // All fouls -> excluded from ranked top 3
+      { chestNo: '309', attempts: ['F', 'F', 'F'] },
+      // 3rd best overall
+      { chestNo: '415', attempts: ['31.2', '32.75', '30.90'] },
+    ],
+    roster
+  );
+
+  assert.equal(ranked.length, 3);
+  assert.equal(ranked[0].place, 1);
+  assert.equal(ranked[0].chestNo, '211');
+  assert.equal(ranked[0].name, 'Rohan Verma');
+  assert.equal(ranked[0].house, 'red');
+  assert.equal(ranked[0].metric, '35.40m');
+
+  assert.equal(ranked[1].place, 2);
+  assert.equal(ranked[1].chestNo, '104');
+  assert.equal(ranked[1].name, 'Aarav Menon');
+  assert.equal(ranked[1].metric, '35.40m');
+
+  assert.equal(ranked[2].place, 3);
+  assert.equal(ranked[2].chestNo, '415');
+  assert.equal(ranked[2].name, 'Devansh Joshi');
+  assert.equal(ranked[2].house, 'yellow');
+  assert.equal(ranked[2].metric, '32.75m');
+});
+

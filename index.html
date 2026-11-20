@@ -861,8 +861,8 @@
 
         <!-- MODE A: QUICK WINNER ENTRY (INDIVIDUAL / ATHLETICS) -->
         <div id="scoring-individual-panel" class="space-y-5">
-          <!-- Built-in Digital Stopwatch -->
-          <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <!-- Built-in Digital Stopwatch (Shown ONLY for timed track races) -->
+          <div id="track-stopwatch-bar" class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Track Stopwatch
@@ -914,6 +914,83 @@
             </div>
           </div>
 
+          <!-- Optional Collapsible Field Trials / Best of 3 Attempts Calculator (Field Events Only) -->
+          <div id="field-trials-section" class="hidden space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                id="btn-toggle-field-trials"
+                aria-expanded="false"
+                aria-controls="field-trials-panel"
+                class="min-h-[42px] px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50/90 hover:bg-indigo-100/90 text-indigo-900 font-semibold text-xs sm:text-sm inline-flex items-center gap-2 transition-colors shadow-2xs"
+              >
+                <span>📏 Calculate Best of 3 Throws / Jumps</span>
+                <span id="field-trials-chevron" class="text-[11px] font-bold text-indigo-600">▼</span>
+              </button>
+              <span class="text-xs text-slate-500">Optional helper · ranks highest valid mark into 1st–3rd below</span>
+            </div>
+
+            <div
+              id="field-trials-panel"
+              class="hidden bg-white rounded-2xl border border-indigo-200 p-4 sm:p-5 space-y-4 shadow-2xs"
+            >
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h4 class="text-sm sm:text-base font-bold text-slate-900">
+                    Field Trials · Best of 3 Attempts
+                  </h4>
+                  <p class="text-xs text-slate-500">
+                    Enter Chest No. and up to 3 distances in meters (or <span class="font-mono font-semibold text-slate-700">F</span> for Foul). Click Auto-Rank Top 3 to fill the podium.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                id="field-trials-error"
+                role="alert"
+                class="hidden rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-xs sm:text-sm font-medium text-red-800"
+              ></div>
+
+              <!-- Column labels (desktop) -->
+              <div class="hidden sm:grid sm:grid-cols-12 gap-2 px-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <div class="sm:col-span-3">Chest No. &amp; Athlete</div>
+                <div class="sm:col-span-2">Attempt 1 (m)</div>
+                <div class="sm:col-span-2">Attempt 2 (m)</div>
+                <div class="sm:col-span-2">Attempt 3 (m)</div>
+                <div class="sm:col-span-2">Best Mark</div>
+                <div class="sm:col-span-1 text-right">Remove</div>
+              </div>
+
+              <div id="field-trials-rows" class="space-y-2.5"></div>
+
+              <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    id="btn-field-trial-add-row"
+                    class="min-h-[40px] px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs sm:text-sm font-semibold"
+                  >
+                    + Add Athlete
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-field-trial-clear"
+                    class="min-h-[40px] px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 text-xs sm:text-sm font-semibold"
+                  >
+                    Clear Trials
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  id="btn-field-trial-rank"
+                  class="min-h-[42px] px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 shadow-xs"
+                >
+                  <span>Auto-Rank Top 3</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Podium Rows Form -->
           <form
             id="form-individual-winners"
@@ -927,6 +1004,12 @@
                   class="hidden px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold"
                 >
                   House / Group Podium · House Points Only
+                </span>
+                <span
+                  id="field-mode-badge"
+                  class="hidden px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold"
+                >
+                  Field Event · Distance / Height (m)
                 </span>
               </div>
               <span id="individual-points-hint" class="text-xs font-mono text-slate-500">
@@ -2862,6 +2945,121 @@
 
       function isCricketEvent(ev) {
         return resolveEffectiveEventType(ev) === 'cricket';
+      }
+
+      function isFieldEvent(ev) {
+        if (!ev) return false;
+        const effective = resolveEffectiveEventType(ev);
+        if (effective !== 'individual') return false;
+        const name = String(ev.name || '');
+        if (/throwball/i.test(name)) return false;
+        return /(throw|javelin|shot\s*put|discus|jump|vault|hammer)/i.test(name);
+      }
+
+      function isTimedTrackEvent(ev) {
+        if (!ev) return false;
+        const effective = resolveEffectiveEventType(ev);
+        if (effective === 'team' || effective === 'cricket') return false;
+        if (isFieldEvent(ev)) return false;
+        const name = String(ev.name || '');
+        return /(\b\d+\s*(?:m|meters?|metres?|km)\b|\b\d+\s*x\s*\d+|sprint|run|race|hurdles?|relay|dash|track|walk|marathon|steeple|cross\s*country|swim|cycling)/i.test(
+          name
+        );
+      }
+
+      function formatFieldMetric(raw) {
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) return '';
+        if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
+          return `${trimmed}m`;
+        }
+        const spacedMeters = trimmed.match(/^(\d+(?:\.\d+)?)\s*m$/i);
+        if (spacedMeters) {
+          return `${spacedMeters[1]}m`;
+        }
+        return trimmed;
+      }
+
+      function parseFieldAttempt(raw) {
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) {
+          return { valid: false, value: null, isFoul: false };
+        }
+        if (/^(f|foul|x|nm|dns|pass|-)$/i.test(trimmed)) {
+          return { valid: false, value: null, isFoul: true };
+        }
+        const numMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*m?$/i);
+        if (!numMatch) {
+          return { valid: false, value: null, isFoul: false };
+        }
+        const value = Number(numMatch[1]);
+        if (!Number.isFinite(value) || value <= 0) {
+          return { valid: false, value: null, isFoul: false };
+        }
+        return { valid: true, value, isFoul: false };
+      }
+
+      function computeBestFieldAttempt(attempts) {
+        const parsed = (attempts || []).map((a) => parseFieldAttempt(a));
+        const validMarksDesc = parsed
+          .filter((p) => p.valid && p.value !== null)
+          .map((p) => p.value)
+          .sort((a, b) => b - a);
+        const hasAnyFoul = parsed.some((p) => p.isFoul);
+        if (validMarksDesc.length === 0) {
+          return { best: null, formatted: '', validMarksDesc: [], allFouls: hasAnyFoul };
+        }
+        const best = validMarksDesc[0];
+        return {
+          best,
+          formatted: `${best.toFixed(2)}m`,
+          validMarksDesc,
+          allFouls: false,
+        };
+      }
+
+      function rankFieldTrials(rows, students) {
+        const candidates = [];
+        for (const row of rows || []) {
+          const chestClean = String(row.chestNo || '').trim().replace(/^#+/, '').trim();
+          const matchedStudent = chestClean
+            ? (students || []).find(
+                (s) => String(s.chestNo || '').trim().toLowerCase() === chestClean.toLowerCase()
+              )
+            : undefined;
+          const resolvedName = String(matchedStudent?.name || row.name || '').trim();
+          const resolvedHouse = matchedStudent?.house || row.house || '';
+          if (!chestClean && !resolvedName) continue;
+
+          const bestResult = computeBestFieldAttempt(row.attempts || ['', '', '']);
+          if (bestResult.best === null) continue;
+
+          candidates.push({
+            chestNo: matchedStudent?.chestNo || chestClean,
+            name: resolvedName,
+            house: resolvedHouse,
+            best: bestResult.best,
+            metric: bestResult.formatted,
+            validMarksDesc: bestResult.validMarksDesc,
+          });
+        }
+
+        candidates.sort((a, b) => {
+          const maxLen = Math.max(a.validMarksDesc.length, b.validMarksDesc.length);
+          for (let i = 0; i < maxLen; i += 1) {
+            const av = a.validMarksDesc[i] ?? -1;
+            const bv = b.validMarksDesc[i] ?? -1;
+            if (bv !== av) return bv - av;
+          }
+          return String(a.chestNo || a.name).localeCompare(String(b.chestNo || b.name), undefined, {
+            numeric: true,
+          });
+        });
+
+        return candidates.map((item, idx) => ({
+          ...item,
+          place: idx + 1,
+        }));
       }
 
       function getEventPointRules(state, ev) {
@@ -5285,6 +5483,16 @@
           });
         });
 
+        [1, 2, 3].forEach((place) => {
+          const metricInput = document.getElementById(`w-metric-${place}`);
+          metricInput?.addEventListener('blur', () => {
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            if (ev && isFieldEvent(ev)) {
+              metricInput.value = formatFieldMetric(metricInput.value);
+            }
+          });
+        });
+
         container.addEventListener('click', (e) => {
           const chipBtn = e.target.closest('[data-podium-place]');
           if (!chipBtn) return;
@@ -5494,16 +5702,202 @@
         if (btnCricket) btnCricket.className = mode === 'cricket' ? activeCls : idleCls;
       }
 
+      const fieldTrialsByEvent = new Map();
+      const fieldTrialsExpandedByEvent = new Map();
+
+      function createDefaultFieldTrialRows(ev) {
+        const assigned = ev ? resolveEventParticipants(appState.students, ev.participantIds) : [];
+        if (assigned.length > 0) {
+          const rows = assigned.map((st) => ({
+            chestNo: st.chestNo,
+            attempts: ['', '', ''],
+          }));
+          while (rows.length < 3) {
+            rows.push({ chestNo: '', attempts: ['', '', ''] });
+          }
+          return rows;
+        }
+        return [
+          { chestNo: '', attempts: ['', '', ''] },
+          { chestNo: '', attempts: ['', '', ''] },
+          { chestNo: '', attempts: ['', '', ''] },
+          { chestNo: '', attempts: ['', '', ''] },
+        ];
+      }
+
+      function getFieldTrialsRowsForEvent(ev) {
+        if (!ev) return [];
+        if (!fieldTrialsByEvent.has(ev.id)) {
+          fieldTrialsByEvent.set(ev.id, createDefaultFieldTrialRows(ev));
+        }
+        return fieldTrialsByEvent.get(ev.id);
+      }
+
+      function updateFieldTrialRowFeedback(rowIndex, row) {
+        const studentBadge = document.getElementById(`trial-student-badge-${rowIndex}`);
+        const bestEl = document.getElementById(`trial-best-${rowIndex}`);
+        if (studentBadge) {
+          const chestClean = String(row.chestNo || '').trim().replace(/^#+/, '').trim();
+          const matched = chestClean
+            ? appState.students.find((s) => String(s.chestNo || '').trim().toLowerCase() === chestClean.toLowerCase())
+            : null;
+          if (matched) {
+            const houseShort = (appState.houses[matched.house]?.name || matched.house).replace(' House', '');
+            studentBadge.textContent = `${matched.name} (${houseShort})`;
+            studentBadge.className = 'text-[11px] font-semibold text-emerald-700 truncate mt-1';
+          } else if (chestClean) {
+            studentBadge.textContent = 'Chest not in roster';
+            studentBadge.className = 'text-[11px] font-medium text-amber-700 truncate mt-1';
+          } else {
+            studentBadge.textContent = 'Enter Chest No.';
+            studentBadge.className = 'text-[11px] text-slate-400 truncate mt-1';
+          }
+        }
+        if (bestEl) {
+          const bestInfo = computeBestFieldAttempt(row.attempts);
+          if (bestInfo.best !== null) {
+            bestEl.textContent = bestInfo.formatted;
+            bestEl.className =
+              'inline-flex items-center justify-center min-h-[38px] w-full px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 font-mono text-sm font-bold text-emerald-800 tabular-nums';
+          } else if (bestInfo.allFouls) {
+            bestEl.textContent = 'FOUL';
+            bestEl.className =
+              'inline-flex items-center justify-center min-h-[38px] w-full px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 font-mono text-xs font-bold text-red-700';
+          } else {
+            bestEl.textContent = '—';
+            bestEl.className =
+              'inline-flex items-center justify-center min-h-[38px] w-full px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 font-mono text-sm font-semibold text-slate-400';
+          }
+        }
+      }
+
+      function renderFieldTrialsCalculator(ev) {
+        const sectionEl = document.getElementById('field-trials-section');
+        const panelEl = document.getElementById('field-trials-panel');
+        const toggleBtn = document.getElementById('btn-toggle-field-trials');
+        const chevronEl = document.getElementById('field-trials-chevron');
+        const rowsEl = document.getElementById('field-trials-rows');
+        const errEl = document.getElementById('field-trials-error');
+        if (!sectionEl || !panelEl || !rowsEl) return;
+
+        const isField = Boolean(ev) && !isHouseGroupPodiumEvent(ev) && isFieldEvent(ev);
+        sectionEl.classList.toggle('hidden', !isField);
+        if (!isField) {
+          panelEl.classList.add('hidden');
+          if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+          if (chevronEl) chevronEl.textContent = '▼';
+          if (errEl) errEl.classList.add('hidden');
+          return;
+        }
+
+        const isExpanded = Boolean(fieldTrialsExpandedByEvent.get(ev.id));
+        panelEl.classList.toggle('hidden', !isExpanded);
+        if (toggleBtn) toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        if (chevronEl) chevronEl.textContent = isExpanded ? '▲' : '▼';
+
+        const rows = getFieldTrialsRowsForEvent(ev);
+        rowsEl.innerHTML = rows
+          .map((row, idx) => {
+            const chestClean = String(row.chestNo || '').trim().replace(/^#+/, '').trim();
+            const matched = chestClean
+              ? appState.students.find((s) => String(s.chestNo || '').trim().toLowerCase() === chestClean.toLowerCase())
+              : null;
+            const houseShort = matched ? (appState.houses[matched.house]?.name || matched.house).replace(' House', '') : '';
+            const badgeText = matched
+              ? `${matched.name} (${houseShort})`
+              : chestClean
+                ? 'Chest not in roster'
+                : 'Enter Chest No.';
+            const badgeCls = matched
+              ? 'text-[11px] font-semibold text-emerald-700 truncate mt-1'
+              : chestClean
+                ? 'text-[11px] font-medium text-amber-700 truncate mt-1'
+                : 'text-[11px] text-slate-400 truncate mt-1';
+
+            const bestInfo = computeBestFieldAttempt(row.attempts);
+            const bestText = bestInfo.best !== null ? bestInfo.formatted : bestInfo.allFouls ? 'FOUL' : '—';
+            const bestCls =
+              bestInfo.best !== null
+                ? 'inline-flex items-center justify-center min-h-[38px] w-full px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 font-mono text-sm font-bold text-emerald-800 tabular-nums'
+                : bestInfo.allFouls
+                  ? 'inline-flex items-center justify-center min-h-[38px] w-full px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 font-mono text-xs font-bold text-red-700'
+                  : 'inline-flex items-center justify-center min-h-[38px] w-full px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 font-mono text-sm font-semibold text-slate-400';
+
+            return `
+              <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-2.5 sm:p-3 grid grid-cols-2 sm:grid-cols-12 gap-2 items-start">
+                <div class="col-span-2 sm:col-span-3">
+                  <label class="sm:hidden block text-[10px] font-bold uppercase text-slate-500 mb-1">Chest No.</label>
+                  <input
+                    type="text"
+                    data-trial-row="${idx}"
+                    data-trial-chest="true"
+                    value="${escapeHtml(row.chestNo)}"
+                    placeholder="Chest # (e.g. 104)"
+                    aria-label="Athlete ${idx + 1} Chest Number"
+                    class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-sm text-slate-900"
+                  />
+                  <div id="trial-student-badge-${idx}" class="${badgeCls}">${escapeHtml(badgeText)}</div>
+                </div>
+                ${[0, 1, 2]
+                  .map(
+                    (aIdx) => `
+                  <div class="col-span-1 sm:col-span-2">
+                    <label class="sm:hidden block text-[10px] font-bold uppercase text-slate-500 mb-1">Attempt ${aIdx + 1}</label>
+                    <input
+                      type="text"
+                      inputmode="decimal"
+                      data-trial-row="${idx}"
+                      data-trial-attempt="${aIdx}"
+                      value="${escapeHtml(row.attempts[aIdx] || '')}"
+                      placeholder="34.50 or F"
+                      aria-label="Athlete ${idx + 1} Attempt ${aIdx + 1}"
+                      class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-sm text-slate-900"
+                    />
+                  </div>
+                `
+                  )
+                  .join('')}
+                <div class="col-span-1 sm:col-span-2">
+                  <label class="sm:hidden block text-[10px] font-bold uppercase text-slate-500 mb-1">Best</label>
+                  <div id="trial-best-${idx}" class="${bestCls}">${escapeHtml(bestText)}</div>
+                </div>
+                <div class="col-span-2 sm:col-span-1 flex sm:justify-end">
+                  <button
+                    type="button"
+                    data-trial-remove="${idx}"
+                    aria-label="Remove athlete row ${idx + 1}"
+                    class="min-h-[38px] w-full sm:w-9 px-2 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-slate-500 font-bold text-sm"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
       function updatePodiumModeUI(isGroupPodium, ev) {
         const titleEl = document.getElementById('individual-podium-title');
         const relayBadge = document.getElementById('relay-mode-badge');
+        const fieldBadge = document.getElementById('field-mode-badge');
         const pointsHint = document.getElementById('individual-points-hint');
+        const stopwatchBar = document.getElementById('track-stopwatch-bar');
 
+        const isField = !isGroupPodium && isFieldEvent(ev);
+        const showStopwatch = isTimedTrackEvent(ev);
+
+        if (stopwatchBar) {
+          stopwatchBar.classList.toggle('hidden', !showStopwatch);
+        }
         if (titleEl) {
           titleEl.textContent = isGroupPodium ? 'House / Group Podium' : 'Podium Winners';
         }
         if (relayBadge) {
           relayBadge.classList.toggle('hidden', !isGroupPodium);
+        }
+        if (fieldBadge) {
+          fieldBadge.classList.toggle('hidden', !isField);
         }
         if (pointsHint) {
           const [p1, p2, p3] = isGroupPodium
@@ -5529,9 +5923,19 @@
           if (houseWrap) houseWrap.className = isGroupPodium ? 'sm:col-span-6' : 'sm:col-span-3';
           if (houseLabel) houseLabel.textContent = isGroupPodium ? 'Winning House' : 'House';
           if (metricWrap) metricWrap.className = isGroupPodium ? 'sm:col-span-6' : 'sm:col-span-3';
-          if (metricLabel) metricLabel.textContent = isGroupPodium ? 'Timing / Score Note (Optional)' : 'Time / Distance';
+          if (metricLabel) {
+            metricLabel.textContent = isGroupPodium
+              ? 'Timing / Score Note (Optional)'
+              : isField
+                ? 'Distance / Height (m)'
+                : 'Time / Distance';
+          }
           if (metricInput) {
-            metricInput.placeholder = isGroupPodium ? 'e.g. 44.82s or 92 pts' : 'e.g. 12.4s / 4.85m';
+            metricInput.placeholder = isGroupPodium
+              ? 'e.g. 44.82s or 92 pts'
+              : isField
+                ? 'e.g. 34.50m'
+                : 'e.g. 12.4s / 4.85m';
           }
           if (isGroupPodium && hintEl) {
             hintEl.textContent = 'Select House (no chest no. required)';
@@ -5539,6 +5943,7 @@
           }
         });
 
+        renderFieldTrialsCalculator(ev);
         renderIndividualPodiumParticipantChips(ev, isGroupPodium);
       }
 
@@ -7535,6 +7940,117 @@
           });
         });
 
+        // Field Trials / Best of 3 Attempts Calculator
+        document.getElementById('btn-toggle-field-trials')?.addEventListener('click', () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev || !isFieldEvent(ev)) return;
+          const nextOpen = !Boolean(fieldTrialsExpandedByEvent.get(ev.id));
+          fieldTrialsExpandedByEvent.set(ev.id, nextOpen);
+          renderFieldTrialsCalculator(ev);
+        });
+
+        document.getElementById('field-trials-rows')?.addEventListener('input', (e) => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const target = e.target;
+          const rowIdx = Number(target.getAttribute('data-trial-row'));
+          if (!Number.isInteger(rowIdx) || rowIdx < 0) return;
+          const rows = getFieldTrialsRowsForEvent(ev);
+          const row = rows[rowIdx];
+          if (!row) return;
+
+          if (target.hasAttribute('data-trial-chest')) {
+            row.chestNo = target.value;
+          } else if (target.hasAttribute('data-trial-attempt')) {
+            const aIdx = Number(target.getAttribute('data-trial-attempt'));
+            if (aIdx >= 0 && aIdx <= 2) {
+              row.attempts[aIdx] = target.value;
+            }
+          }
+          document.getElementById('field-trials-error')?.classList.add('hidden');
+          updateFieldTrialRowFeedback(rowIdx, row);
+        });
+
+        document.getElementById('field-trials-rows')?.addEventListener('click', (e) => {
+          const rmBtn = e.target.closest('[data-trial-remove]');
+          if (!rmBtn) return;
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const idx = Number(rmBtn.getAttribute('data-trial-remove'));
+          const rows = getFieldTrialsRowsForEvent(ev);
+          if (idx >= 0 && idx < rows.length) {
+            rows.splice(idx, 1);
+            if (rows.length === 0) {
+              rows.push({ chestNo: '', attempts: ['', '', ''] });
+            }
+            renderFieldTrialsCalculator(ev);
+          }
+        });
+
+        document.getElementById('btn-field-trial-add-row')?.addEventListener('click', () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          const rows = getFieldTrialsRowsForEvent(ev);
+          rows.push({ chestNo: '', attempts: ['', '', ''] });
+          renderFieldTrialsCalculator(ev);
+        });
+
+        document.getElementById('btn-field-trial-clear')?.addEventListener('click', () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          if (!ev) return;
+          fieldTrialsByEvent.set(ev.id, createDefaultFieldTrialRows(ev));
+          document.getElementById('field-trials-error')?.classList.add('hidden');
+          renderFieldTrialsCalculator(ev);
+          showToast('Field trial rows reset');
+        });
+
+        document.getElementById('btn-field-trial-rank')?.addEventListener('click', () => {
+          const ev = appState.events.find((x) => x.id === selectedEventId);
+          const errEl = document.getElementById('field-trials-error');
+          if (!ev) return;
+          const rows = getFieldTrialsRowsForEvent(ev);
+          const ranked = rankFieldTrials(rows, appState.students);
+          if (ranked.length === 0) {
+            if (errEl) {
+              errEl.textContent = 'Enter at least one Chest No. with a valid distance (in meters) to auto-rank.';
+              errEl.classList.remove('hidden');
+            }
+            return;
+          }
+          if (errEl) errEl.classList.add('hidden');
+
+          const top3 = ranked.slice(0, 3);
+          [1, 2, 3].forEach((place) => {
+            const entry = top3[place - 1];
+            const chestEl = document.getElementById(`w-chest-${place}`);
+            const nameEl = document.getElementById(`w-name-${place}`);
+            const houseEl = document.getElementById(`w-house-${place}`);
+            const metricEl = document.getElementById(`w-metric-${place}`);
+            const hintEl = document.getElementById(`autofill-hint-${place}`);
+
+            if (!entry) {
+              if (chestEl) chestEl.value = '';
+              if (nameEl) nameEl.value = '';
+              if (houseEl) houseEl.value = '';
+              if (metricEl) metricEl.value = '';
+              if (hintEl) {
+                hintEl.textContent = '';
+                hintEl.className = 'text-xs font-medium text-emerald-700';
+              }
+              return;
+            }
+
+            if (chestEl) chestEl.value = entry.chestNo;
+            if (nameEl) nameEl.value = entry.name;
+            if (houseEl) houseEl.value = entry.house;
+            if (metricEl) metricEl.value = entry.metric;
+            applyChestAutofill(place);
+          });
+
+          renderIndividualPodiumParticipantChips(ev, false);
+          showToast(`Auto-ranked Top ${top3.length} into Podium Winners!`);
+        });
+
         // Mark Event Live
         document.getElementById('btn-mark-event-live').addEventListener('click', async () => {
           const ev = appState.events.find((x) => x.id === selectedEventId);
@@ -7558,12 +8074,18 @@
           }
 
           const isGroupPodium = isHouseGroupPodiumEvent(ev);
+          const isField = !isGroupPodium && isFieldEvent(ev);
           const winners = [];
           for (const place of [1, 2, 3]) {
             const chestNo = isGroupPodium ? '' : document.getElementById(`w-chest-${place}`).value.trim();
             const rawName = isGroupPodium ? '' : document.getElementById(`w-name-${place}`).value.trim();
             const house = document.getElementById(`w-house-${place}`).value;
-            const metric = document.getElementById(`w-metric-${place}`).value.trim();
+            const metricInputEl = document.getElementById(`w-metric-${place}`);
+            const rawMetric = metricInputEl.value.trim();
+            const metric = isField ? formatFieldMetric(rawMetric) : rawMetric;
+            if (isField && metric !== rawMetric) {
+              metricInputEl.value = metric;
+            }
 
             if (isGroupPodium) {
               if (place === 1 && !house) {

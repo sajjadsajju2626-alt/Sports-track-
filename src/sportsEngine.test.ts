@@ -17,9 +17,11 @@ import {
   detectLiveMatchSportProfile,
   detectNewGoals,
   evaluateMatchThresholdAlert,
+  filterHousePlayersForTagger,
   formatCricketScore,
   formatLiveMatchStatusDisplay,
   formatMatchClockMMSS,
+  formatPlayerChipLabel,
   formatStopwatch,
   formatTimelineItemLabel,
   generateCsvTemplate,
@@ -27,6 +29,8 @@ import {
   getEventPointRules,
   getEventTypeLabel,
   getMatchDurationMins,
+  groupStudentsByHouseForModal,
+  hasAssignedHouseParticipants,
   incrementCricketOvers,
   inferDivision,
   isCricketEvent,
@@ -34,10 +38,14 @@ import {
   isRelayEvent,
   isStudentRegisteredForEvent,
   MATCH_DURATION_PRESETS,
+  normalizeParticipantIds,
   normalizeSchoolCode,
+  normalizeTimelinePlayer,
   parseStudentCsv,
   resolveCarouselIndex,
   resolveEffectiveEventType,
+  resolveEventParticipants,
+  resolveTimelineTagInput,
   validateWorkspacePin,
   type SportsDayState,
 } from './sportsEngine';
@@ -822,3 +830,173 @@ test('Continuous running match clock, threshold alerts, referee phase controls, 
   assert.equal(evaluateMatchThresholdAlert(match, 5_000_000 + 10 * 60_000).type, 'half');
 });
 
+test('1-Tap House Player Chips filter by House & Category/Gender and format timeline items without duplication', () => {
+  const roster = [
+    { chestNo: '104', name: 'Aarav Menon', house: 'blue' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '112', name: 'Rahul Nair', house: 'blue' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '119', name: 'Kader Ali', house: 'blue' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '122', name: 'Diya Nair', house: 'blue' as const, category: 'Junior Girls', items: ['Shot Put'] },
+    { chestNo: '502', name: 'Vivaan Gupta', house: 'blue' as const, category: 'Sub-Junior Boys', items: ['100m Sprint'] },
+    { chestNo: '211', name: 'Rohan Verma', house: 'red' as const, category: 'Senior Boys', items: ['Football'] },
+  ];
+
+  // Filter Blue House for Senior Boys Football Final -> returns the 3 Blue Senior Boys sorted by chest #
+  const blueChips = filterHousePlayersForTagger(roster, 'blue', 'Senior Boys');
+  assert.deepEqual(
+    blueChips.map((s) => formatPlayerChipLabel(s)),
+    ['#104 Aarav', '#112 Rahul', '#119 Kader']
+  );
+
+  // Filter query narrows chips by chest number or name
+  const filteredKader = filterHousePlayersForTagger(roster, 'blue', 'Senior Boys', 'kader');
+  assert.equal(filteredKader.length, 1);
+  assert.equal(filteredKader[0].chestNo, '119');
+  assert.equal(filteredKader[0].name, 'Kader Ali');
+
+  const filtered112 = filterHousePlayersForTagger(roster, 'blue', 'Senior Boys', '112');
+  assert.equal(filtered112.length, 1);
+  assert.equal(filtered112[0].name, 'Rahul Nair');
+
+  // Gender fallback when exact category has no entries (e.g. "Under-16 Boys" -> falls back to Boys in Blue House)
+  const boysFallback = filterHousePlayersForTagger(roster, 'blue', 'Under-16 Boys');
+  assert.deepEqual(
+    boysFallback.map((s) => s.chestNo),
+    ['104', '112', '119', '502']
+  );
+
+  // Clean formatting: never duplicates Player #Kader (#Kader)
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't1',
+      side: 'B',
+      type: 'goal',
+      chestNo: '104',
+      playerName: 'Aarav',
+      minute: 16,
+      createdAt: 1,
+    }),
+    "⚽ Aarav (#104) 16'"
+  );
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't2',
+      side: 'B',
+      type: 'goal',
+      chestNo: 'Kader',
+      playerName: 'Player #Kader',
+      minute: 16,
+      createdAt: 2,
+    }),
+    "⚽ Kader 16'"
+  );
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't3',
+      side: 'A',
+      type: 'yellow',
+      chestNo: 'Kader',
+      playerName: 'Player #Kader (#Kader)',
+      minute: 18,
+      createdAt: 3,
+    }),
+    "🟨 Kader 18'"
+  );
+  assert.equal(
+    formatTimelineItemLabel({
+      id: 't4',
+      side: 'A',
+      type: 'red',
+      chestNo: '104',
+      playerName: 'Aarav (#104)',
+      minute: 29,
+      createdAt: 4,
+    }),
+    "🟥 Aarav (#104) 29'"
+  );
+
+  // resolveTimelineTagInput resolves registered students or clean custom names/numbers
+  assert.deepEqual(resolveTimelineTagInput('119', blueChips, roster, 'goal'), {
+    name: 'Kader Ali',
+    chestNo: '119',
+  });
+  assert.deepEqual(resolveTimelineTagInput('Kader', blueChips, roster, 'goal'), {
+    name: 'Kader Ali',
+    chestNo: '119',
+  });
+  assert.deepEqual(resolveTimelineTagInput('Zlatan', blueChips, roster, 'goal'), {
+    name: 'Zlatan',
+    chestNo: '',
+  });
+  assert.deepEqual(resolveTimelineTagInput('#99', blueChips, roster, 'yellow'), {
+    name: 'Player',
+    chestNo: '99',
+  });
+});
+
+test('Event Participants / Squad Assignment groups by House, filters squad chips, and supports Show All House Students toggle', () => {
+  const roster = [
+    { chestNo: '104', name: 'Aarav Menon', house: 'blue' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '112', name: 'Rahul Nair', house: 'blue' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '119', name: 'Kader Ali', house: 'blue' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '211', name: 'Rohan Verma', house: 'red' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '214', name: 'Armaan Sheikh', house: 'red' as const, category: 'Senior Boys', items: ['Football'] },
+    { chestNo: '309', name: 'Kabir Khan', house: 'green' as const, category: 'Senior Boys', items: ['100m Sprint'] },
+    { chestNo: '412', name: 'Meera Iyer', house: 'yellow' as const, category: 'Junior Girls', items: ['Shot Put'] },
+  ];
+
+  // 1. normalizeParticipantIds cleans # prefix and deduplicates
+  assert.deepEqual(normalizeParticipantIds(['#104', '119', '104', ' ', '#211']), ['104', '119', '211']);
+
+  // 2. groupStudentsByHouseForModal groups by House and supports category + search filters
+  const groupedAll = groupStudentsByHouseForModal(roster);
+  assert.deepEqual(groupedAll.blue.map((s) => s.chestNo), ['104', '112', '119']);
+  assert.deepEqual(groupedAll.red.map((s) => s.chestNo), ['211', '214']);
+  assert.deepEqual(groupedAll.green.map((s) => s.chestNo), ['309']);
+  assert.deepEqual(groupedAll.yellow.map((s) => s.chestNo), ['412']);
+
+  const groupedJuniorGirls = groupStudentsByHouseForModal(roster, { categoryFilter: 'Junior Girls' });
+  assert.equal(groupedJuniorGirls.blue.length, 0);
+  assert.deepEqual(groupedJuniorGirls.yellow.map((s) => s.chestNo), ['412']);
+
+  const groupedSearch = groupStudentsByHouseForModal(roster, { searchQuery: 'kader' });
+  assert.deepEqual(groupedSearch.blue.map((s) => s.chestNo), ['119']);
+  assert.equal(groupedSearch.red.length, 0);
+
+  // 3. resolveEventParticipants returns assigned student records sorted by chest #
+  const assignedRecords = resolveEventParticipants(roster, ['214', '104', '119']);
+  assert.deepEqual(assignedRecords.map((s) => s.chestNo), ['104', '119', '214']);
+
+  // 4. filterHousePlayersForTagger restricts to assigned squad when participantIds exist, and expands when showAllHouse=true
+  const matchSquad = ['104', '119', '211'];
+  assert.equal(hasAssignedHouseParticipants(roster, 'blue', matchSquad), true);
+  assert.equal(hasAssignedHouseParticipants(roster, 'green', matchSquad), false);
+
+  const blueSquadOnly = filterHousePlayersForTagger(roster, 'blue', 'Senior Boys', '', {
+    participantIds: matchSquad,
+    showAllHouse: false,
+  });
+  assert.deepEqual(
+    blueSquadOnly.map((s) => formatPlayerChipLabel(s)),
+    ['#104 Aarav', '#119 Kader']
+  );
+
+  // Toggle "Show All House Students" -> includes #112 Rahul
+  const blueAllHouse = filterHousePlayersForTagger(roster, 'blue', 'Senior Boys', '', {
+    participantIds: matchSquad,
+    showAllHouse: true,
+  });
+  assert.deepEqual(
+    blueAllHouse.map((s) => formatPlayerChipLabel(s)),
+    ['#104 Aarav', '#112 Rahul', '#119 Kader']
+  );
+
+  // House with no assigned squad in participantIds falls back to all House students
+  const greenFallback = filterHousePlayersForTagger(roster, 'green', 'Senior Boys', '', {
+    participantIds: matchSquad,
+    showAllHouse: false,
+  });
+  assert.deepEqual(
+    greenFallback.map((s) => formatPlayerChipLabel(s)),
+    ['#309 Kabir']
+  );
+});

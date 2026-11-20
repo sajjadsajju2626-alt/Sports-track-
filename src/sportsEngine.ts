@@ -79,6 +79,7 @@ export interface SportEvent {
   venue: string;
   status: EventStatus;
   winners: WinnerEntry[];
+  participantIds?: string[];
   liveMatch?: LiveMatchState;
   updatedAt: number;
 }
@@ -1014,12 +1015,282 @@ export function applyTeamScoreDelta(
   };
 }
 
+export function extractCategoryGender(category: string | undefined): 'boys' | 'girls' | '' {
+  const norm = String(category || '').trim().toLowerCase();
+  if (/\b(boys?|men|male)\b/i.test(norm)) return 'boys';
+  if (/\b(girls?|women|female)\b/i.test(norm)) return 'girls';
+  return '';
+}
+
+export function normalizeParticipantIds(ids: ReadonlyArray<string> | null | undefined): string[] {
+  if (!Array.isArray(ids)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of ids) {
+    const clean = String(raw || '').trim().replace(/^#+/, '').trim();
+    if (!clean) continue;
+    const key = clean.toLowerCase();
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(clean);
+    }
+  }
+  return out;
+}
+
+export function groupStudentsByHouseForModal(
+  students: ReadonlyArray<StudentRecord>,
+  options?: { searchQuery?: string; categoryFilter?: string }
+): Record<HouseId, StudentRecord[]> {
+  const catFilter = String(options?.categoryFilter || '').trim().toLowerCase();
+  const rawQuery = String(options?.searchQuery || '').trim().toLowerCase().replace(/^#+/, '').trim();
+
+  const grouped: Record<HouseId, StudentRecord[]> = {
+    red: [],
+    blue: [],
+    green: [],
+    yellow: [],
+  };
+
+  for (const s of students || []) {
+    const h = String(s.house || '').trim().toLowerCase() as HouseId;
+    if (!grouped[h]) continue;
+    if (catFilter && catFilter !== 'all') {
+      if (String(s.category || '').trim().toLowerCase() !== catFilter) continue;
+    }
+    if (rawQuery) {
+      const c = String(s.chestNo || '').toLowerCase();
+      const n = String(s.name || '').toLowerCase();
+      const cat = String(s.category || '').toLowerCase();
+      if (!c.includes(rawQuery) && !n.includes(rawQuery) && !`${c} ${n}`.includes(rawQuery) && !cat.includes(rawQuery)) {
+        continue;
+      }
+    }
+    grouped[h].push(s);
+  }
+
+  for (const h of ['red', 'blue', 'green', 'yellow'] as const) {
+    grouped[h].sort((a, b) =>
+      String(a.chestNo || '').localeCompare(String(b.chestNo || ''), undefined, { numeric: true })
+    );
+  }
+
+  return grouped;
+}
+
+export function resolveEventParticipants(
+  students: ReadonlyArray<StudentRecord>,
+  participantIds: ReadonlyArray<string> | null | undefined
+): StudentRecord[] {
+  const normalized = normalizeParticipantIds(participantIds);
+  if (normalized.length === 0) return [];
+  const idSet = new Set(normalized.map((id) => id.toLowerCase()));
+  return (students || [])
+    .filter((s) => idSet.has(String(s.chestNo || '').trim().replace(/^#+/, '').toLowerCase()))
+    .sort((a, b) =>
+      String(a.chestNo || '').localeCompare(String(b.chestNo || ''), undefined, { numeric: true })
+    );
+}
+
+export function hasAssignedHouseParticipants(
+  students: ReadonlyArray<StudentRecord>,
+  houseId: HouseId | string,
+  participantIds: ReadonlyArray<string> | null | undefined
+): boolean {
+  const normalized = normalizeParticipantIds(participantIds);
+  if (normalized.length === 0) return false;
+  const targetHouse = String(houseId || '').trim().toLowerCase();
+  const idSet = new Set(normalized.map((id) => id.toLowerCase()));
+  return (students || []).some(
+    (s) =>
+      String(s.house || '').trim().toLowerCase() === targetHouse &&
+      idSet.has(String(s.chestNo || '').trim().replace(/^#+/, '').toLowerCase())
+  );
+}
+
+export function filterHousePlayersForTagger(
+  students: ReadonlyArray<StudentRecord>,
+  houseId: HouseId | string,
+  eventCategory?: string,
+  searchQuery?: string,
+  options?: { participantIds?: ReadonlyArray<string> | null; showAllHouse?: boolean }
+): StudentRecord[] {
+  const targetHouse = String(houseId || '').trim().toLowerCase();
+  const houseStudents = (students || []).filter(
+    (s) => String(s.house || '').trim().toLowerCase() === targetHouse
+  );
+  const sortByChest = (list: ReadonlyArray<StudentRecord>): StudentRecord[] =>
+    [...list].sort((a, b) =>
+      String(a.chestNo || '').localeCompare(String(b.chestNo || ''), undefined, { numeric: true })
+    );
+
+  const normalizedAssigned = normalizeParticipantIds(options?.participantIds);
+  const assignedSet = new Set(normalizedAssigned.map((id) => id.toLowerCase()));
+  const assignedHousePlayers =
+    !options?.showAllHouse && assignedSet.size > 0
+      ? houseStudents.filter((s) =>
+          assignedSet.has(String(s.chestNo || '').trim().replace(/^#+/, '').toLowerCase())
+        )
+      : [];
+
+  let baseCandidates: StudentRecord[];
+  if (assignedHousePlayers.length > 0) {
+    baseCandidates = assignedHousePlayers;
+  } else {
+    const catNorm = String(eventCategory || '').trim().toLowerCase();
+    const exactCategoryMatches = catNorm
+      ? houseStudents.filter((s) => String(s.category || '').trim().toLowerCase() === catNorm)
+      : [];
+    const targetGender = extractCategoryGender(catNorm);
+    const genderMatches = targetGender
+      ? houseStudents.filter((s) => extractCategoryGender(s.category) === targetGender)
+      : [];
+
+    baseCandidates =
+      exactCategoryMatches.length > 0
+        ? exactCategoryMatches
+        : genderMatches.length > 0
+          ? genderMatches
+          : houseStudents;
+  }
+
+  const rawQuery = String(searchQuery || '').trim().toLowerCase().replace(/^#+/, '').trim();
+  if (!rawQuery) {
+    return sortByChest(baseCandidates);
+  }
+
+  const matchesQuery = (s: StudentRecord): boolean => {
+    const c = String(s.chestNo || '').toLowerCase();
+    const n = String(s.name || '').toLowerCase();
+    return c.includes(rawQuery) || n.includes(rawQuery) || `${c} ${n}`.includes(rawQuery);
+  };
+
+  const filteredBase = baseCandidates.filter(matchesQuery);
+  if (filteredBase.length > 0 || assignedHousePlayers.length > 0) {
+    return sortByChest(filteredBase);
+  }
+  return sortByChest(houseStudents.filter(matchesQuery));
+}
+
+export function formatPlayerChipLabel(student: Pick<StudentRecord, 'chestNo' | 'name'>): string {
+  const cleanChest = String(student.chestNo || '').trim().replace(/^#+/, '');
+  const fullName = String(student.name || '').trim();
+  const firstName = fullName.split(/\s+/)[0] || fullName;
+  return cleanChest ? `#${cleanChest} ${firstName}` : firstName;
+}
+
+export function normalizeTimelinePlayer(
+  rawName: string | undefined,
+  rawChest: string | undefined,
+  type: MatchTimelineEventType = 'goal'
+): { name: string; chestNo: string } {
+  let name = String(rawName || '').trim();
+  let chest = String(rawChest || '').trim().replace(/^#+/, '').trim();
+
+  if (chest) {
+    const escapedChest = chest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const dupSuffix = new RegExp(`\\s*\\(#?${escapedChest}\\)\\s*$`, 'i');
+    name = name.replace(dupSuffix, '').trim();
+  }
+
+  const playerHashMatch = name.match(/^player\s*#+\s*(.+)$/i);
+  if (playerHashMatch) {
+    const extracted = playerHashMatch[1].trim().replace(/\s*\(#?.+\)\s*$/, '').trim();
+    if (/^\d+[a-z]?$/i.test(extracted)) {
+      chest = chest || extracted;
+      name = 'Player';
+    } else {
+      name = extracted;
+      if (chest.toLowerCase() === extracted.toLowerCase()) {
+        chest = '';
+      }
+    }
+  }
+
+  const leadingChestMatch = name.match(/^#+(\d+[a-z]?)\s+(.+)$/i);
+  if (leadingChestMatch) {
+    if (!chest) chest = leadingChestMatch[1];
+    name = leadingChestMatch[2].trim();
+  }
+
+  if (chest && !/^\d+[a-z]?$/i.test(chest)) {
+    if (
+      !name ||
+      name.toLowerCase() === 'goal' ||
+      name.toLowerCase() === 'team / unknown' ||
+      name.toLowerCase() === 'player' ||
+      name.toLowerCase() === chest.toLowerCase()
+    ) {
+      name = chest;
+    }
+    chest = '';
+  }
+
+  if (chest && (name.toLowerCase() === chest.toLowerCase() || name.toLowerCase() === `#${chest.toLowerCase()}`)) {
+    name = 'Player';
+  }
+
+  if (!name) {
+    name = chest ? 'Player' : type === 'goal' ? 'Goal' : 'Team / Unknown';
+  }
+
+  return { name, chestNo: chest };
+}
+
+export function resolveTimelineTagInput(
+  rawInput: string | undefined,
+  houseStudents: ReadonlyArray<StudentRecord>,
+  allStudents: ReadonlyArray<StudentRecord>,
+  kind: MatchTimelineEventType = 'goal'
+): { name: string; chestNo: string } {
+  const trimmed = String(rawInput || '').trim();
+  if (!trimmed) {
+    return { name: kind === 'goal' ? 'Goal' : 'Team / Unknown', chestNo: '' };
+  }
+
+  const qNorm = trimmed.replace(/^#+/, '').trim().toLowerCase();
+  const findStudent = (pool: ReadonlyArray<StudentRecord>): StudentRecord | undefined => {
+    const exactChest = pool.find((s) => String(s.chestNo || '').trim().toLowerCase() === qNorm);
+    if (exactChest) return exactChest;
+    const exactName = pool.find((s) => String(s.name || '').trim().toLowerCase() === qNorm);
+    if (exactName) return exactName;
+    const firstWordMatch = pool.find(
+      (s) => (String(s.name || '').trim().split(/\s+/)[0] || '').toLowerCase() === qNorm
+    );
+    if (firstWordMatch) return firstWordMatch;
+    const partial = pool.filter(
+      (s) =>
+        String(s.chestNo || '').toLowerCase().includes(qNorm) ||
+        String(s.name || '').toLowerCase().includes(qNorm)
+    );
+    return partial.length === 1 ? partial[0] : undefined;
+  };
+
+  const matched = findStudent(houseStudents || []) || findStudent(allStudents || []);
+  if (matched) {
+    return normalizeTimelinePlayer(matched.name, matched.chestNo, kind);
+  }
+
+  const chestFirst = trimmed.match(/^#?(\d+[a-z]?)\s+(.+)$/i);
+  if (chestFirst) {
+    return normalizeTimelinePlayer(chestFirst[2], chestFirst[1], kind);
+  }
+  const chestLast = trimmed.match(/^(.+?)\s+\(?#?(\d+[a-z]?)\)?$/i);
+  if (chestLast) {
+    return normalizeTimelinePlayer(chestLast[1], chestLast[2], kind);
+  }
+
+  const cleanToken = trimmed.replace(/^player\s*#?/i, '').replace(/^#+/, '').trim();
+  if (/^\d+[a-z]?$/i.test(cleanToken)) {
+    return normalizeTimelinePlayer('Player', cleanToken, kind);
+  }
+  return normalizeTimelinePlayer(cleanToken, '', kind);
+}
+
 export function formatTimelineItemLabel(item: MatchTimelineEvent): string {
   const icon = item.type === 'goal' ? '⚽' : item.type === 'yellow' ? '🟨' : '🟥';
-  const rawName = String(item.playerName || '').trim();
-  const cleanName = rawName || (item.type === 'goal' ? 'Goal' : 'Team / Unknown');
-  const cleanChest = String(item.chestNo || '').trim();
-  const who = cleanChest ? `${cleanName} (#${cleanChest})` : cleanName;
+  const normalized = normalizeTimelinePlayer(item.playerName, item.chestNo, item.type);
+  const who = normalized.chestNo ? `${normalized.name} (#${normalized.chestNo})` : normalized.name;
   const minVal = Math.max(0, Math.floor(Number(item.minute) || 0));
   return `${icon} ${who} ${minVal}'`;
 }
@@ -1055,15 +1326,14 @@ export function detectNewGoals(
     if (newGoalItems.length > 0) {
       const latestGoal = newGoalItems[newGoalItems.length - 1];
       const houseId = latestGoal.side === 'A' ? nextLm.teamAHouse : nextLm.teamBHouse;
-      const rawName = String(latestGoal.playerName || '').trim();
-      const chestNo = String(latestGoal.chestNo || '').trim();
+      const norm = normalizeTimelinePlayer(latestGoal.playerName, latestGoal.chestNo, 'goal');
       goals.push({
         eventId: nextEv.id,
         eventName: nextEv.name,
         houseId,
         houseName: houses[houseId]?.name || houseId,
-        playerName: rawName === 'Goal' && !chestNo ? '' : rawName || 'Team / Unknown',
-        chestNo,
+        playerName: norm.name === 'Goal' && !norm.chestNo ? '' : norm.name,
+        chestNo: norm.chestNo,
         minute: Math.max(0, Math.floor(Number(latestGoal.minute) || 0)),
         scoreA: nextLm.scoreA,
         scoreB: nextLm.scoreB,

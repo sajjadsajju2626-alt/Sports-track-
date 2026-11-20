@@ -1156,29 +1156,46 @@
                   <!-- Non-Blocking Inline Scorer / Card Tagger -->
                   <form id="form-inline-tagger-A" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 space-y-2">
                     <div class="flex items-center justify-between gap-2 text-xs">
-                      <span id="team-inline-label-A" class="font-bold text-slate-900">Tag scorer?</span>
-                      <span id="team-inline-preview-A" class="text-emerald-700 font-semibold truncate"></span>
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span id="team-inline-label-A" class="font-bold text-slate-900 shrink-0">Tag scorer?</span>
+                        <span id="team-inline-house-badge-A" class="text-[11px] font-medium text-slate-600 truncate"></span>
+                      </div>
+                      <button
+                        type="button"
+                        id="btn-inline-dismiss-A"
+                        class="min-h-[30px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shrink-0"
+                      >
+                        Skip / Team Only
+                      </button>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <input
                         id="team-inline-chest-A"
                         type="text"
-                        placeholder="Chest #"
-                        class="min-w-0 flex-1 min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-900"
+                        placeholder="Filter by Chest # or Name..."
+                        aria-label="Filter Team A players by Chest Number or Name"
+                        class="min-w-0 flex-1 min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs text-slate-900"
                       />
                       <button
                         type="submit"
                         id="btn-inline-save-A"
-                        class="min-h-[36px] px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0"
+                        class="min-h-[34px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0"
                       >
                         Save
                       </button>
+                    </div>
+                    <div
+                      id="team-inline-chips-A"
+                      class="flex flex-wrap gap-1.5 pt-0.5 max-h-36 overflow-y-auto"
+                    ></div>
+                    <div id="team-inline-toggle-wrap-A" class="hidden pt-0.5 flex items-center justify-between gap-2">
+                      <span id="team-inline-squad-note-A" class="text-[11px] font-medium text-emerald-800">Showing assigned squad</span>
                       <button
                         type="button"
-                        id="btn-inline-dismiss-A"
-                        class="min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shrink-0"
+                        id="btn-inline-toggle-all-A"
+                        class="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 underline cursor-pointer"
                       >
-                        Dismiss
+                        Show All House Students
                       </button>
                     </div>
                   </form>
@@ -1242,29 +1259,46 @@
                   <!-- Non-Blocking Inline Scorer / Card Tagger -->
                   <form id="form-inline-tagger-B" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/90 p-2.5 space-y-2">
                     <div class="flex items-center justify-between gap-2 text-xs">
-                      <span id="team-inline-label-B" class="font-bold text-slate-900">Tag scorer?</span>
-                      <span id="team-inline-preview-B" class="text-emerald-700 font-semibold truncate"></span>
+                      <div class="flex items-center gap-1.5 min-w-0">
+                        <span id="team-inline-label-B" class="font-bold text-slate-900 shrink-0">Tag scorer?</span>
+                        <span id="team-inline-house-badge-B" class="text-[11px] font-medium text-slate-600 truncate"></span>
+                      </div>
+                      <button
+                        type="button"
+                        id="btn-inline-dismiss-B"
+                        class="min-h-[30px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shrink-0"
+                      >
+                        Skip / Team Only
+                      </button>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <input
                         id="team-inline-chest-B"
                         type="text"
-                        placeholder="Chest #"
-                        class="min-w-0 flex-1 min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-900"
+                        placeholder="Filter by Chest # or Name..."
+                        aria-label="Filter Team B players by Chest Number or Name"
+                        class="min-w-0 flex-1 min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs text-slate-900"
                       />
                       <button
                         type="submit"
                         id="btn-inline-save-B"
-                        class="min-h-[36px] px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0"
+                        class="min-h-[34px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0"
                       >
                         Save
                       </button>
+                    </div>
+                    <div
+                      id="team-inline-chips-B"
+                      class="flex flex-wrap gap-1.5 pt-0.5 max-h-36 overflow-y-auto"
+                    ></div>
+                    <div id="team-inline-toggle-wrap-B" class="hidden pt-0.5 flex items-center justify-between gap-2">
+                      <span id="team-inline-squad-note-B" class="text-[11px] font-medium text-emerald-800">Showing assigned squad</span>
                       <button
                         type="button"
-                        id="btn-inline-dismiss-B"
-                        class="min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shrink-0"
+                        id="btn-inline-toggle-all-B"
+                        class="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 underline cursor-pointer"
                       >
-                        Dismiss
+                        Show All House Students
                       </button>
                     </div>
                   </form>
@@ -1753,7 +1787,14 @@
                   />
                 </div>
               </div>
-              <div class="flex justify-end">
+              <div class="flex flex-wrap items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  id="btn-new-event-participants"
+                  class="min-h-[44px] px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-900 text-sm font-semibold inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <span>👥 Participants (0)</span>
+                </button>
                 <button
                   type="submit"
                   class="min-h-[44px] px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold inline-flex items-center gap-1.5"
@@ -2277,6 +2318,105 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- ADMIN PARTICIPANTS / SQUAD ASSIGNMENT MODAL                           -->
+    <!-- ===================================================================== -->
+    <div
+      id="participants-modal"
+      class="hidden no-print fixed inset-0 z-[65] bg-slate-950/50 backdrop-blur-xs flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="participants-modal-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-3xl w-full p-5 sm:p-6 shadow-xl space-y-4 max-h-[90vh] flex flex-col">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 id="participants-modal-title" class="text-lg font-bold text-slate-900">
+              Assign Event Participants / Squad
+            </h3>
+            <p id="participants-modal-subtitle" class="text-xs text-slate-500 mt-0.5">
+              Select registered students participating in this event
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-close-participants-modal"
+            aria-label="Close participants modal"
+            class="w-9 h-9 rounded-lg hover:bg-slate-100 text-slate-500 inline-flex items-center justify-center shrink-0"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Search & Category Filter Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div class="sm:col-span-5">
+            <input
+              id="participants-search-input"
+              type="text"
+              placeholder="Search by Chest # or Student Name..."
+              aria-label="Search students by Chest Number or Name"
+              class="w-full min-h-[38px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm text-slate-900"
+            />
+          </div>
+          <div class="sm:col-span-4">
+            <select
+              id="participants-category-filter"
+              aria-label="Filter students by Category"
+              class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs sm:text-sm text-slate-800"
+            >
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+          <div class="sm:col-span-3 flex items-center justify-between sm:justify-end gap-2">
+            <button
+              type="button"
+              id="btn-participants-select-visible"
+              class="min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700"
+            >
+              Select Visible
+            </button>
+            <button
+              type="button"
+              id="btn-participants-clear-all"
+              class="min-h-[34px] px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-red-50 hover:text-red-700 text-xs font-semibold text-slate-600"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- House-Grouped Checkboxes -->
+        <div
+          id="participants-house-groups"
+          class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto pr-1 flex-1 min-h-[220px] max-h-[50vh]"
+        ></div>
+
+        <!-- Modal Footer -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-200">
+          <span id="participants-selected-count" class="text-xs font-bold text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+            0 participants selected
+          </span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              id="btn-cancel-participants-modal"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              id="btn-save-participants"
+              class="min-h-[42px] px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold"
+            >
+              Save Participants
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- PRINTABLE A4 RESULTS REPORT (PRINT ONLY)                              -->
     <!-- ===================================================================== -->
     <div id="print-sheet" class="hidden print-only p-4 text-black space-y-6"></div>
@@ -2499,6 +2639,7 @@
               venue: 'Main Track',
               status: 'UPCOMING',
               winners: [],
+              participantIds: ['501', '502', '503'],
               updatedAt: now - 60000,
             },
             {
@@ -2520,14 +2661,20 @@
             },
           ],
           students: [
-            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys', items: ['100m Sprint', 'Long Jump'] },
+            { chestNo: '104', name: 'Aarav Menon', house: 'blue', category: 'Senior Boys', items: ['100m Sprint', 'Long Jump', 'Football'] },
+            { chestNo: '112', name: 'Rahul Nair', house: 'blue', category: 'Senior Boys', items: ['Football'] },
+            { chestNo: '119', name: 'Kader Ali', house: 'blue', category: 'Senior Boys', items: ['Football'] },
             { chestNo: '108', name: 'Ananya Rao', house: 'green', category: 'Senior Girls', items: ['400m Track Run', 'Shot Put'] },
             { chestNo: '122', name: 'Diya Nair', house: 'blue', category: 'Junior Girls', items: ['Shot Put'] },
-            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys', items: ['100m Sprint', 'Long Jump'] },
+            { chestNo: '211', name: 'Rohan Verma', house: 'red', category: 'Senior Boys', items: ['100m Sprint', 'Long Jump', 'Football'] },
+            { chestNo: '214', name: 'Armaan Sheikh', house: 'red', category: 'Senior Boys', items: ['Football'] },
+            { chestNo: '219', name: 'Zayd Siddiqui', house: 'red', category: 'Senior Boys', items: ['Football'] },
             { chestNo: '218', name: 'Sana Kapoor', house: 'red', category: 'Senior Girls', items: ['400m Track Run'] },
-            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys', items: ['100m Sprint'] },
+            { chestNo: '309', name: 'Kabir Khan', house: 'green', category: 'Senior Boys', items: ['100m Sprint', 'Football'] },
+            { chestNo: '314', name: 'Farhan Mirza', house: 'green', category: 'Senior Boys', items: ['Football'] },
             { chestNo: '412', name: 'Meera Iyer', house: 'yellow', category: 'Junior Girls', items: ['400m Track Run', 'Shot Put'] },
-            { chestNo: '415', name: 'Devansh Joshi', house: 'yellow', category: 'Senior Boys', items: ['Long Jump'] },
+            { chestNo: '415', name: 'Devansh Joshi', house: 'yellow', category: 'Senior Boys', items: ['Long Jump', 'Football'] },
+            { chestNo: '418', name: 'Nikhil Reddy', house: 'yellow', category: 'Senior Boys', items: ['Football'] },
             { chestNo: '501', name: 'Ishaan Patel', house: 'red', category: 'Sub-Junior Boys', items: ['100m Sprint'] },
             { chestNo: '502', name: 'Vivaan Gupta', house: 'blue', category: 'Sub-Junior Boys', items: ['100m Sprint'] },
             { chestNo: '503', name: 'Reyansh Das', house: 'green', category: 'Sub-Junior Boys', items: ['100m Sprint'] },
@@ -2535,6 +2682,23 @@
           lastPublishedAt: 0,
           lastPublishedTitle: '',
         };
+      }
+
+      function ensureDemoRosterEnriched(state) {
+        if (!state || state.schoolCode !== DEMO_SCHOOL_CODE) return state;
+        const sampleStudents = createSampleSchoolState(DEMO_SCHOOL_CODE).students || [];
+        const existing = Array.isArray(state.students) ? state.students : [];
+        const seen = new Set(existing.map((s) => String(s.chestNo || '').trim().toLowerCase()));
+        const additions = sampleStudents.filter((s) => !seen.has(String(s.chestNo || '').trim().toLowerCase()));
+        const nextStudents = additions.length > 0 ? [...existing, ...additions] : existing;
+        const nextEvents = Array.isArray(state.events)
+          ? state.events.map((ev) =>
+              ev.id === 'smp-7' && !Array.isArray(ev.participantIds)
+                ? { ...ev, participantIds: ['501', '502', '503'] }
+                : ev
+            )
+          : state.events;
+        return { ...state, students: nextStudents, events: nextEvents };
       }
 
       // =======================================================================
@@ -3331,12 +3495,250 @@
         };
       }
 
+      function extractCategoryGender(category) {
+        const norm = String(category || '').trim().toLowerCase();
+        if (/\b(boys?|men|male)\b/i.test(norm)) return 'boys';
+        if (/\b(girls?|women|female)\b/i.test(norm)) return 'girls';
+        return '';
+      }
+
+      function normalizeParticipantIds(ids) {
+        if (!Array.isArray(ids)) return [];
+        const seen = new Set();
+        const out = [];
+        for (const raw of ids) {
+          const clean = String(raw || '').trim().replace(/^#+/, '').trim();
+          if (!clean) continue;
+          const key = clean.toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            out.push(clean);
+          }
+        }
+        return out;
+      }
+
+      function groupStudentsByHouseForModal(students, options = {}) {
+        const catFilter = String(options.categoryFilter || '').trim().toLowerCase();
+        const rawQuery = String(options.searchQuery || '').trim().toLowerCase().replace(/^#+/, '').trim();
+        const grouped = { red: [], blue: [], green: [], yellow: [] };
+
+        for (const s of students || []) {
+          const h = String(s.house || '').trim().toLowerCase();
+          if (!grouped[h]) continue;
+          if (catFilter && catFilter !== 'all') {
+            if (String(s.category || '').trim().toLowerCase() !== catFilter) continue;
+          }
+          if (rawQuery) {
+            const c = String(s.chestNo || '').toLowerCase();
+            const n = String(s.name || '').toLowerCase();
+            const cat = String(s.category || '').toLowerCase();
+            if (!c.includes(rawQuery) && !n.includes(rawQuery) && !`${c} ${n}`.includes(rawQuery) && !cat.includes(rawQuery)) {
+              continue;
+            }
+          }
+          grouped[h].push(s);
+        }
+
+        ['red', 'blue', 'green', 'yellow'].forEach((h) => {
+          grouped[h].sort((a, b) =>
+            String(a.chestNo || '').localeCompare(String(b.chestNo || ''), undefined, { numeric: true })
+          );
+        });
+        return grouped;
+      }
+
+      function resolveEventParticipants(students, participantIds) {
+        const normalized = normalizeParticipantIds(participantIds);
+        if (normalized.length === 0) return [];
+        const idSet = new Set(normalized.map((id) => id.toLowerCase()));
+        return (students || [])
+          .filter((s) => idSet.has(String(s.chestNo || '').trim().replace(/^#+/, '').toLowerCase()))
+          .sort((a, b) =>
+            String(a.chestNo || '').localeCompare(String(b.chestNo || ''), undefined, { numeric: true })
+          );
+      }
+
+      function hasAssignedHouseParticipants(students, houseId, participantIds) {
+        const normalized = normalizeParticipantIds(participantIds);
+        if (normalized.length === 0) return false;
+        const targetHouse = String(houseId || '').trim().toLowerCase();
+        const idSet = new Set(normalized.map((id) => id.toLowerCase()));
+        return (students || []).some(
+          (s) =>
+            String(s.house || '').trim().toLowerCase() === targetHouse &&
+            idSet.has(String(s.chestNo || '').trim().replace(/^#+/, '').toLowerCase())
+        );
+      }
+
+      function filterHousePlayersForTagger(students, houseId, eventCategory, searchQuery, options = {}) {
+        const targetHouse = String(houseId || '').trim().toLowerCase();
+        const houseStudents = (students || []).filter(
+          (s) => String(s.house || '').trim().toLowerCase() === targetHouse
+        );
+        const sortByChest = (list) =>
+          [...list].sort((a, b) =>
+            String(a.chestNo || '').localeCompare(String(b.chestNo || ''), undefined, { numeric: true })
+          );
+
+        const normalizedAssigned = normalizeParticipantIds(options.participantIds);
+        const assignedSet = new Set(normalizedAssigned.map((id) => id.toLowerCase()));
+        const assignedHousePlayers =
+          !options.showAllHouse && assignedSet.size > 0
+            ? houseStudents.filter((s) =>
+                assignedSet.has(String(s.chestNo || '').trim().replace(/^#+/, '').toLowerCase())
+              )
+            : [];
+
+        let baseCandidates;
+        if (assignedHousePlayers.length > 0) {
+          baseCandidates = assignedHousePlayers;
+        } else {
+          const catNorm = String(eventCategory || '').trim().toLowerCase();
+          const exactCategoryMatches = catNorm
+            ? houseStudents.filter((s) => String(s.category || '').trim().toLowerCase() === catNorm)
+            : [];
+          const targetGender = extractCategoryGender(catNorm);
+          const genderMatches = targetGender
+            ? houseStudents.filter((s) => extractCategoryGender(s.category) === targetGender)
+            : [];
+
+          baseCandidates =
+            exactCategoryMatches.length > 0
+              ? exactCategoryMatches
+              : genderMatches.length > 0
+                ? genderMatches
+                : houseStudents;
+        }
+
+        const rawQuery = String(searchQuery || '').trim().toLowerCase().replace(/^#+/, '').trim();
+        if (!rawQuery) {
+          return sortByChest(baseCandidates);
+        }
+
+        const matchesQuery = (s) => {
+          const c = String(s.chestNo || '').toLowerCase();
+          const n = String(s.name || '').toLowerCase();
+          return c.includes(rawQuery) || n.includes(rawQuery) || `${c} ${n}`.includes(rawQuery);
+        };
+
+        const filteredBase = baseCandidates.filter(matchesQuery);
+        if (filteredBase.length > 0 || assignedHousePlayers.length > 0) {
+          return sortByChest(filteredBase);
+        }
+        return sortByChest(houseStudents.filter(matchesQuery));
+      }
+
+      function formatPlayerChipLabel(student) {
+        const cleanChest = String(student?.chestNo || '').trim().replace(/^#+/, '');
+        const fullName = String(student?.name || '').trim();
+        const firstName = fullName.split(/\s+/)[0] || fullName;
+        return cleanChest ? `#${cleanChest} ${firstName}` : firstName;
+      }
+
+      function normalizeTimelinePlayer(rawName, rawChest, type = 'goal') {
+        let name = String(rawName || '').trim();
+        let chest = String(rawChest || '').trim().replace(/^#+/, '').trim();
+
+        if (chest) {
+          const escapedChest = chest.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const dupSuffix = new RegExp(`\\s*\\(#?${escapedChest}\\)\\s*$`, 'i');
+          name = name.replace(dupSuffix, '').trim();
+        }
+
+        const playerHashMatch = name.match(/^player\s*#+\s*(.+)$/i);
+        if (playerHashMatch) {
+          const extracted = playerHashMatch[1].trim().replace(/\s*\(#?.+\)\s*$/, '').trim();
+          if (/^\d+[a-z]?$/i.test(extracted)) {
+            chest = chest || extracted;
+            name = 'Player';
+          } else {
+            name = extracted;
+            if (chest.toLowerCase() === extracted.toLowerCase()) {
+              chest = '';
+            }
+          }
+        }
+
+        const leadingChestMatch = name.match(/^#+(\d+[a-z]?)\s+(.+)$/i);
+        if (leadingChestMatch) {
+          if (!chest) chest = leadingChestMatch[1];
+          name = leadingChestMatch[2].trim();
+        }
+
+        if (chest && !/^\d+[a-z]?$/i.test(chest)) {
+          if (
+            !name ||
+            name.toLowerCase() === 'goal' ||
+            name.toLowerCase() === 'team / unknown' ||
+            name.toLowerCase() === 'player' ||
+            name.toLowerCase() === chest.toLowerCase()
+          ) {
+            name = chest;
+          }
+          chest = '';
+        }
+
+        if (chest && (name.toLowerCase() === chest.toLowerCase() || name.toLowerCase() === `#${chest.toLowerCase()}`)) {
+          name = 'Player';
+        }
+
+        if (!name) {
+          name = chest ? 'Player' : type === 'goal' ? 'Goal' : 'Team / Unknown';
+        }
+
+        return { name, chestNo: chest };
+      }
+
+      function resolveTimelineTagInput(rawInput, houseStudents, allStudents, kind = 'goal') {
+        const trimmed = String(rawInput || '').trim();
+        if (!trimmed) {
+          return { name: kind === 'goal' ? 'Goal' : 'Team / Unknown', chestNo: '' };
+        }
+
+        const qNorm = trimmed.replace(/^#+/, '').trim().toLowerCase();
+        const findStudent = (pool) => {
+          const exactChest = pool.find((s) => String(s.chestNo || '').trim().toLowerCase() === qNorm);
+          if (exactChest) return exactChest;
+          const exactName = pool.find((s) => String(s.name || '').trim().toLowerCase() === qNorm);
+          if (exactName) return exactName;
+          const firstWordMatch = pool.find(
+            (s) => (String(s.name || '').trim().split(/\s+/)[0] || '').toLowerCase() === qNorm
+          );
+          if (firstWordMatch) return firstWordMatch;
+          const partial = pool.filter(
+            (s) =>
+              String(s.chestNo || '').toLowerCase().includes(qNorm) ||
+              String(s.name || '').toLowerCase().includes(qNorm)
+          );
+          return partial.length === 1 ? partial[0] : undefined;
+        };
+
+        const matched = findStudent(houseStudents || []) || findStudent(allStudents || []);
+        if (matched) {
+          return normalizeTimelinePlayer(matched.name, matched.chestNo, kind);
+        }
+
+        const chestFirst = trimmed.match(/^#?(\d+[a-z]?)\s+(.+)$/i);
+        if (chestFirst) {
+          return normalizeTimelinePlayer(chestFirst[2], chestFirst[1], kind);
+        }
+        const chestLast = trimmed.match(/^(.+?)\s+\(?#?(\d+[a-z]?)\)?$/i);
+        if (chestLast) {
+          return normalizeTimelinePlayer(chestLast[1], chestLast[2], kind);
+        }
+
+        const cleanToken = trimmed.replace(/^player\s*#?/i, '').replace(/^#+/, '').trim();
+        if (/^\d+[a-z]?$/i.test(cleanToken)) {
+          return normalizeTimelinePlayer('Player', cleanToken, kind);
+        }
+        return normalizeTimelinePlayer(cleanToken, '', kind);
+      }
+
       function formatTimelineItemLabel(item) {
         const icon = item.type === 'goal' ? '⚽' : item.type === 'yellow' ? '🟨' : '🟥';
-        const rawName = String(item.playerName || '').trim();
-        const cleanName = rawName || (item.type === 'goal' ? 'Goal' : 'Team / Unknown');
-        const cleanChest = String(item.chestNo || '').trim();
-        const who = cleanChest ? `${cleanName} (#${cleanChest})` : cleanName;
+        const normalized = normalizeTimelinePlayer(item.playerName, item.chestNo, item.type);
+        const who = normalized.chestNo ? `${normalized.name} (#${normalized.chestNo})` : normalized.name;
         const minVal = Math.max(0, Math.floor(Number(item.minute) || 0));
         return `${icon} ${who} ${minVal}'`;
       }
@@ -3367,15 +3769,14 @@
           if (newGoalItems.length > 0) {
             const latestGoal = newGoalItems[newGoalItems.length - 1];
             const houseId = latestGoal.side === 'A' ? nextLm.teamAHouse : nextLm.teamBHouse;
-            const rawName = String(latestGoal.playerName || '').trim();
-            const chestNo = String(latestGoal.chestNo || '').trim();
+            const norm = normalizeTimelinePlayer(latestGoal.playerName, latestGoal.chestNo, 'goal');
             goals.push({
               eventId: nextEv.id,
               eventName: nextEv.name,
               houseId,
               houseName: houses[houseId]?.name || houseId,
-              playerName: rawName === 'Goal' && !chestNo ? '' : rawName || 'Team / Unknown',
-              chestNo,
+              playerName: norm.name === 'Goal' && !norm.chestNo ? '' : norm.name,
+              chestNo: norm.chestNo,
               minute: Math.max(0, Math.floor(Number(latestGoal.minute) || 0)),
               scoreA: nextLm.scoreA,
               scoreB: nextLm.scoreB,
@@ -3902,6 +4303,7 @@
           if (!initialState.schoolName) initialState.schoolName = meta.name;
         }
 
+        initialState = ensureDemoRosterEnriched(initialState);
         appState = initialState;
         lastSeenPublishedAt = appState.lastPublishedAt || 0;
         selectedEventId = appState.events[0]?.id || '';
@@ -3921,7 +4323,7 @@
                 }
                 applyIncomingSchoolState(data);
               } else {
-                fsSetDoc(schoolRef, appState).catch(() => {});
+                fsSetDoc(schoolRef, stripUndefinedDeep(appState)).catch(() => {});
               }
             },
             (err) => {
@@ -3939,14 +4341,15 @@
 
       function applyIncomingSchoolState(incoming) {
         if (!incoming || !incoming.houses || !Array.isArray(incoming.events)) return;
-        if (JSON.stringify(incoming) === JSON.stringify(appState)) return;
+        const enriched = ensureDemoRosterEnriched(incoming);
+        if (JSON.stringify(enriched) === JSON.stringify(appState)) return;
         const prevEvents = tvTrackedEventsSnapshot.length ? tvTrackedEventsSnapshot : appState.events;
         const shouldCelebrate =
-          incoming.lastPublishedAt && incoming.lastPublishedAt > lastSeenPublishedAt;
-        appState = incoming;
+          enriched.lastPublishedAt && enriched.lastPublishedAt > lastSeenPublishedAt;
+        appState = enriched;
         if (activeSchoolCode) saveSchoolLocal(activeSchoolCode, appState);
         if (shouldCelebrate) {
-          lastSeenPublishedAt = incoming.lastPublishedAt;
+          lastSeenPublishedAt = enriched.lastPublishedAt;
           showWinnerCelebration();
         }
         renderAll();
@@ -4841,6 +5244,15 @@
                 <span class="px-2.5 py-0.5 rounded-md border text-xs font-bold ${p.badgeClass}">${p.title}</span>
                 <span id="autofill-hint-${p.place}" class="text-xs font-medium text-emerald-700"></span>
               </div>
+              <div
+                id="w-participant-chips-wrap-${p.place}"
+                class="hidden rounded-lg bg-indigo-50/70 border border-indigo-200/80 px-2.5 py-2 space-y-1.5"
+              >
+                <div class="text-[11px] font-bold text-indigo-950">
+                  1-Tap Assigned Participants:
+                </div>
+                <div id="w-participant-chips-${p.place}" class="flex flex-wrap items-center gap-1.5"></div>
+              </div>
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
                 <div id="w-chest-wrap-${p.place}" class="sm:col-span-2">
                   <label for="w-chest-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Chest No.</label>
@@ -4868,7 +5280,23 @@
           input.addEventListener('input', (e) => {
             const place = e.target.getAttribute('data-place-chest');
             applyChestAutofill(place);
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            if (ev) renderIndividualPodiumParticipantChips(ev);
           });
+        });
+
+        container.addEventListener('click', (e) => {
+          const chipBtn = e.target.closest('[data-podium-place]');
+          if (!chipBtn) return;
+          const place = chipBtn.getAttribute('data-podium-place');
+          const chest = chipBtn.getAttribute('data-podium-chest') || '';
+          const chestInput = document.getElementById(`w-chest-${place}`);
+          if (chestInput) {
+            chestInput.value = chest;
+            applyChestAutofill(place);
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            if (ev) renderIndividualPodiumParticipantChips(ev);
+          }
         });
       }
 
@@ -5110,17 +5538,66 @@
             hintEl.className = 'text-xs font-medium text-indigo-700';
           }
         });
+
+        renderIndividualPodiumParticipantChips(ev, isGroupPodium);
+      }
+
+      function renderIndividualPodiumParticipantChips(ev, isGroupPodium = isHouseGroupPodiumEvent(ev)) {
+        const assignedPlayers =
+          !isGroupPodium && ev ? resolveEventParticipants(appState.students, ev.participantIds) : [];
+        const hasAssigned = assignedPlayers.length > 0;
+
+        [1, 2, 3].forEach((place) => {
+          const wrap = document.getElementById(`w-participant-chips-wrap-${place}`);
+          const listEl = document.getElementById(`w-participant-chips-${place}`);
+          if (!wrap || !listEl) return;
+
+          if (!hasAssigned) {
+            wrap.classList.add('hidden');
+            listEl.innerHTML = '';
+            return;
+          }
+
+          wrap.classList.remove('hidden');
+          const activeChest = String(document.getElementById(`w-chest-${place}`)?.value || '')
+            .trim()
+            .toLowerCase();
+
+          listEl.innerHTML = assignedPlayers
+            .map((st) => {
+              const isSelected = String(st.chestNo || '').trim().toLowerCase() === activeChest;
+              const houseShort = (appState.houses[st.house]?.name || st.house).replace(' House', '');
+              const label = formatPlayerChipLabel(st);
+              return `
+                <button
+                  type="button"
+                  data-podium-place="${place}"
+                  data-podium-chest="${escapeHtml(st.chestNo)}"
+                  title="${escapeHtml(st.name)} (#${escapeHtml(st.chestNo)} · ${escapeHtml(houseShort)})"
+                  class="min-h-[32px] px-2.5 py-1 rounded-full border text-xs font-bold transition-colors inline-flex items-center gap-1 ${
+                    isSelected
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-900 hover:text-white hover:border-slate-900'
+                  }"
+                >
+                  <span>${escapeHtml(label)}</span>
+                  <span class="text-[10px] font-medium opacity-75">(${escapeHtml(houseShort)})</span>
+                </button>
+              `;
+            })
+            .join('');
+        });
       }
 
       const inlineTaggerState = {
-        A: { itemId: '', kind: '', timerId: null },
-        B: { itemId: '', kind: '', timerId: null },
+        A: { itemId: '', kind: '', timerId: null, showAllHouse: false },
+        B: { itemId: '', kind: '', timerId: null, showAllHouse: false },
       };
 
       function hideInlineTagger(side) {
         const s = side === 'B' ? 'B' : 'A';
         clearTimeout(inlineTaggerState[s].timerId);
-        inlineTaggerState[s] = { itemId: '', kind: '', timerId: null };
+        inlineTaggerState[s] = { itemId: '', kind: '', timerId: null, showAllHouse: false };
         document.getElementById(`form-inline-tagger-${s}`)?.classList.add('hidden');
       }
 
@@ -5129,7 +5606,7 @@
         clearTimeout(inlineTaggerState[s].timerId);
         inlineTaggerState[s].timerId = setTimeout(() => {
           hideInlineTagger(s);
-        }, 5000);
+        }, 12000);
       }
 
       function pauseInlineTaggerAutoHide(side) {
@@ -5138,16 +5615,105 @@
         inlineTaggerState[s].timerId = null;
       }
 
+      function renderInlineTaggerChips(side) {
+        const s = side === 'B' ? 'B' : 'A';
+        const chipsWrap = document.getElementById(`team-inline-chips-${s}`);
+        const badgeEl = document.getElementById(`team-inline-house-badge-${s}`);
+        const chestInput = document.getElementById(`team-inline-chest-${s}`);
+        const toggleWrap = document.getElementById(`team-inline-toggle-wrap-${s}`);
+        const toggleBtn = document.getElementById(`btn-inline-toggle-all-${s}`);
+        const squadNote = document.getElementById(`team-inline-squad-note-${s}`);
+        if (!chipsWrap) return;
+
+        const ev = appState.events.find((x) => x.id === selectedEventId);
+        const houseSelect = document.getElementById(s === 'B' ? 'team-b-house' : 'team-a-house');
+        const houseId = houseSelect?.value || (s === 'B' ? 'blue' : 'red');
+        const houseName = appState.houses[houseId]?.name || houseId;
+        const category = ev?.category || '';
+        const participantIds = ev?.participantIds || [];
+        const hasSquadForHouse = hasAssignedHouseParticipants(appState.students, houseId, participantIds);
+        const showAllHouse = Boolean(inlineTaggerState[s].showAllHouse);
+
+        if (badgeEl) {
+          badgeEl.textContent = category ? `· ${houseName} (${category})` : `· ${houseName}`;
+        }
+
+        if (toggleWrap && toggleBtn && squadNote) {
+          toggleWrap.classList.toggle('hidden', !hasSquadForHouse);
+          if (hasSquadForHouse) {
+            squadNote.textContent = showAllHouse
+              ? `Showing all ${houseName} students`
+              : `Showing assigned ${houseName} squad`;
+            toggleBtn.textContent = showAllHouse
+              ? 'Show Assigned Squad Only'
+              : 'Show All House Students';
+          }
+        }
+
+        const filterQuery = chestInput?.value || '';
+        const players = filterHousePlayersForTagger(appState.students, houseId, category, filterQuery, {
+          participantIds,
+          showAllHouse,
+        });
+
+        if (players.length === 0) {
+          const cleanFilter = filterQuery.trim();
+          if (cleanFilter) {
+            chipsWrap.innerHTML = `<span class="text-[11px] text-slate-600 py-0.5">No registered match for "${escapeHtml(cleanFilter)}" — tap <strong>Save</strong> to log custom entry.</span>`;
+          } else {
+            chipsWrap.innerHTML = `<span class="text-[11px] text-slate-500 py-0.5">No registered players for ${escapeHtml(houseName)} — type Chest # or Name above.</span>`;
+          }
+          return;
+        }
+
+        chipsWrap.innerHTML = players
+          .map((st) => {
+            const label = formatPlayerChipLabel(st);
+            return `
+              <button
+                type="button"
+                data-tag-player-side="${s}"
+                data-tag-chest="${escapeHtml(st.chestNo)}"
+                data-tag-name="${escapeHtml(st.name)}"
+                title="${escapeHtml(st.name)} (#${escapeHtml(st.chestNo)})"
+                class="min-h-[34px] px-2.5 py-1 rounded-full border border-slate-300 bg-white hover:bg-slate-900 hover:text-white hover:border-slate-900 text-slate-800 text-xs font-bold transition-colors inline-flex items-center gap-1 shadow-2xs"
+              >
+                <span>${escapeHtml(label)}</span>
+              </button>
+            `;
+          })
+          .join('');
+      }
+
+      async function applyPlayerTagToTimelineItem(side, rawChestNo, rawPlayerName) {
+        const s = side === 'B' ? 'B' : 'A';
+        const targetItemId = inlineTaggerState[s].itemId;
+        const kind = inlineTaggerState[s].kind || 'goal';
+        hideInlineTagger(s);
+        if (!targetItemId) return;
+
+        const norm = normalizeTimelinePlayer(rawPlayerName, rawChestNo, kind);
+        await adjustLiveTeamState((m) => ({
+          ...m,
+          timeline: (m.timeline || []).map((item) =>
+            item.id === targetItemId ? { ...item, chestNo: norm.chestNo, playerName: norm.name } : item
+          ),
+        }));
+        showToast(
+          norm.chestNo ? `Tagged ${norm.name} (#${norm.chestNo})` : `Tagged ${norm.name}`
+        );
+      }
+
       function openInlineTagger(side, itemId, kind) {
         const s = side === 'B' ? 'B' : 'A';
         const form = document.getElementById(`form-inline-tagger-${s}`);
         const labelEl = document.getElementById(`team-inline-label-${s}`);
-        const previewEl = document.getElementById(`team-inline-preview-${s}`);
         const chestInput = document.getElementById(`team-inline-chest-${s}`);
         if (!form || !labelEl || !chestInput) return;
 
         inlineTaggerState[s].itemId = itemId;
         inlineTaggerState[s].kind = kind;
+        inlineTaggerState[s].showAllHouse = false;
 
         const isGoal = kind === 'goal';
         const isYellow = kind === 'yellow';
@@ -5162,8 +5728,8 @@
           : isYellow
             ? 'Tag Yellow Card player?'
             : 'Tag Red Card player?';
-        if (previewEl) previewEl.textContent = '';
         chestInput.value = '';
+        renderInlineTaggerChips(s);
         scheduleInlineTaggerAutoHide(s);
       }
 
@@ -5702,7 +6268,19 @@
         renderAdminEventsList();
       }
 
+      let newEventParticipantIds = [];
+      let participantsModalTargetEventId = '';
+      let participantsModalDraftSet = new Set();
+
+      function updateNewEventParticipantsButton() {
+        const btn = document.getElementById('btn-new-event-participants');
+        if (btn) {
+          btn.innerHTML = `<span>👥 Participants (${newEventParticipantIds.length})</span>`;
+        }
+      }
+
       function renderAdminEventsList() {
+        updateNewEventParticipantsButton();
         const list = document.getElementById('admin-events-list');
         if (appState.events.length === 0) {
           list.innerHTML =
@@ -5711,8 +6289,9 @@
         }
 
         list.innerHTML = appState.events
-          .map(
-            (ev) => `
+          .map((ev) => {
+            const pCount = normalizeParticipantIds(ev.participantIds).length;
+            return `
             <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
@@ -5724,6 +6303,13 @@
                 </div>
               </div>
               <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  data-admin-participants="${escapeHtml(ev.id)}"
+                  class="min-h-[36px] px-3 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-xs font-semibold text-indigo-900 inline-flex items-center gap-1"
+                >
+                  <span>👥 Participants (${pCount})</span>
+                </button>
                 <button
                   type="button"
                   data-admin-edit="${escapeHtml(ev.id)}"
@@ -5752,9 +6338,15 @@
                 </button>
               </div>
             </div>
-          `
-          )
+          `;
+          })
           .join('');
+
+        list.querySelectorAll('[data-admin-participants]').forEach((btn) => {
+          btn.addEventListener('click', () =>
+            openParticipantsModal(btn.getAttribute('data-admin-participants'))
+          );
+        });
 
         list.querySelectorAll('[data-admin-edit]').forEach((btn) => {
           btn.addEventListener('click', () => openEditEventModal(btn.getAttribute('data-admin-edit')));
@@ -5841,6 +6433,172 @@
         });
 
         document.getElementById('edit-event-modal').classList.remove('hidden');
+      }
+
+      function openParticipantsModal(targetEventId) {
+        participantsModalTargetEventId = targetEventId || '__new__';
+        const isDraft = participantsModalTargetEventId === '__new__';
+        const ev = !isDraft ? appState.events.find((e) => e.id === participantsModalTargetEventId) : null;
+
+        const initialIds = isDraft
+          ? normalizeParticipantIds(newEventParticipantIds)
+          : normalizeParticipantIds(ev?.participantIds);
+        participantsModalDraftSet = new Set(initialIds);
+
+        const subtitleEl = document.getElementById('participants-modal-subtitle');
+        const eventTitle = isDraft
+          ? document.getElementById('new-event-name')?.value.trim() || 'New Event (Draft)'
+          : ev?.name || 'Event';
+        const eventCategory = isDraft
+          ? document.getElementById('new-event-category')?.value.trim() || ''
+          : ev?.category || '';
+
+        if (subtitleEl) {
+          subtitleEl.textContent = eventCategory
+            ? `${eventTitle} · ${eventCategory}`
+            : `${eventTitle} · Select participating students by House`;
+        }
+
+        const searchInput = document.getElementById('participants-search-input');
+        if (searchInput) searchInput.value = '';
+
+        const catSelect = document.getElementById('participants-category-filter');
+        if (catSelect) {
+          const categories = Array.from(
+            new Set(
+              (appState.students || [])
+                .map((s) => String(s.category || '').trim())
+                .filter(Boolean)
+            )
+          ).sort();
+          catSelect.innerHTML =
+            `<option value="all">All Categories (${appState.students.length})</option>` +
+            categories
+              .map((cat) => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`)
+              .join('');
+
+          const hasExactCat =
+            eventCategory &&
+            categories.some((c) => c.toLowerCase() === eventCategory.toLowerCase());
+          catSelect.value = hasExactCat
+            ? categories.find((c) => c.toLowerCase() === eventCategory.toLowerCase())
+            : 'all';
+        }
+
+        renderParticipantsModalGroups();
+        document.getElementById('participants-modal').classList.remove('hidden');
+        refreshIcons();
+      }
+
+      function renderParticipantsModalGroups() {
+        const container = document.getElementById('participants-house-groups');
+        const countEl = document.getElementById('participants-selected-count');
+        const searchQuery = document.getElementById('participants-search-input')?.value || '';
+        const categoryFilter = document.getElementById('participants-category-filter')?.value || 'all';
+        if (!container) return;
+
+        if (countEl) {
+          const total = participantsModalDraftSet.size;
+          countEl.textContent = `${total} ${total === 1 ? 'participant' : 'participants'} selected`;
+        }
+
+        const grouped = groupStudentsByHouseForModal(appState.students, {
+          searchQuery,
+          categoryFilter,
+        });
+
+        const houseOrder = ['red', 'blue', 'green', 'yellow'];
+        container.innerHTML = houseOrder
+          .map((houseId) => {
+            const houseName = appState.houses[houseId]?.name || houseId;
+            const theme = HOUSE_THEME[houseId] || HOUSE_THEME.red;
+            const students = grouped[houseId] || [];
+            const selectedInHouse = students.filter((s) =>
+              participantsModalDraftSet.has(String(s.chestNo || '').trim())
+            ).length;
+
+            const rowsHtml =
+              students.length > 0
+                ? students
+                    .map((st) => {
+                      const chest = String(st.chestNo || '').trim();
+                      const checked = participantsModalDraftSet.has(chest);
+                      return `
+                        <label
+                          class="flex items-center justify-between gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-colors ${
+                            checked
+                              ? 'bg-indigo-50/90 border-indigo-300 text-slate-900'
+                              : 'bg-white border-slate-200/80 hover:bg-slate-50 text-slate-800'
+                          }"
+                        >
+                          <div class="flex items-center gap-2 min-w-0">
+                            <input
+                              type="checkbox"
+                              data-participant-checkbox="${escapeHtml(chest)}"
+                              ${checked ? 'checked' : ''}
+                              class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 shrink-0"
+                            />
+                            <span class="font-mono text-xs font-bold text-slate-700 shrink-0">#${escapeHtml(chest)}</span>
+                            <span class="text-xs sm:text-sm font-semibold truncate">${escapeHtml(st.name)}</span>
+                          </div>
+                          <span class="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">
+                            ${escapeHtml(st.category || '')}
+                          </span>
+                        </label>
+                      `;
+                    })
+                    .join('')
+                : `<div class="text-xs text-slate-400 py-3 text-center">No matching students in ${escapeHtml(houseName)}</div>`;
+
+            return `
+              <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-2">
+                <div class="flex items-center justify-between gap-2 pb-1 border-b border-slate-200/80">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-2.5 h-2.5 rounded-full ${theme.bar} shrink-0"></span>
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 truncate">
+                      ${escapeHtml(houseName)}
+                    </h4>
+                  </div>
+                  <span class="text-[11px] font-mono font-semibold text-slate-500 shrink-0">
+                    ${selectedInHouse} / ${students.length}
+                  </span>
+                </div>
+                <div class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
+                  ${rowsHtml}
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      async function saveParticipantsModalSelection() {
+        const selectedIds = normalizeParticipantIds(Array.from(participantsModalDraftSet));
+        document.getElementById('participants-modal').classList.add('hidden');
+
+        if (participantsModalTargetEventId === '__new__') {
+          newEventParticipantIds = selectedIds;
+          updateNewEventParticipantsButton();
+          showToast(
+            selectedIds.length > 0
+              ? `${selectedIds.length} participants queued for new event`
+              : 'Cleared new event participants'
+          );
+          return;
+        }
+
+        const targetEv = appState.events.find((e) => e.id === participantsModalTargetEventId);
+        if (!targetEv) return;
+
+        const nextEvents = appState.events.map((ev) =>
+          ev.id === targetEv.id
+            ? { ...ev, participantIds: selectedIds, updatedAt: Date.now() }
+            : ev
+        );
+        await persistState({ ...appState, events: nextEvents });
+        populateAdminForms();
+        syncScoringSelector({ preserveInputs: true });
+        showToast(`Saved ${selectedIds.length} participants for ${targetEv.name}`);
       }
 
       // =======================================================================
@@ -6972,54 +7730,68 @@
 
         ['A', 'B'].forEach((side) => {
           const chestInput = document.getElementById(`team-inline-chest-${side}`);
-          const previewEl = document.getElementById(`team-inline-preview-${side}`);
           const form = document.getElementById(`form-inline-tagger-${side}`);
           const dismissBtn = document.getElementById(`btn-inline-dismiss-${side}`);
+          const chipsWrap = document.getElementById(`team-inline-chips-${side}`);
+          const toggleAllBtn = document.getElementById(`btn-inline-toggle-all-${side}`);
+          const houseSelect = document.getElementById(side === 'B' ? 'team-b-house' : 'team-a-house');
 
-          chestInput?.addEventListener('focus', () => pauseInlineTaggerAutoHide(side));
-          chestInput?.addEventListener('input', (e) => {
-            pauseInlineTaggerAutoHide(side);
-            const chest = e.target.value.trim();
-            if (!chest) {
-              if (previewEl) previewEl.textContent = '';
-              return;
-            }
-            const found = appState.students.find((s) => s.chestNo.toLowerCase() === chest.toLowerCase());
-            if (previewEl) {
-              previewEl.textContent = found ? found.name : `Chest #${chest}`;
+          houseSelect?.addEventListener('change', () => {
+            if (!form?.classList.contains('hidden')) {
+              inlineTaggerState[side].showAllHouse = false;
+              renderInlineTaggerChips(side);
             }
           });
 
-          dismissBtn?.addEventListener('click', () => hideInlineTagger(side));
+          toggleAllBtn?.addEventListener('click', () => {
+            pauseInlineTaggerAutoHide(side);
+            inlineTaggerState[side].showAllHouse = !inlineTaggerState[side].showAllHouse;
+            renderInlineTaggerChips(side);
+          });
+
+          chestInput?.addEventListener('focus', () => pauseInlineTaggerAutoHide(side));
+          chestInput?.addEventListener('input', () => {
+            pauseInlineTaggerAutoHide(side);
+            renderInlineTaggerChips(side);
+          });
+
+          chipsWrap?.addEventListener('click', (e) => {
+            const chipBtn = e.target.closest('[data-tag-player-side]');
+            if (!chipBtn) return;
+            const chipSide = chipBtn.getAttribute('data-tag-player-side') || side;
+            const chipChest = chipBtn.getAttribute('data-tag-chest') || '';
+            const chipName = chipBtn.getAttribute('data-tag-name') || '';
+            applyPlayerTagToTimelineItem(chipSide, chipChest, chipName);
+          });
+
+          dismissBtn?.addEventListener('click', () => {
+            hideInlineTagger(side);
+            showToast('Saved as team event');
+          });
 
           form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const targetItemId = inlineTaggerState[side].itemId;
             const kind = inlineTaggerState[side].kind || 'goal';
-            const chestNo = chestInput?.value.trim() || '';
-            hideInlineTagger(side);
-            if (!targetItemId) return;
+            const rawInput = chestInput?.value.trim() || '';
+            if (!targetItemId) {
+              hideInlineTagger(side);
+              return;
+            }
+            if (!rawInput) {
+              hideInlineTagger(side);
+              showToast('Saved as team event');
+              return;
+            }
 
-            const found = chestNo
-              ? appState.students.find((s) => s.chestNo.toLowerCase() === chestNo.toLowerCase())
-              : null;
-            const resolvedName = found
-              ? found.name
-              : chestNo
-                ? `Player #${chestNo}`
-                : kind === 'goal'
-                  ? 'Goal'
-                  : 'Team / Unknown';
-
-            await adjustLiveTeamState((m) => ({
-              ...m,
-              timeline: (m.timeline || []).map((item) =>
-                item.id === targetItemId ? { ...item, chestNo, playerName: resolvedName } : item
-              ),
-            }));
-            showToast(
-              chestNo ? `Tagged ${resolvedName} (#${chestNo})` : 'Saved without player number'
-            );
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            const houseId = houseSelect?.value || (side === 'B' ? 'blue' : 'red');
+            const houseCandidates = filterHousePlayersForTagger(appState.students, houseId, ev?.category, '', {
+              participantIds: ev?.participantIds,
+              showAllHouse: inlineTaggerState[side].showAllHouse,
+            });
+            const resolved = resolveTimelineTagInput(rawInput, houseCandidates, appState.students, kind);
+            await applyPlayerTagToTimelineItem(side, resolved.chestNo, resolved.name);
           });
         });
 
@@ -7477,6 +8249,10 @@
         });
 
         // School Admin: Quick Event Creator
+        document.getElementById('btn-new-event-participants').addEventListener('click', () => {
+          openParticipantsModal('__new__');
+        });
+
         document.getElementById('form-create-event').addEventListener('submit', async (e) => {
           e.preventDefault();
           const name = document.getElementById('new-event-name').value.trim();
@@ -7485,6 +8261,7 @@
           const venue = document.getElementById('new-event-venue').value.trim();
           if (!name || !category || !venue) return;
 
+          const assignedIds = normalizeParticipantIds(newEventParticipantIds);
           const newEvent = {
             id: `ev-${Date.now()}`,
             name,
@@ -7493,6 +8270,7 @@
             venue,
             status: 'UPCOMING',
             winners: [],
+            participantIds: assignedIds,
             ...(type === 'team' || type === 'cricket'
               ? {
                   liveMatch: {
@@ -7511,10 +8289,57 @@
           };
 
           selectedEventId = newEvent.id;
+          newEventParticipantIds = [];
+          updateNewEventParticipantsButton();
           e.target.reset();
           await persistState({ ...appState, events: [newEvent, ...appState.events] });
           populateAdminForms();
           showToast(`Added event: ${name}`);
+        });
+
+        // School Admin: Participants / Squad Modal Handlers
+        document.getElementById('btn-close-participants-modal').addEventListener('click', () => {
+          document.getElementById('participants-modal').classList.add('hidden');
+        });
+        document.getElementById('btn-cancel-participants-modal').addEventListener('click', () => {
+          document.getElementById('participants-modal').classList.add('hidden');
+        });
+        document.getElementById('participants-search-input').addEventListener('input', () => {
+          renderParticipantsModalGroups();
+        });
+        document.getElementById('participants-category-filter').addEventListener('change', () => {
+          renderParticipantsModalGroups();
+        });
+        document.getElementById('participants-house-groups').addEventListener('change', (e) => {
+          const cb = e.target.closest('[data-participant-checkbox]');
+          if (!cb) return;
+          const chest = cb.getAttribute('data-participant-checkbox') || '';
+          if (!chest) return;
+          if (cb.checked) {
+            participantsModalDraftSet.add(chest);
+          } else {
+            participantsModalDraftSet.delete(chest);
+          }
+          renderParticipantsModalGroups();
+        });
+        document.getElementById('btn-participants-select-visible').addEventListener('click', () => {
+          const searchQuery = document.getElementById('participants-search-input')?.value || '';
+          const categoryFilter = document.getElementById('participants-category-filter')?.value || 'all';
+          const grouped = groupStudentsByHouseForModal(appState.students, { searchQuery, categoryFilter });
+          ['red', 'blue', 'green', 'yellow'].forEach((h) => {
+            (grouped[h] || []).forEach((s) => {
+              const c = String(s.chestNo || '').trim();
+              if (c) participantsModalDraftSet.add(c);
+            });
+          });
+          renderParticipantsModalGroups();
+        });
+        document.getElementById('btn-participants-clear-all').addEventListener('click', () => {
+          participantsModalDraftSet.clear();
+          renderParticipantsModalGroups();
+        });
+        document.getElementById('btn-save-participants').addEventListener('click', () => {
+          saveParticipantsModalSelection();
         });
 
         // School Admin: CSV Student Roster & Template Download

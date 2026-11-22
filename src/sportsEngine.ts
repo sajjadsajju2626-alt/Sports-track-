@@ -250,7 +250,7 @@ export function resolveEffectiveEventType(
     return 'group';
   }
   if (
-    /(football|soccer|futsal|kabaddi|basketball|volleyball|badminton|tug\s*of\s*war|kho[- ]?kho|hockey|handball|throwball)/i.test(
+    /(football|soccer|futsal|kabaddi|basketball|volleyball|badminton|table\s*tennis|tug\s*of\s*war|kho[- ]?kho|hockey|handball|throwball)/i.test(
       name
     )
   ) {
@@ -1395,17 +1395,105 @@ export function isFieldEvent(
   return /(throw|javelin|shot\s*put|discus|jump|vault|hammer)/i.test(name);
 }
 
+export function isIndoorBoardEvent(
+  ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
+): boolean {
+  if (!ev) return false;
+  const effective = resolveEffectiveEventType(ev);
+  if (effective !== 'individual') return false;
+  const name = String(ev.name || '');
+  return /\b(chess|carroms?)\b/i.test(name);
+}
+
 export function isTimedTrackEvent(
   ev: Pick<SportEvent, 'name' | 'type'> | null | undefined
 ): boolean {
   if (!ev) return false;
   const effective = resolveEffectiveEventType(ev);
   if (effective === 'team' || effective === 'cricket') return false;
-  if (isFieldEvent(ev)) return false;
+  if (isFieldEvent(ev) || isIndoorBoardEvent(ev)) return false;
   const name = String(ev.name || '');
   return /(\b\d+\s*(?:m|meters?|metres?|km)\b|\b\d+\s*x\s*\d+|sprint|run|race|hurdles?|relay|dash|track|walk|marathon|steeple|cross\s*country|swim|cycling)/i.test(
     name
   );
+}
+
+export const QUICK_CATEGORY_PRESETS = [
+  'Sub-Junior Boys',
+  'Sub-Junior Girls',
+  'Junior Boys',
+  'Junior Girls',
+  'Senior Boys',
+  'Senior Girls',
+  'Open / Mixed',
+] as const;
+
+export interface QuickEventPreset {
+  name: string;
+  type: CanonicalEventType;
+  venue: string;
+}
+
+export interface QuickEventPresetGroup {
+  id: 'track' | 'field' | 'team' | 'indoor';
+  label: string;
+  items: QuickEventPreset[];
+}
+
+export const QUICK_EVENT_PRESET_GROUPS: QuickEventPresetGroup[] = [
+  {
+    id: 'track',
+    label: 'Track',
+    items: [
+      { name: '100m Sprint', type: 'individual', venue: 'Main Track' },
+      { name: '200m Sprint', type: 'individual', venue: 'Main Track' },
+      { name: '400m Run', type: 'individual', venue: 'Main Track' },
+      { name: '800m Run', type: 'individual', venue: 'Main Track' },
+      { name: '1500m Run', type: 'individual', venue: 'Main Track' },
+      { name: '4x100m Relay', type: 'group', venue: 'Main Track' },
+    ],
+  },
+  {
+    id: 'field',
+    label: 'Field',
+    items: [
+      { name: 'Long Jump', type: 'individual', venue: 'Jumping Pit' },
+      { name: 'High Jump', type: 'individual', venue: 'Jumping Pit' },
+      { name: 'Shot Put', type: 'individual', venue: 'Throwing Sector' },
+      { name: 'Discus Throw', type: 'individual', venue: 'Throwing Sector' },
+      { name: 'Javelin Throw', type: 'individual', venue: 'Throwing Sector' },
+    ],
+  },
+  {
+    id: 'team',
+    label: 'Team / Outdoor',
+    items: [
+      { name: 'Football', type: 'team', venue: 'Football Turf' },
+      { name: 'Cricket', type: 'cricket', venue: 'Cricket Ground' },
+      { name: 'Volleyball', type: 'team', venue: 'Volleyball Court' },
+      { name: 'Tug of War', type: 'team', venue: 'Main Ground' },
+    ],
+  },
+  {
+    id: 'indoor',
+    label: 'Indoor Games',
+    items: [
+      { name: 'Chess', type: 'individual', venue: 'Indoor Hall' },
+      { name: 'Table Tennis', type: 'team', venue: 'Indoor Hall' },
+      { name: 'Badminton', type: 'team', venue: 'Indoor Hall' },
+      { name: 'Carroms', type: 'individual', venue: 'Indoor Hall' },
+    ],
+  },
+];
+
+export function findQuickEventPreset(eventName: string | undefined): QuickEventPreset | null {
+  const norm = String(eventName || '').trim().toLowerCase();
+  if (!norm) return null;
+  for (const group of QUICK_EVENT_PRESET_GROUPS) {
+    const match = group.items.find((item) => item.name.toLowerCase() === norm);
+    if (match) return match;
+  }
+  return null;
 }
 
 export function formatFieldMetric(raw: string | undefined): string {

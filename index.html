@@ -1842,44 +1842,65 @@
               id="form-create-event"
               class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"
             >
-              <h3 class="text-base font-bold text-slate-900">Quick Event Creator</h3>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-base font-bold text-slate-900">Quick Event Creator</h3>
+                <span class="text-xs text-slate-500">Tap presets to auto-fill or type custom</span>
+              </div>
+
+              <!-- Event Name + 1-Tap Sports & Indoor Games Selector -->
+              <div>
+                <label for="new-event-name" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Event Name
+                </label>
+                <input
+                  id="new-event-name"
+                  type="text"
+                  required
+                  placeholder="Type custom name or tap a sport below..."
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
+                <div
+                  id="quick-event-presets"
+                  role="group"
+                  aria-label="Quick-select sports and indoor games"
+                  class="mt-2.5 rounded-xl border border-slate-200 bg-slate-50/80 p-3 space-y-2.5"
+                ></div>
+              </div>
+
+              <!-- Category + 1-Tap Category Preset Chips -->
+              <div>
+                <label for="new-event-category" class="block text-xs font-semibold text-slate-600 mb-1">
+                  Category
+                </label>
+                <input
+                  id="new-event-category"
+                  type="text"
+                  required
+                  placeholder="e.g. Junior Boys, Senior Girls — or tap a preset below"
+                  class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                />
+                <div
+                  id="quick-category-presets"
+                  role="group"
+                  aria-label="Quick-select event category"
+                  class="mt-2 flex flex-wrap gap-1.5"
+                ></div>
+              </div>
+
+              <!-- Event Type & Ground / Track Venue -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label for="new-event-name" class="block text-xs font-semibold text-slate-600 mb-1">
-                    Event Name
-                  </label>
-                  <input
-                    id="new-event-name"
-                    type="text"
-                    required
-                    placeholder="e.g. 200m Sprint or Football Final"
-                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
-                  />
-                </div>
-                <div>
-                  <label for="new-event-category" class="block text-xs font-semibold text-slate-600 mb-1">
-                    Category
-                  </label>
-                  <input
-                    id="new-event-category"
-                    type="text"
-                    required
-                    placeholder="e.g. Junior Boys, Senior Girls"
-                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
-                  />
-                </div>
                 <div>
                   <label for="new-event-type" class="block text-xs font-semibold text-slate-600 mb-1">
                     Event Type
                   </label>
                   <select
                     id="new-event-type"
-                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                   >
                     <option value="individual">Individual Event</option>
                     <option value="group">House / Group Podium</option>
                     <option value="team">1 vs 1 Live Match</option>
-                    <option value="cricket">Cricket Match</option>
+                    <option value="cricket">Live Cricket Match</option>
                   </select>
                 </div>
                 <div>
@@ -1890,12 +1911,13 @@
                     id="new-event-venue"
                     type="text"
                     required
-                    placeholder="e.g. Main Track / Football Turf"
-                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm"
+                    placeholder="e.g. Main Track / Football Turf / Indoor Hall"
+                    class="w-full min-h-[42px] px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
                   />
                 </div>
               </div>
-              <div class="flex flex-wrap items-center justify-end gap-2.5">
+
+              <div class="flex flex-wrap items-center justify-end gap-2.5 pt-1">
                 <button
                   type="button"
                   id="btn-new-event-participants"
@@ -2950,7 +2972,7 @@
           return 'group';
         }
         if (
-          /(football|soccer|futsal|kabaddi|basketball|volleyball|badminton|tug\s*of\s*war|kho[- ]?kho|hockey|handball|throwball)/i.test(
+          /(football|soccer|futsal|kabaddi|basketball|volleyball|badminton|table\s*tennis|tug\s*of\s*war|kho[- ]?kho|hockey|handball|throwball)/i.test(
             name
           )
         ) {
@@ -3041,15 +3063,93 @@
         return /(throw|javelin|shot\s*put|discus|jump|vault|hammer)/i.test(name);
       }
 
+      function isIndoorBoardEvent(ev) {
+        if (!ev) return false;
+        const effective = resolveEffectiveEventType(ev);
+        if (effective !== 'individual') return false;
+        const name = String(ev.name || '');
+        return /\b(chess|carroms?)\b/i.test(name);
+      }
+
       function isTimedTrackEvent(ev) {
         if (!ev) return false;
         const effective = resolveEffectiveEventType(ev);
         if (effective === 'team' || effective === 'cricket') return false;
-        if (isFieldEvent(ev)) return false;
+        if (isFieldEvent(ev) || isIndoorBoardEvent(ev)) return false;
         const name = String(ev.name || '');
         return /(\b\d+\s*(?:m|meters?|metres?|km)\b|\b\d+\s*x\s*\d+|sprint|run|race|hurdles?|relay|dash|track|walk|marathon|steeple|cross\s*country|swim|cycling)/i.test(
           name
         );
+      }
+
+      const QUICK_CATEGORY_PRESETS = [
+        'Sub-Junior Boys',
+        'Sub-Junior Girls',
+        'Junior Boys',
+        'Junior Girls',
+        'Senior Boys',
+        'Senior Girls',
+        'Open / Mixed',
+      ];
+
+      const QUICK_EVENT_PRESET_GROUPS = [
+        {
+          id: 'track',
+          label: 'Track',
+          dotClass: 'bg-blue-500',
+          items: [
+            { name: '100m Sprint', type: 'individual', venue: 'Main Track' },
+            { name: '200m Sprint', type: 'individual', venue: 'Main Track' },
+            { name: '400m Run', type: 'individual', venue: 'Main Track' },
+            { name: '800m Run', type: 'individual', venue: 'Main Track' },
+            { name: '1500m Run', type: 'individual', venue: 'Main Track' },
+            { name: '4x100m Relay', type: 'group', venue: 'Main Track' },
+          ],
+        },
+        {
+          id: 'field',
+          label: 'Field',
+          dotClass: 'bg-amber-500',
+          items: [
+            { name: 'Long Jump', type: 'individual', venue: 'Jumping Pit' },
+            { name: 'High Jump', type: 'individual', venue: 'Jumping Pit' },
+            { name: 'Shot Put', type: 'individual', venue: 'Throwing Sector' },
+            { name: 'Discus Throw', type: 'individual', venue: 'Throwing Sector' },
+            { name: 'Javelin Throw', type: 'individual', venue: 'Throwing Sector' },
+          ],
+        },
+        {
+          id: 'team',
+          label: 'Team / Outdoor',
+          dotClass: 'bg-emerald-500',
+          items: [
+            { name: 'Football', type: 'team', venue: 'Football Turf' },
+            { name: 'Cricket', type: 'cricket', venue: 'Cricket Ground' },
+            { name: 'Volleyball', type: 'team', venue: 'Volleyball Court' },
+            { name: 'Tug of War', type: 'team', venue: 'Main Ground' },
+          ],
+        },
+        {
+          id: 'indoor',
+          label: 'Indoor Games',
+          dotClass: 'bg-violet-500',
+          items: [
+            { name: 'Chess', type: 'individual', venue: 'Indoor Hall' },
+            { name: 'Table Tennis', type: 'team', venue: 'Indoor Hall' },
+            { name: 'Badminton', type: 'team', venue: 'Indoor Hall' },
+            { name: 'Carroms', type: 'individual', venue: 'Indoor Hall' },
+          ],
+        },
+      ];
+
+      function findQuickEventPreset(eventName) {
+        const norm = String(eventName || '').trim().toLowerCase();
+        if (!norm) return null;
+        for (const group of QUICK_EVENT_PRESET_GROUPS) {
+          const match = group.items.find((item) => item.name.toLowerCase() === norm);
+          if (match) return match;
+        }
+        return null;
       }
 
       function formatFieldMetric(raw) {
@@ -6178,6 +6278,7 @@
         const stopwatchBar = document.getElementById('track-stopwatch-bar');
 
         const isField = !isGroupPodium && isFieldEvent(ev);
+        const isIndoorBoard = !isGroupPodium && isIndoorBoardEvent(ev);
         const showStopwatch = isTimedTrackEvent(ev);
 
         if (stopwatchBar) {
@@ -6221,14 +6322,18 @@
               ? 'Timing / Score Note (Optional)'
               : isField
                 ? 'Distance / Height (m)'
-                : 'Time / Distance';
+                : isIndoorBoard
+                  ? 'Score / Note (Optional)'
+                  : 'Time / Distance';
           }
           if (metricInput) {
             metricInput.placeholder = isGroupPodium
               ? 'e.g. 44.82s or 92 pts'
               : isField
                 ? 'e.g. 34.50m'
-                : 'e.g. 12.4s / 4.85m';
+                : isIndoorBoard
+                  ? 'e.g. 5/5 pts or Winner'
+                  : 'e.g. 12.4s / 4.85m';
           }
           if (isGroupPodium && hintEl) {
             hintEl.textContent = 'Select House (no chest no. required)';
@@ -6965,6 +7070,83 @@
           `${appState.students.length} students`;
 
         renderAdminEventsList();
+      }
+
+      function buildQuickEventCreatorPresetsUI() {
+        const eventPresetsRoot = document.getElementById('quick-event-presets');
+        if (eventPresetsRoot) {
+          eventPresetsRoot.innerHTML = QUICK_EVENT_PRESET_GROUPS.map(
+            (group) => `
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  <span class="w-1.5 h-1.5 rounded-full ${group.dotClass}" aria-hidden="true"></span>
+                  <span>${escapeHtml(group.label)}</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  ${group.items
+                    .map(
+                      (item) => `
+                        <button
+                          type="button"
+                          data-quick-event-preset="${escapeHtml(item.name)}"
+                          aria-pressed="false"
+                          class="quick-preset-chip min-h-[32px] px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors"
+                        >
+                          ${escapeHtml(item.name)}
+                        </button>
+                      `
+                    )
+                    .join('')}
+                </div>
+              </div>
+            `
+          ).join('');
+        }
+
+        const catPresetsRoot = document.getElementById('quick-category-presets');
+        if (catPresetsRoot) {
+          catPresetsRoot.innerHTML = QUICK_CATEGORY_PRESETS.map(
+            (cat) => `
+              <button
+                type="button"
+                data-quick-category-preset="${escapeHtml(cat)}"
+                aria-pressed="false"
+                class="quick-preset-chip min-h-[32px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:border-slate-400 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors"
+              >
+                ${escapeHtml(cat)}
+              </button>
+            `
+          ).join('');
+        }
+
+        syncQuickCreatorPresetHighlights();
+      }
+
+      function syncQuickCreatorPresetHighlights() {
+        const activeEventNorm = String(document.getElementById('new-event-name')?.value || '')
+          .trim()
+          .toLowerCase();
+        const activeCatNorm = String(document.getElementById('new-event-category')?.value || '')
+          .trim()
+          .toLowerCase();
+
+        document.querySelectorAll('#quick-event-presets [data-quick-event-preset]').forEach((btn) => {
+          const val = String(btn.getAttribute('data-quick-event-preset') || '').trim().toLowerCase();
+          const isActive = Boolean(activeEventNorm) && val === activeEventNorm;
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          btn.className = isActive
+            ? 'quick-preset-chip min-h-[32px] px-2.5 py-1 rounded-lg border border-slate-900 bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors'
+            : 'quick-preset-chip min-h-[32px] px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:border-slate-400 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors';
+        });
+
+        document.querySelectorAll('#quick-category-presets [data-quick-category-preset]').forEach((btn) => {
+          const val = String(btn.getAttribute('data-quick-category-preset') || '').trim().toLowerCase();
+          const isActive = Boolean(activeCatNorm) && val === activeCatNorm;
+          btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          btn.className = isActive
+            ? 'quick-preset-chip min-h-[32px] px-2.5 py-1 rounded-lg border border-slate-900 bg-slate-900 text-white text-xs font-semibold shadow-xs transition-colors'
+            : 'quick-preset-chip min-h-[32px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:border-slate-400 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors';
+        });
       }
 
       let newEventParticipantIds = [];
@@ -9109,7 +9291,40 @@
           showToast('Meet settings & Official PIN saved');
         });
 
-        // School Admin: Quick Event Creator
+        // School Admin: Quick Event Creator (1-Tap Sport/Indoor & Category Presets + Submit)
+        document.getElementById('quick-event-presets')?.addEventListener('click', (e) => {
+          const chip = e.target.closest('[data-quick-event-preset]');
+          if (!chip) return;
+          const presetName = chip.getAttribute('data-quick-event-preset') || '';
+          const preset = findQuickEventPreset(presetName);
+          if (!preset) return;
+
+          const nameInput = document.getElementById('new-event-name');
+          const typeSelect = document.getElementById('new-event-type');
+          const venueInput = document.getElementById('new-event-venue');
+          if (nameInput) nameInput.value = preset.name;
+          if (typeSelect) typeSelect.value = preset.type;
+          if (venueInput) venueInput.value = preset.venue;
+          syncQuickCreatorPresetHighlights();
+        });
+
+        document.getElementById('quick-category-presets')?.addEventListener('click', (e) => {
+          const chip = e.target.closest('[data-quick-category-preset]');
+          if (!chip) return;
+          const catValue = chip.getAttribute('data-quick-category-preset') || '';
+          const catInput = document.getElementById('new-event-category');
+          if (catInput) catInput.value = catValue;
+          syncQuickCreatorPresetHighlights();
+        });
+
+        document.getElementById('new-event-name')?.addEventListener('input', () => {
+          syncQuickCreatorPresetHighlights();
+        });
+
+        document.getElementById('new-event-category')?.addEventListener('input', () => {
+          syncQuickCreatorPresetHighlights();
+        });
+
         document.getElementById('btn-new-event-participants').addEventListener('click', () => {
           openParticipantsModal('__new__');
         });
@@ -9153,6 +9368,7 @@
           newEventParticipantIds = [];
           updateNewEventParticipantsButton();
           e.target.reset();
+          syncQuickCreatorPresetHighlights();
           await persistState({ ...appState, events: [newEvent, ...appState.events] });
           populateAdminForms();
           showToast(`Added event: ${name}`);
@@ -9361,6 +9577,7 @@
       // 13. BOOTSTRAP
       // =======================================================================
       buildPodiumRowsUI();
+      buildQuickEventCreatorPresetsUI();
       wireEventListeners();
       setupHardwareBackSupport();
       refreshIcons();

@@ -20,6 +20,7 @@ import {
   detectNewGoals,
   evaluateMatchThresholdAlert,
   filterHousePlayersForTagger,
+  findQuickEventPreset,
   formatCricketScore,
   formatFieldMetric,
   formatLiveMatchStatusDisplay,
@@ -40,6 +41,7 @@ import {
   isEventCompletedStatus,
   isFieldEvent,
   isHouseGroupPodiumEvent,
+  isIndoorBoardEvent,
   isRelayEvent,
   isStudentRegisteredForEvent,
   isTimedTrackEvent,
@@ -49,6 +51,8 @@ import {
   normalizeTimelinePlayer,
   parseFieldAttempt,
   parseStudentCsv,
+  QUICK_CATEGORY_PRESETS,
+  QUICK_EVENT_PRESET_GROUPS,
   rankFieldTrials,
   resolveCarouselIndex,
   resolveEffectiveEventType,
@@ -1201,5 +1205,82 @@ test('Session persistence restores school, role, tab, and selected event; Re-ope
   assert.deepEqual(reopenedUpcoming.winners, []);
   assert.equal(reopenedUpcoming.liveMatch?.periodLabel, 'Scheduled');
 });
+
+test('Quick Event Creator presets: category chips, Track/Field/Team/Indoor auto-type & venue, and Chess/Carroms stopwatch gating', () => {
+  // 1. All 7 required category presets in exact order
+  assert.deepEqual([...QUICK_CATEGORY_PRESETS], [
+    'Sub-Junior Boys',
+    'Sub-Junior Girls',
+    'Junior Boys',
+    'Junior Girls',
+    'Senior Boys',
+    'Senior Girls',
+    'Open / Mixed',
+  ]);
+
+  // 2. All 4 categorized groups present
+  assert.deepEqual(
+    QUICK_EVENT_PRESET_GROUPS.map((g) => g.label),
+    ['Track', 'Field', 'Team / Outdoor', 'Indoor Games']
+  );
+
+  // 3. Verify every sport/indoor item maps to the exact Event Type and smart Venue
+  const expectations: Array<{ name: string; type: string; venue: string }> = [
+    // Track
+    { name: '100m Sprint', type: 'individual', venue: 'Main Track' },
+    { name: '200m Sprint', type: 'individual', venue: 'Main Track' },
+    { name: '400m Run', type: 'individual', venue: 'Main Track' },
+    { name: '800m Run', type: 'individual', venue: 'Main Track' },
+    { name: '1500m Run', type: 'individual', venue: 'Main Track' },
+    { name: '4x100m Relay', type: 'group', venue: 'Main Track' },
+    // Field
+    { name: 'Long Jump', type: 'individual', venue: 'Jumping Pit' },
+    { name: 'High Jump', type: 'individual', venue: 'Jumping Pit' },
+    { name: 'Shot Put', type: 'individual', venue: 'Throwing Sector' },
+    { name: 'Discus Throw', type: 'individual', venue: 'Throwing Sector' },
+    { name: 'Javelin Throw', type: 'individual', venue: 'Throwing Sector' },
+    // Team / Outdoor
+    { name: 'Football', type: 'team', venue: 'Football Turf' },
+    { name: 'Cricket', type: 'cricket', venue: 'Cricket Ground' },
+    { name: 'Volleyball', type: 'team', venue: 'Volleyball Court' },
+    { name: 'Tug of War', type: 'team', venue: 'Main Ground' },
+    // Indoor Games
+    { name: 'Chess', type: 'individual', venue: 'Indoor Hall' },
+    { name: 'Table Tennis', type: 'team', venue: 'Indoor Hall' },
+    { name: 'Badminton', type: 'team', venue: 'Indoor Hall' },
+    { name: 'Carroms', type: 'individual', venue: 'Indoor Hall' },
+  ];
+
+  for (const exp of expectations) {
+    const preset = findQuickEventPreset(exp.name);
+    assert.ok(preset, `Preset should exist for ${exp.name}`);
+    assert.equal(preset.type, exp.type, `Wrong Event Type for ${exp.name}`);
+    assert.equal(preset.venue, exp.venue, `Wrong Venue for ${exp.name}`);
+  }
+
+  // Case-insensitive lookup and unknown custom name returns null
+  assert.equal(findQuickEventPreset('table tennis')?.venue, 'Indoor Hall');
+  assert.equal(findQuickEventPreset('Custom Sack Race'), null);
+
+  // 4. Indoor board games (Chess & Carroms) use Individual Event mode AND hide Track Stopwatch
+  for (const name of ['Chess', 'Carroms', 'Chess 10m Rapid', 'Carrom Singles']) {
+    const ev = { name, type: 'individual' as const };
+    assert.equal(resolveEffectiveEventType(ev), 'individual');
+    assert.equal(isIndoorBoardEvent(ev), true, `Expected indoor board event: ${name}`);
+    assert.equal(isFieldEvent(ev), false, `Expected not a field event: ${name}`);
+    assert.equal(isTimedTrackEvent(ev), false, `Expected Track Stopwatch hidden for ${name}`);
+  }
+
+  // 5. Table Tennis & Badminton resolve to 1 vs 1 Live Match (set-based, no football clock)
+  for (const name of ['Table Tennis', 'Badminton']) {
+    const ev = { name, type: 'team' as const };
+    assert.equal(resolveEffectiveEventType(ev), 'team');
+    assert.equal(resolveEffectiveEventType({ name, type: 'individual' }), 'team');
+    const profile = detectLiveMatchSportProfile(name);
+    assert.equal(profile.id, 'set_match');
+    assert.equal(profile.showClock, false);
+  }
+});
+
 
 

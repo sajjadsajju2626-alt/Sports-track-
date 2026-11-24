@@ -20,7 +20,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
 
@@ -31,7 +31,7 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+              sans: ['"Plus Jakarta Sans"', '"Noto Sans Malayalam"', 'system-ui', '-apple-system', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
             },
           },
@@ -51,7 +51,7 @@
       }
 
       body {
-        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        font-family: 'Plus Jakarta Sans', 'Noto Sans Malayalam', system-ui, -apple-system, sans-serif;
         background-color: #f8fafc;
         color: #0f172a;
         -webkit-font-smoothing: antialiased;
@@ -158,6 +158,45 @@
         pointer-events: none;
         z-index: 100;
         animation: confettiFall 3.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      }
+
+      /* Interactive Quick Tour Spotlight */
+      #quick-tour-spotlight {
+        position: fixed;
+        border-radius: 16px;
+        border: 2.5px solid #6366f1;
+        box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.62), 0 0 0 6px rgba(99, 102, 241, 0.22);
+        pointer-events: none;
+        transition:
+          top 220ms cubic-bezier(0.16, 1, 0.3, 1),
+          left 220ms cubic-bezier(0.16, 1, 0.3, 1),
+          width 220ms cubic-bezier(0.16, 1, 0.3, 1),
+          height 220ms cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 180ms ease;
+      }
+
+      @keyframes quickTourCardPop {
+        from {
+          opacity: 0;
+          transform: translateY(6px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .quick-tour-card-enter {
+        animation: quickTourCardPop 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #quick-tour-spotlight {
+          transition: none;
+        }
+        .quick-tour-card-enter {
+          animation: none;
+        }
       }
 
       /* A4 Print Stylesheet */
@@ -810,7 +849,7 @@
         </div>
 
         <!-- Event Picker Card -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
+        <div id="tour-scoring-picker-card" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div class="flex-1">
               <label
@@ -1639,7 +1678,7 @@
         class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8"
         aria-label="Sports Admin Panel"
       >
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div id="tour-admin-header" class="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
               Sports Admin &amp; Meet Controls
@@ -1651,8 +1690,15 @@
           <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
+              id="btn-quick-tour"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-sm font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              <span>🎯 Quick Tour</span>
+            </button>
+            <button
+              type="button"
               id="btn-load-sample"
-              class="min-h-[42px] px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold inline-flex items-center gap-1.5"
+              class="min-h-[42px] px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
               <i data-lucide="sparkles" class="w-4 h-4" aria-hidden="true"></i>
               <span>Load Sample School Data</span>
@@ -1660,7 +1706,7 @@
             <button
               type="button"
               id="btn-admin-print"
-              class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold inline-flex items-center gap-1.5"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0"
             >
               <i data-lucide="printer" class="w-4 h-4" aria-hidden="true"></i>
               <span>Print A4 Results Sheet</span>
@@ -1668,7 +1714,7 @@
             <button
               type="button"
               id="btn-admin-reset"
-              class="min-h-[42px] px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold"
+              class="min-h-[42px] px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold whitespace-nowrap shrink-0"
             >
               Reset All Data
             </button>
@@ -1827,7 +1873,7 @@
             </form>
 
             <!-- Optional CSV Student List with Template Download -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <div id="tour-admin-roster-card" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
               <div class="flex items-center justify-between gap-2">
                 <h3 class="text-base font-bold text-slate-900">Optional Student Roster (CSV)</h3>
                 <span id="roster-count-label" class="text-xs font-mono text-slate-500">0 students</span>
@@ -1974,7 +2020,7 @@
             </form>
 
             <!-- Events & Results Manager -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
+            <div id="tour-admin-events-card" class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
               <div class="flex items-center justify-between gap-2">
                 <h3 class="text-base font-bold text-slate-900">Manage Events &amp; Results</h3>
                 <span class="text-xs text-slate-500">Edit, clear scores, or delete any event</span>
@@ -2639,6 +2685,136 @@
           >
             Cancel
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- INTERACTIVE QUICK TOUR SPOTLIGHT OVERLAY (MALAYALAM / ENGLISH)        -->
+    <!-- ===================================================================== -->
+    <div
+      id="quick-tour-overlay"
+      class="hidden no-print fixed inset-0 z-[120]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quick-tour-title"
+    >
+      <!-- Click-blocker layer so accidental taps outside don't trigger underlying buttons -->
+      <div id="quick-tour-blocker" class="fixed inset-0 bg-transparent"></div>
+
+      <!-- Animated Spotlight Cutout -->
+      <div id="quick-tour-spotlight" aria-hidden="true"></div>
+
+      <!-- Floating Beginner-Friendly Tour Card -->
+      <div
+        id="quick-tour-card"
+        class="fixed z-[122] w-[calc(100vw-24px)] max-w-[390px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 space-y-4"
+      >
+        <!-- Top Row: Cute Mascot, Step Counter, Language Toggle & Close -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div
+              id="quick-tour-emoji"
+              class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-xl shrink-0 select-none"
+              aria-hidden="true"
+            >
+              🎯
+            </div>
+            <div class="min-w-0">
+              <div
+                id="quick-tour-step-label"
+                class="text-xs font-semibold text-indigo-700 font-mono tabular-nums truncate"
+              >
+                Step 1 / 9
+              </div>
+              <div id="quick-tour-section-label" class="text-[11px] font-medium text-slate-500 truncate">
+                Admin Controls
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <!-- Bilingual Malayalam / English Toggle -->
+            <div
+              role="group"
+              aria-label="Tour language toggle"
+              class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200"
+            >
+              <button
+                type="button"
+                id="btn-tour-lang-ml"
+                aria-pressed="false"
+                class="min-h-[30px] px-2 py-1 rounded-md text-[11px] font-semibold transition-colors whitespace-nowrap"
+              >
+                മലയാളം
+              </button>
+              <button
+                type="button"
+                id="btn-tour-lang-en"
+                aria-pressed="true"
+                class="min-h-[30px] px-2 py-1 rounded-md text-[11px] font-semibold transition-colors whitespace-nowrap"
+              >
+                English
+              </button>
+            </div>
+
+            <button
+              type="button"
+              id="btn-tour-close"
+              aria-label="Close Quick Tour"
+              class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 inline-flex items-center justify-center shrink-0 transition-colors"
+            >
+              <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Clean Step Progress Bar -->
+        <div class="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div
+            id="quick-tour-progress-bar"
+            class="h-full rounded-full bg-indigo-600 transition-all duration-200"
+            style="width: 11%"
+          ></div>
+        </div>
+
+        <!-- Step Title & Beginner-Friendly Copy -->
+        <div class="space-y-1.5">
+          <h3 id="quick-tour-title" class="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-snug">
+            Welcome to Your Sports Meet Hub!
+          </h3>
+          <p id="quick-tour-desc" class="text-sm text-slate-600 leading-relaxed">
+            Let's take a quick tour of every key feature.
+          </p>
+          <p id="quick-tour-tip" class="hidden text-xs font-medium text-indigo-800 bg-indigo-50/70 border border-indigo-100 rounded-xl px-3 py-2 leading-relaxed"></p>
+        </div>
+
+        <!-- Footer Navigation: Skip, Back, Next -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            id="btn-tour-skip"
+            class="min-h-[40px] px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap shrink-0"
+          >
+            Skip
+          </button>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              id="btn-tour-back"
+              class="min-h-[40px] px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap shrink-0"
+            >
+              ← Back
+            </button>
+            <button
+              type="button"
+              id="btn-tour-next"
+              class="min-h-[40px] px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold transition-colors whitespace-nowrap shrink-0 shadow-xs"
+            >
+              Next →
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -4547,11 +4723,61 @@
       let db = null;
       let fsDoc = null;
       let fsGetDoc = null;
+      let fsGetDocFromServer = null;
       let fsSetDoc = null;
       let fsDeleteDoc = null;
       let fsOnSnapshot = null;
       let isFirestoreReady = false;
+      let isFirestoreOnline = false;
       let unsubscribeSchoolSnapshot = null;
+
+      function withFirestoreTimeout(promise, ms = 3500) {
+        return Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('firestore-timeout')), ms)),
+        ]);
+      }
+
+      function updateSyncStatusUI(online) {
+        isFirestoreOnline = Boolean(online);
+        const statusEl = document.getElementById('sync-status-label');
+        const hintEl = document.getElementById('welcome-sync-hint');
+        if (online) {
+          if (statusEl) statusEl.textContent = 'Firestore Live Sync';
+          if (hintEl) hintEl.textContent = 'Connected to Cloud Firestore Live Sync';
+        } else {
+          if (statusEl) statusEl.textContent = 'Local Mode';
+          if (hintEl) hintEl.textContent = 'Offline Ready · Syncs when online';
+        }
+      }
+
+      async function verifyFirestoreConnectivity() {
+        if (!isFirestoreReady || !db || !fsGetDocFromServer) {
+          updateSyncStatusUI(false);
+          return false;
+        }
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+          updateSyncStatusUI(false);
+          return false;
+        }
+        try {
+          await withFirestoreTimeout(
+            fsGetDocFromServer(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID)),
+            4000
+          );
+          updateSyncStatusUI(true);
+          return true;
+        } catch (err) {
+          const code = String(err?.code || '').toLowerCase();
+          // permission-denied or not-found still proves the backend responded cleanly
+          if (code === 'permission-denied' || code === 'not-found') {
+            updateSyncStatusUI(true);
+            return true;
+          }
+          updateSyncStatusUI(false);
+          return false;
+        }
+      }
 
       function isFirebaseConfigured(cfg) {
         return Boolean(
@@ -4608,9 +4834,13 @@
 
         if (isFirestoreReady && db) {
           try {
-            await fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID), masterRegistry);
+            await withFirestoreTimeout(
+              fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID), stripUndefinedDeep(masterRegistry)),
+              4000
+            );
+            updateSyncStatusUI(true);
           } catch (err) {
-            console.warn('Firestore registry write deferred locally', err);
+            updateSyncStatusUI(false);
           }
         }
       }
@@ -4649,13 +4879,13 @@
         if (isFirestoreReady && db && activeSchoolCode) {
           try {
             const payload = stripUndefinedDeep(appState);
-            fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), payload).catch((err) => {
-              console.warn('Firestore school write saved locally', err);
-              showToast('Saved locally (Firestore sync pending)');
-            });
+            fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), payload)
+              .then(() => updateSyncStatusUI(true))
+              .catch(() => {
+                updateSyncStatusUI(false);
+              });
           } catch (err) {
-            console.warn('Firestore school write saved locally', err);
-            showToast('Saved locally (Firestore sync pending)');
+            updateSyncStatusUI(false);
           }
         }
       }
@@ -4705,23 +4935,49 @@
               import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'),
             ]);
 
+            // Suppress transient internal WebChannel/offline console.error retries; we manage status cleanly below
+            if (typeof firestoreMod.setLogLevel === 'function') {
+              firestoreMod.setLogLevel('silent');
+            }
+
             const fbApp = initializeApp(firebaseConfig);
-            db = firestoreMod.getFirestore(fbApp);
+            // Use forced long-polling without fetch streams to prevent WebChannel [code=unavailable] errors in iframes/proxies
+            try {
+              db = firestoreMod.initializeFirestore(fbApp, {
+                experimentalForceLongPolling: true,
+                useFetchStreams: false,
+              });
+            } catch (initErr) {
+              db = firestoreMod.getFirestore(fbApp);
+            }
+
             fsDoc = firestoreMod.doc;
             fsGetDoc = firestoreMod.getDoc;
+            fsGetDocFromServer = firestoreMod.getDocFromServer;
             fsSetDoc = firestoreMod.setDoc;
             fsDeleteDoc = firestoreMod.deleteDoc;
             fsOnSnapshot = firestoreMod.onSnapshot;
             isFirestoreReady = true;
 
-            document.getElementById('sync-status-label').textContent = 'Firestore Live Sync';
-            document.getElementById('welcome-sync-hint').textContent = 'Connected to Cloud Firestore Live Sync';
+            // Start in safe Local Mode until server connectivity is confirmed
+            updateSyncStatusUI(false);
+            verifyFirestoreConnectivity();
+
+            window.addEventListener('online', () => {
+              verifyFirestoreConnectivity();
+            });
+            window.addEventListener('offline', () => {
+              updateSyncStatusUI(false);
+            });
 
             // Subscribe to Master Registry in real time
             const regRef = fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID);
             fsOnSnapshot(
               regRef,
               (snap) => {
+                if (!snap.metadata?.fromCache) {
+                  updateSyncStatusUI(true);
+                }
                 if (snap.exists()) {
                   const remoteReg = snap.data();
                   if (remoteReg && remoteReg.schools) {
@@ -4735,19 +4991,17 @@
                       }
                     }
                   }
-                } else {
-                  fsSetDoc(regRef, masterRegistry).catch(() => {});
+                } else if (!snap.metadata?.fromCache) {
+                  fsSetDoc(regRef, stripUndefinedDeep(masterRegistry)).catch(() => {});
                 }
               },
-              (err) => {
-                console.warn('Firestore registry listener fallback to local', err);
-                isFirestoreReady = false;
-                document.getElementById('sync-status-label').textContent = 'Local Mode';
+              () => {
+                updateSyncStatusUI(false);
               }
             );
           } catch (err) {
-            console.warn('Firebase SDK unavailable; running in Local Mode', err);
-            document.getElementById('sync-status-label').textContent = 'Local Mode';
+            isFirestoreReady = false;
+            updateSyncStatusUI(false);
           }
         }
 
@@ -4810,21 +5064,30 @@
         let meta = masterRegistry.schools[code] || null;
         let remoteSchoolDoc = null;
 
-        if (isFirestoreReady && db) {
+        if (isFirestoreReady && db && (typeof navigator === 'undefined' || navigator.onLine !== false)) {
           try {
             if (!meta) {
-              const regSnap = await fsGetDoc(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID));
+              const regSnap = await withFirestoreTimeout(
+                fsGetDoc(fsDoc(db, FIRESTORE_COLLECTION, MASTER_REGISTRY_DOC_ID)),
+                3000
+              );
               if (regSnap.exists() && regSnap.data()?.schools) {
                 masterRegistry = regSnap.data();
                 saveRegistryLocal(masterRegistry);
                 meta = masterRegistry.schools[code] || null;
               }
             }
-            const schoolSnap = await fsGetDoc(fsDoc(db, FIRESTORE_COLLECTION, code));
+            const schoolSnap = await withFirestoreTimeout(
+              fsGetDoc(fsDoc(db, FIRESTORE_COLLECTION, code)),
+              3000
+            );
             if (schoolSnap.exists()) {
               remoteSchoolDoc = schoolSnap.data();
             }
-          } catch (e) {}
+            updateSyncStatusUI(true);
+          } catch (e) {
+            updateSyncStatusUI(false);
+          }
         }
 
         // Ensure DEMOFEST always resolves even if wiped remotely
@@ -4904,6 +5167,9 @@
           unsubscribeSchoolSnapshot = fsOnSnapshot(
             schoolRef,
             (snap) => {
+              if (!snap.metadata?.fromCache) {
+                updateSyncStatusUI(true);
+              }
               if (snap.exists()) {
                 const data = snap.data();
                 if (data.status === 'Suspended' && currentRole !== 'master') {
@@ -4911,12 +5177,12 @@
                   return;
                 }
                 applyIncomingSchoolState(data);
-              } else {
+              } else if (!snap.metadata?.fromCache) {
                 fsSetDoc(schoolRef, stripUndefinedDeep(appState)).catch(() => {});
               }
             },
-            (err) => {
-              console.warn('Firestore school snapshot fallback to local', err);
+            () => {
+              updateSyncStatusUI(false);
             }
           );
         }
@@ -5074,6 +5340,13 @@
         } catch (e) {}
 
         window.addEventListener('popstate', (ev) => {
+          // Close Quick Tour if open
+          const tourOverlay = document.getElementById('quick-tour-overlay');
+          if (tourOverlay && !tourOverlay.classList.contains('hidden')) {
+            closeQuickTour();
+            return;
+          }
+
           // Close any open modal first
           const openModalIds = [
             'confirm-modal',
@@ -8752,7 +9025,7 @@
           clearTimeout(periodInputSyncTimer);
           periodInputSyncTimer = setTimeout(() => {
             if (isFirestoreReady && db && activeSchoolCode) {
-              fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch(() => {});
+              fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), stripUndefinedDeep(appState)).catch(() => {});
             }
           }, 250);
         };
@@ -9096,7 +9369,7 @@
           clearTimeout(periodInputSyncTimer);
           periodInputSyncTimer = setTimeout(() => {
             if (isFirestoreReady && db && activeSchoolCode) {
-              fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), appState).catch(() => {});
+              fsSetDoc(fsDoc(db, FIRESTORE_COLLECTION, activeSchoolCode), stripUndefinedDeep(appState)).catch(() => {});
             }
           }, 250);
         };
@@ -9673,6 +9946,410 @@
           document.getElementById('winner-celebration-overlay').classList.add('hidden');
           document.querySelectorAll('.confetti-piece').forEach((el) => el.remove());
         });
+
+        // Quick Tour Button & Overlay Controls
+        document.getElementById('btn-quick-tour')?.addEventListener('click', () => {
+          startQuickTour();
+        });
+        document.getElementById('btn-tour-next')?.addEventListener('click', () => {
+          if (quickTourIndex >= QUICK_TOUR_STEPS.length - 1) {
+            closeQuickTour(true);
+          } else {
+            quickTourIndex += 1;
+            renderQuickTourStep();
+          }
+        });
+        document.getElementById('btn-tour-back')?.addEventListener('click', () => {
+          if (quickTourIndex > 0) {
+            quickTourIndex -= 1;
+            renderQuickTourStep();
+          }
+        });
+        document.getElementById('btn-tour-skip')?.addEventListener('click', () => {
+          closeQuickTour(false);
+        });
+        document.getElementById('btn-tour-close')?.addEventListener('click', () => {
+          closeQuickTour(false);
+        });
+        document.getElementById('btn-tour-lang-ml')?.addEventListener('click', () => {
+          setQuickTourLang('ml');
+        });
+        document.getElementById('btn-tour-lang-en')?.addEventListener('click', () => {
+          setQuickTourLang('en');
+        });
+      }
+
+      // =======================================================================
+      // 12B. INTERACTIVE BILINGUAL QUICK TOUR (MALAYALAM / ENGLISH)
+      // =======================================================================
+      const TOUR_LANG_STORAGE_KEY = 'sports_meets_tour_lang_v1';
+      let quickTourActive = false;
+      let quickTourIndex = 0;
+      let quickTourLang = localStorage.getItem(TOUR_LANG_STORAGE_KEY) === 'ml' ? 'ml' : 'en';
+      let quickTourReturnView = 'admin';
+      let quickTourRepositionRaf = null;
+
+      const QUICK_TOUR_UI = {
+        en: {
+          stepOf: (cur, total) => `Step ${cur} of ${total}`,
+          skip: 'Skip',
+          back: '← Back',
+          next: 'Next →',
+          finish: 'Done! 🎉',
+          finishedToast: 'Quick Tour completed! You are ready to run your Sports Meet.',
+        },
+        ml: {
+          stepOf: (cur, total) => `ഘട്ടം ${cur} / ${total}`,
+          skip: 'ഒഴിവാക്കുക',
+          back: '← പിന്നോട്ട്',
+          next: 'അടുത്തത് →',
+          finish: 'പൂർത്തിയായി! 🎉',
+          finishedToast: 'ക്വിക്ക് ടൂർ പൂർത്തിയായി! ഇനി നിങ്ങളുടെ സ്പോർട്സ് മീറ്റ് തുടങ്ങാം.',
+        },
+      };
+
+      const QUICK_TOUR_STEPS = [
+        {
+          view: 'admin',
+          target: '#tour-admin-header',
+          emoji: '👋',
+          section: { en: 'Admin Controls', ml: 'അഡ്മിൻ കൺട്രോൾസ്' },
+          title: {
+            en: 'Welcome to Your Sports Meet Hub!',
+            ml: 'സ്പോർട്സ് മീറ്റ് ഹബ്ബിലേക്ക് സ്വാഗതം!',
+          },
+          desc: {
+            en: 'Let us walk you through every key area in under a minute — from setting up houses and events to live ground scoring and big TV display.',
+            ml: 'ഹൗസുകളും മത്സരങ്ങളും സെറ്റ് ചെയ്യുന്നത് മുതൽ ലൈവ് സ്കോറിംഗും വലിയ ടിവി ഡിസ്പ്ലേയും വരെ എല്ലാം 1 മിനിറ്റിൽ ലളിതമായി പരിചയപ്പെടാം.',
+          },
+          tip: {
+            en: 'Tip: Toggle between മലയാളം and English anytime at the top right of this card!',
+            ml: 'സൂചന: മുകളിലെ ബട്ടൺ വഴി എപ്പോൾ വേണമെങ്കിലും മലയാളവും ഇംഗ്ലീഷും മാറ്റാം!',
+          },
+        },
+        {
+          view: 'admin',
+          target: '#form-admin-settings',
+          emoji: '🏫',
+          section: { en: 'School & Point Rules', ml: 'സ്കൂളും പോയിന്റ് നിയമങ്ങളും' },
+          title: {
+            en: 'School Details, Houses & PINs',
+            ml: 'സ്കൂൾ വിവരങ്ങൾ, ഹൗസുകൾ & PIN',
+          },
+          desc: {
+            en: 'Customize your school name, Call Room announcement ticker, all 4 House names, and Individual/Team points. Copy your Ground Official PIN here to share with referees.',
+            ml: 'സ്കൂളിന്റെ പേര്, കോൾ റൂം അറിയിപ്പുകൾ, 4 ഹൗസുകളുടെ പേരുകൾ, പോയിന്റ് നിയമങ്ങൾ എന്നിവ ഇവിടെ മാറ്റാം. റഫറിമാർക്കുള്ള Official PIN ഇവിടെ നിന്നും കോപ്പി ചെയ്യാം.',
+          },
+        },
+        {
+          view: 'admin',
+          target: '#tour-admin-roster-card',
+          emoji: '📋',
+          section: { en: 'Student Roster', ml: 'സ്റ്റുഡന്റ് ലിസ്റ്റ്' },
+          title: {
+            en: 'Student Roster & Chest Numbers',
+            ml: 'സ്റ്റുഡന്റ് ലിസ്റ്റും ചെസ്റ്റ് നമ്പറുകളും',
+          },
+          desc: {
+            en: 'Download the CSV template or paste your student list with Chest Numbers, Houses, and Categories. When officials type a Chest No., the name and house fill automatically!',
+            ml: 'CSV ടെംപ്ലേറ്റ് ഡൗൺലോഡ് ചെയ്ത് കുട്ടികളുടെ ചെസ്റ്റ് നമ്പറും ഹൗസും അപ്‌ലോഡ് ചെയ്യാം. ഗ്രൗണ്ടിൽ ചെസ്റ്റ് നമ്പർ നൽകുമ്പോൾ പേരും ഹൗസും താനേ വരും!',
+          },
+        },
+        {
+          view: 'admin',
+          target: '#form-create-event',
+          emoji: '➕',
+          section: { en: 'Quick Event Creator', ml: 'പുതിയ മത്സരങ്ങൾ' },
+          title: {
+            en: '1-Tap Quick Event Creator',
+            ml: 'ഒറ്റ ക്ലിക്കിൽ മത്സരങ്ങൾ ചേർക്കാം',
+          },
+          desc: {
+            en: 'Tap any sport preset (100m, Long Jump, Football, Cricket, Relay) and category chip to create events fast. Tap Participants to assign squads or athletes.',
+            ml: '100m, ലോങ് ജമ്പ്, ഫുട്ബോൾ, ക്രിക്കറ്റ്, റിലേ തുടങ്ങിയ പ്രീസെറ്റുകൾ ടാപ്പ് ചെയ്ത് വേഗത്തിൽ മത്സരങ്ങൾ ഉണ്ടാക്കാം. Participants വഴി കുട്ടികളെ തിരഞ്ഞെടുക്കാം.',
+          },
+        },
+        {
+          view: 'admin',
+          target: '#tour-admin-events-card',
+          emoji: '🛠️',
+          section: { en: 'Events Manager', ml: 'മത്സരങ്ങളുടെ നിയന്ത്രണം' },
+          title: {
+            en: 'Manage, Edit & Re-open Events',
+            ml: 'മത്സരങ്ങളും ഫലങ്ങളും തിരുത്താം',
+          },
+          desc: {
+            en: 'Every event appears here. Edit event details, fix podium winners, re-open a finished match if corrections are needed, or delete mistakes anytime.',
+            ml: 'ചേർത്ത എല്ലാ മത്സരങ്ങളും ഇവിടെ കാണാം. വിവരങ്ങൾ തിരുത്താനും, വിജയികളെ എഡിറ്റ് ചെയ്യാനും, പൂർത്തിയായ മത്സരം വീണ്ടും തുറക്കാനും ഇവിടെ സാധിക്കും.',
+          },
+        },
+        {
+          view: 'scoring',
+          target: '#tour-scoring-picker-card',
+          emoji: '⏱️',
+          section: { en: 'Official Ground Scoring', ml: 'ഒഫീഷ്യൽ ഗ്രൗണ്ട് സ്കോറിംഗ്' },
+          title: {
+            en: 'Live Ground Scoring Console',
+            ml: 'ഗ്രൗണ്ട് സ്കോറിംഗ് കൺസോൾ',
+          },
+          desc: {
+            en: 'Referees use this view right on the field! Pick an event for Quick Winner Entry (with built-in Track Stopwatch & Best-of-3 Field Trials), Live Match Board, or Live Cricket Board.',
+            ml: 'ഗ്രൗണ്ടിലെ റഫറിമാർക്കുള്ള സ്ക്രീൻ ആണിത്! സ്റ്റോപ്പ് വാച്ചും ത്രോ/ജമ്പ് കാൽക്കുലേറ്ററും ഉള്ള വിന്നർ എൻട്രി, ഫുട്ബോൾ/കബഡി ലൈവ് ബോർഡ്, ക്രിക്കറ്റ് ബോർഡ് എന്നിവ ഇവിടെയുണ്ട്.',
+          },
+        },
+        {
+          view: 'home',
+          target: '#house-leaderboard-grid',
+          emoji: '🏆',
+          section: { en: 'Public Live Home', ml: 'ലൈവ് പോയിന്റ് പട്ടിക' },
+          title: {
+            en: 'Live House Championship Standings',
+            ml: 'ലൈവ് ഹൗസ് പോയിന്റ് പട്ടിക',
+          },
+          desc: {
+            en: 'Parents and students follow live points, medal tallies, event results, and Individual Champions using just your School Code — no PIN required!',
+            ml: 'രക്ഷിതാക്കൾക്കും കുട്ടികൾക്കും PIN ഇല്ലാതെ തന്നെ സ്കൂൾ കോഡ് വഴി ഹൗസ് പോയിന്റുകൾ, മെഡലുകൾ, ടോപ്പ് അത്‌ലറ്റുകൾ എന്നിവ തത്സമയം കാണാം!',
+          },
+        },
+        {
+          view: 'home',
+          target: '#btn-open-tv',
+          emoji: '📺',
+          section: { en: 'TV / Projector Mode', ml: 'ടിവി / പ്രൊജക്ടർ മോഡ്' },
+          title: {
+            en: 'Full-Screen Auditorium TV Display',
+            ml: 'വലിയ ടിവി / പ്രൊജക്ടർ സ്ക്രീൻ',
+          },
+          desc: {
+            en: 'Connect a laptop to a projector or big TV and tap TV Screen for a dark broadcast scoreboard with rotating live matches, goal celebrations, and audio alerts!',
+            ml: 'ഓഡിറ്റോറിയത്തിലെ ടിവിയിലോ പ്രൊജക്ടറിലോ കാണിക്കാൻ TV Screen ക്ലിക്ക് ചെയ്യൂ! ലൈവ് മാച്ചുകളും ഗോൾ ആഘോഷങ്ങളും ശബ്ദത്തോടൊപ്പം മനോഹരമായി കാണാം.',
+          },
+        },
+        {
+          view: 'home',
+          target: '#btn-share-qr',
+          emoji: '📱',
+          section: { en: 'Share & Print', ml: 'ഷെയർ & പ്രിന്റ്' },
+          title: {
+            en: 'Share QR Code & Print A4 Results',
+            ml: 'QR കോഡ് ഷെയർ & A4 പ്രിന്റ്',
+          },
+          desc: {
+            en: 'Tap Share QR so parents can scan and watch live scores on their phones, and tap Print anytime to generate clean A4 official results sheets. You are all set!',
+            ml: 'Share QR ക്ലിക്ക് ചെയ്ത് QR കോഡ് ഷെയർ ചെയ്താൽ എല്ലാവർക്കും ഫോണിൽ സ്കോർ കാണാം. Print വഴി ഒഫീഷ്യൽ A4 റിസൾട്ട് ഷീറ്റ് പ്രിന്റ് ചെയ്യാം. ഇനി തുടങ്ങാം!',
+          },
+        },
+      ];
+
+      function updateTourLangToggleUI() {
+        const mlBtn = document.getElementById('btn-tour-lang-ml');
+        const enBtn = document.getElementById('btn-tour-lang-en');
+        if (!mlBtn || !enBtn) return;
+        const isMl = quickTourLang === 'ml';
+        mlBtn.setAttribute('aria-pressed', String(isMl));
+        enBtn.setAttribute('aria-pressed', String(!isMl));
+
+        mlBtn.className = `min-h-[30px] px-2 py-1 rounded-md text-[11px] font-semibold transition-colors whitespace-nowrap ${
+          isMl ? 'bg-white text-indigo-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+        }`;
+        enBtn.className = `min-h-[30px] px-2 py-1 rounded-md text-[11px] font-semibold transition-colors whitespace-nowrap ${
+          !isMl ? 'bg-white text-indigo-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+        }`;
+      }
+
+      function setQuickTourLang(lang) {
+        quickTourLang = lang === 'ml' ? 'ml' : 'en';
+        try {
+          localStorage.setItem(TOUR_LANG_STORAGE_KEY, quickTourLang);
+        } catch (e) {}
+        updateTourLangToggleUI();
+        if (quickTourActive) {
+          renderQuickTourStep({ skipScroll: true });
+        }
+      }
+
+      function positionQuickTourElements() {
+        if (!quickTourActive) return;
+        const step = QUICK_TOUR_STEPS[quickTourIndex];
+        const spotlight = document.getElementById('quick-tour-spotlight');
+        const card = document.getElementById('quick-tour-card');
+        if (!step || !spotlight || !card) return;
+
+        const targetEl = document.querySelector(step.target);
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const margin = 12;
+
+        const cardRect = card.getBoundingClientRect();
+        const cardW = Math.min(390, vw - margin * 2);
+        const cardH = cardRect.height || 240;
+
+        if (!targetEl || targetEl.offsetParent === null) {
+          spotlight.style.opacity = '0';
+          spotlight.style.top = `${vh / 2}px`;
+          spotlight.style.left = `${vw / 2}px`;
+          spotlight.style.width = '0px';
+          spotlight.style.height = '0px';
+          card.style.left = `${Math.max(margin, (vw - cardW) / 2)}px`;
+          card.style.top = `${Math.max(margin, (vh - cardH) / 2)}px`;
+          return;
+        }
+
+        const rect = targetEl.getBoundingClientRect();
+        const pad = 6;
+        const spotTop = Math.max(4, rect.top - pad);
+        const spotLeft = Math.max(4, rect.left - pad);
+        const spotRight = Math.min(vw - 4, rect.right + pad);
+        const spotBottom = Math.min(vh - 4, rect.bottom + pad);
+        const spotW = Math.max(24, spotRight - spotLeft);
+        const spotH = Math.max(24, spotBottom - spotTop);
+
+        spotlight.style.opacity = '1';
+        spotlight.style.top = `${spotTop}px`;
+        spotlight.style.left = `${spotLeft}px`;
+        spotlight.style.width = `${spotW}px`;
+        spotlight.style.height = `${spotH}px`;
+
+        // Prefer placing card below spotlight, then above, otherwise dock cleanly at bottom
+        const spaceBelow = vh - spotBottom - margin;
+        const spaceAbove = spotTop - margin;
+        let top;
+        if (spaceBelow >= cardH + 10) {
+          top = spotBottom + 12;
+        } else if (spaceAbove >= cardH + 10) {
+          top = spotTop - cardH - 12;
+        } else {
+          top = Math.max(margin, vh - cardH - margin);
+        }
+
+        // Horizontally align near the target center, clamped safely inside viewport
+        const preferredLeft = spotLeft + spotW / 2 - cardW / 2;
+        const left = Math.max(margin, Math.min(vw - cardW - margin, preferredLeft));
+        card.style.left = `${Math.round(left)}px`;
+        card.style.top = `${Math.round(Math.max(margin, Math.min(vh - cardH - margin, top)))}px`;
+      }
+
+      function scheduleQuickTourReposition() {
+        if (!quickTourActive) return;
+        if (quickTourRepositionRaf) cancelAnimationFrame(quickTourRepositionRaf);
+        quickTourRepositionRaf = requestAnimationFrame(() => {
+          positionQuickTourElements();
+        });
+      }
+
+      function renderQuickTourStep(options = {}) {
+        const { skipScroll = false } = options;
+        const step = QUICK_TOUR_STEPS[quickTourIndex];
+        if (!step) return;
+
+        // Automatically switch app view when walking across Admin, Scoring, and Public Home
+        if (step.view && currentView !== step.view) {
+          setView(step.view, { pushHistory: false });
+        }
+
+        const ui = QUICK_TOUR_UI[quickTourLang];
+        const total = QUICK_TOUR_STEPS.length;
+        const pct = Math.round(((quickTourIndex + 1) / total) * 100);
+
+        document.getElementById('quick-tour-emoji').textContent = step.emoji;
+        document.getElementById('quick-tour-step-label').textContent = ui.stepOf(quickTourIndex + 1, total);
+        document.getElementById('quick-tour-section-label').textContent = step.section[quickTourLang];
+        document.getElementById('quick-tour-progress-bar').style.width = `${pct}%`;
+        document.getElementById('quick-tour-title').textContent = step.title[quickTourLang];
+        document.getElementById('quick-tour-desc').textContent = step.desc[quickTourLang];
+
+        const tipEl = document.getElementById('quick-tour-tip');
+        if (step.tip && step.tip[quickTourLang]) {
+          tipEl.textContent = step.tip[quickTourLang];
+          tipEl.classList.remove('hidden');
+        } else {
+          tipEl.textContent = '';
+          tipEl.classList.add('hidden');
+        }
+
+        document.getElementById('btn-tour-skip').textContent = ui.skip;
+        const backBtn = document.getElementById('btn-tour-back');
+        backBtn.textContent = ui.back;
+        backBtn.disabled = quickTourIndex === 0;
+        backBtn.classList.toggle('opacity-40', quickTourIndex === 0);
+        backBtn.classList.toggle('cursor-not-allowed', quickTourIndex === 0);
+
+        const nextBtn = document.getElementById('btn-tour-next');
+        nextBtn.textContent = quickTourIndex >= total - 1 ? ui.finish : ui.next;
+
+        updateTourLangToggleUI();
+
+        const card = document.getElementById('quick-tour-card');
+        card.classList.remove('quick-tour-card-enter');
+        void card.offsetWidth;
+        card.classList.add('quick-tour-card-enter');
+
+        const targetEl = document.querySelector(step.target);
+        if (targetEl && !skipScroll) {
+          try {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          } catch (e) {
+            targetEl.scrollIntoView();
+          }
+          // Reposition immediately and again once smooth scroll settles
+          positionQuickTourElements();
+          setTimeout(positionQuickTourElements, 140);
+          setTimeout(positionQuickTourElements, 340);
+        } else {
+          requestAnimationFrame(positionQuickTourElements);
+        }
+        refreshIcons();
+      }
+
+      function handleQuickTourKeydown(e) {
+        if (!quickTourActive) return;
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeQuickTour(false);
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          if (quickTourIndex >= QUICK_TOUR_STEPS.length - 1) {
+            closeQuickTour(true);
+          } else {
+            quickTourIndex += 1;
+            renderQuickTourStep();
+          }
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (quickTourIndex > 0) {
+            quickTourIndex -= 1;
+            renderQuickTourStep();
+          }
+        }
+      }
+
+      function startQuickTour() {
+        quickTourReturnView = currentView || 'admin';
+        quickTourIndex = 0;
+        quickTourActive = true;
+        document.getElementById('quick-tour-overlay').classList.remove('hidden');
+        window.addEventListener('resize', scheduleQuickTourReposition, { passive: true });
+        window.addEventListener('scroll', scheduleQuickTourReposition, { passive: true, capture: true });
+        window.addEventListener('keydown', handleQuickTourKeydown);
+        renderQuickTourStep();
+      }
+
+      function closeQuickTour(completed = false) {
+        if (!quickTourActive) return;
+        quickTourActive = false;
+        document.getElementById('quick-tour-overlay').classList.add('hidden');
+        window.removeEventListener('resize', scheduleQuickTourReposition);
+        window.removeEventListener('scroll', scheduleQuickTourReposition, true);
+        window.removeEventListener('keydown', handleQuickTourKeydown);
+
+        // Return smoothly to Admin Controls where the user launched the tour
+        if (quickTourReturnView && currentView !== quickTourReturnView) {
+          setView(quickTourReturnView, { pushHistory: false });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        if (completed) {
+          showToast(QUICK_TOUR_UI[quickTourLang].finishedToast);
+        }
       }
 
       // =======================================================================

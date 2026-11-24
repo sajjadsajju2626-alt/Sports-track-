@@ -4,6 +4,7 @@ import {
   applyAddedTimeChange,
   applyMatchClockCommand,
   applyMatchDurationChange,
+  applySchoolAdminSettingsUpdate,
   applyTeamScoreDelta,
   buildInviteMessage,
   buildPublicShareUrl,
@@ -1281,6 +1282,66 @@ test('Quick Event Creator presets: category chips, Track/Field/Team/Indoor auto-
     assert.equal(profile.showClock, false);
   }
 });
+
+test('School Admin Save Meet Settings updates meet details while strictly preserving Admin PIN and Ground Official PIN', () => {
+  const initialState: SportsDayState = {
+    schoolCode: 'XAVIER26',
+    schoolName: 'Old School Name',
+    adminPin: '7860',
+    officialPin: '1111',
+    tickerMessage: 'Old Ticker',
+    houses: {
+      red: { id: 'red', name: 'Red House', color: '#dc2626' },
+      blue: { id: 'blue', name: 'Blue House', color: '#2563eb' },
+      green: { id: 'green', name: 'Green House', color: '#16a34a' },
+      yellow: { id: 'yellow', name: 'Yellow House', color: '#ca8a04' },
+    },
+    pointRules: { individual: [5, 3, 1], team: [10, 6, 4] },
+    events: [],
+    students: [],
+    lastPublishedAt: 0,
+    lastPublishedTitle: '',
+  };
+
+  const meta = {
+    code: 'XAVIER26',
+    name: 'Old School Name',
+    adminPin: '9090',
+    officialPin: '2468',
+    status: 'Active' as const,
+    createdAt: 1000,
+  };
+
+  const { nextState, nextMeta } = applySchoolAdminSettingsUpdate(initialState, meta, {
+    schoolName: 'St. Xavier Annual Meet 2026',
+    tickerMessage: 'Track Events Starting at 9 AM',
+    houseNames: {
+      red: 'Ruby House',
+      blue: 'Sapphire House',
+      green: 'Emerald House',
+      yellow: 'Topaz House',
+    },
+    pointRules: {
+      individual: [7, 5, 2],
+      team: [15, 10, 5],
+    },
+  });
+
+  // Editable school fields updated
+  assert.equal(nextState.schoolName, 'St. Xavier Annual Meet 2026');
+  assert.equal(nextState.tickerMessage, 'Track Events Starting at 9 AM');
+  assert.equal(nextState.houses.red.name, 'Ruby House');
+  assert.deepEqual(nextState.pointRules.individual, [7, 5, 2]);
+  assert.deepEqual(nextState.pointRules.team, [15, 10, 5]);
+  assert.equal(nextMeta?.name, 'St. Xavier Annual Meet 2026');
+
+  // Authoritative PINs strictly preserved (never modified or overwritten by school admin save)
+  assert.equal(nextState.adminPin, '9090');
+  assert.equal(nextState.officialPin, '2468');
+  assert.equal(nextMeta?.adminPin, '9090');
+  assert.equal(nextMeta?.officialPin, '2468');
+});
+
 
 
 

@@ -104,6 +104,8 @@ export interface SchoolWorkspaceMeta {
 export interface SportsDayState {
   schoolCode?: string;
   schoolName: string;
+  adminPin?: string;
+  officialPin?: string;
   tickerMessage: string;
   houses: Record<HouseId, HouseConfig>;
   pointRules: PointRules;
@@ -179,6 +181,62 @@ export function validateWorkspacePin(
   if (pins.adminPin && trimmed === pins.adminPin) return 'admin';
   if (pins.officialPin && trimmed === pins.officialPin) return 'official';
   return null;
+}
+
+export interface SchoolAdminSettingsPatch {
+  schoolName: string;
+  tickerMessage: string;
+  houseNames: Record<HouseId, string>;
+  pointRules: PointRules;
+}
+
+export function applySchoolAdminSettingsUpdate(
+  state: SportsDayState,
+  meta: SchoolWorkspaceMeta | null | undefined,
+  patch: SchoolAdminSettingsPatch
+): { nextState: SportsDayState; nextMeta: SchoolWorkspaceMeta | null } {
+  const schoolName = String(patch.schoolName || '').trim() || 'Annual Sports & Games Meet';
+  const tickerMessage = String(patch.tickerMessage || '').trim() || 'Annual Sports Day Live';
+
+  const preservedAdminPin = meta?.adminPin ?? state.adminPin;
+  const preservedOfficialPin = meta?.officialPin ?? state.officialPin;
+
+  const nextState: SportsDayState = {
+    ...state,
+    schoolName,
+    tickerMessage,
+    ...(preservedAdminPin !== undefined ? { adminPin: preservedAdminPin } : {}),
+    ...(preservedOfficialPin !== undefined ? { officialPin: preservedOfficialPin } : {}),
+    houses: {
+      red: { ...state.houses.red, name: String(patch.houseNames.red || '').trim() || 'Red House' },
+      blue: { ...state.houses.blue, name: String(patch.houseNames.blue || '').trim() || 'Blue House' },
+      green: { ...state.houses.green, name: String(patch.houseNames.green || '').trim() || 'Green House' },
+      yellow: { ...state.houses.yellow, name: String(patch.houseNames.yellow || '').trim() || 'Yellow House' },
+    },
+    pointRules: {
+      individual: [
+        Number(patch.pointRules.individual[0] ?? 5),
+        Number(patch.pointRules.individual[1] ?? 3),
+        Number(patch.pointRules.individual[2] ?? 1),
+      ],
+      team: [
+        Number(patch.pointRules.team[0] ?? 10),
+        Number(patch.pointRules.team[1] ?? 6),
+        Number(patch.pointRules.team[2] ?? 4),
+      ],
+    },
+  };
+
+  const nextMeta: SchoolWorkspaceMeta | null = meta
+    ? {
+        ...meta,
+        name: schoolName,
+        adminPin: meta.adminPin,
+        officialPin: meta.officialPin,
+      }
+    : null;
+
+  return { nextState, nextMeta };
 }
 
 export function buildInviteMessage(meta: {

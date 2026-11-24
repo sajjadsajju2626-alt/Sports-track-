@@ -1709,37 +1709,75 @@
                 />
               </div>
 
-              <!-- School Access PINs -->
-              <div class="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-2.5">
-                <div class="flex items-center justify-between text-xs">
+              <!-- School Access PINs (Read-Only, Editable Only in Master Admin Panel) -->
+              <div class="rounded-xl bg-slate-50 border border-slate-200 p-3.5 space-y-3">
+                <div class="flex items-center justify-between gap-2 text-xs">
                   <span class="font-semibold text-slate-700">School Code</span>
                   <span id="admin-readonly-code" class="font-mono font-bold text-slate-900">DEMOFEST</span>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label for="admin-readonly-admin-pin" class="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Admin PIN
-                    </label>
-                    <input
-                      id="admin-readonly-admin-pin"
-                      type="text"
-                      readonly
-                      class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 font-mono text-xs text-slate-700"
-                    />
+                    <div class="flex items-center justify-between gap-1 mb-1">
+                      <span class="text-[11px] font-semibold text-slate-600">Admin PIN</span>
+                      <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-200/80 text-[10px] font-semibold text-slate-600">
+                        <i data-lucide="lock" class="w-2.5 h-2.5" aria-hidden="true"></i>
+                        <span>Read-only</span>
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <div
+                        id="admin-readonly-admin-pin"
+                        role="textbox"
+                        aria-label="Admin PIN (read-only)"
+                        aria-readonly="true"
+                        class="flex-1 min-w-0 min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 font-mono text-xs font-bold tracking-wider text-slate-700 flex items-center select-all cursor-default truncate"
+                      >
+                        —
+                      </div>
+                      <button
+                        type="button"
+                        id="btn-copy-admin-pin"
+                        aria-label="Copy Admin PIN"
+                        class="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1 shrink-0 transition-colors"
+                      >
+                        <i data-lucide="copy" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                        <span>Copy</span>
+                      </button>
+                    </div>
                   </div>
                   <div>
-                    <label for="admin-official-pin" class="block text-[11px] font-semibold text-slate-600 mb-1">
-                      Ground Official PIN
-                    </label>
-                    <input
-                      id="admin-official-pin"
-                      type="text"
-                      inputmode="numeric"
-                      required
-                      class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-xs text-slate-900"
-                    />
+                    <div class="flex items-center justify-between gap-1 mb-1">
+                      <span class="text-[11px] font-semibold text-slate-600">Ground Official PIN</span>
+                      <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-200/80 text-[10px] font-semibold text-slate-600">
+                        <i data-lucide="lock" class="w-2.5 h-2.5" aria-hidden="true"></i>
+                        <span>Read-only</span>
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <div
+                        id="admin-readonly-official-pin"
+                        role="textbox"
+                        aria-label="Ground Official PIN (read-only)"
+                        aria-readonly="true"
+                        class="flex-1 min-w-0 min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-100 font-mono text-xs font-bold tracking-wider text-slate-700 flex items-center select-all cursor-default truncate"
+                      >
+                        —
+                      </div>
+                      <button
+                        type="button"
+                        id="btn-copy-official-pin"
+                        aria-label="Copy Ground Official PIN"
+                        class="min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1 shrink-0 transition-colors"
+                      >
+                        <i data-lucide="copy" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                        <span>Copy</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
+                <p class="text-[11px] text-slate-500">
+                  Access PINs are read-only here and can only be changed from the Master Admin Panel.
+                </p>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
@@ -7051,8 +7089,10 @@
         document.getElementById('admin-school-name').value = appState.schoolName;
         document.getElementById('admin-ticker-msg').value = appState.tickerMessage;
         document.getElementById('admin-readonly-code').textContent = activeSchoolCode || appState.schoolCode || '';
-        document.getElementById('admin-readonly-admin-pin').value = meta?.adminPin || appState.adminPin || '';
-        document.getElementById('admin-official-pin').value = meta?.officialPin || appState.officialPin || '';
+        const adminPinEl = document.getElementById('admin-readonly-admin-pin');
+        const officialPinEl = document.getElementById('admin-readonly-official-pin');
+        if (adminPinEl) adminPinEl.textContent = meta?.adminPin || appState.adminPin || '—';
+        if (officialPinEl) officialPinEl.textContent = meta?.officialPin || appState.officialPin || '—';
 
         document.getElementById('house-name-red').value = appState.houses.red.name;
         document.getElementById('house-name-blue').value = appState.houses.blue.name;
@@ -9235,28 +9275,85 @@
           });
         });
 
-        // School Admin: Save Settings (includes updating Official PIN)
+        // School Admin: 1-Click Copy for Read-Only Admin PIN & Ground Official PIN
+        async function copyPinWithFeedback(pinValue, btnEl, label) {
+          const cleanPin = String(pinValue || '').trim();
+          if (!cleanPin || cleanPin === '—') {
+            showToast(`${label} is not set`);
+            return;
+          }
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(cleanPin);
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = cleanPin;
+              ta.setAttribute('readonly', '');
+              ta.style.position = 'fixed';
+              ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              ta.remove();
+            }
+          } catch (err) {
+            const ta = document.createElement('textarea');
+            ta.value = cleanPin;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              document.execCommand('copy');
+            } catch (copyErr) {}
+            ta.remove();
+          }
+
+          if (btnEl) {
+            if (btnEl._copyResetTimer) clearTimeout(btnEl._copyResetTimer);
+            btnEl.className =
+              'min-h-[38px] px-2.5 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-xs font-semibold text-emerald-800 inline-flex items-center gap-1 shrink-0 transition-colors';
+            btnEl.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5" aria-hidden="true"></i><span>Copied!</span>';
+            refreshIcons();
+            btnEl._copyResetTimer = setTimeout(() => {
+              btnEl.className =
+                'min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-semibold text-slate-700 inline-flex items-center gap-1 shrink-0 transition-colors';
+              btnEl.innerHTML = '<i data-lucide="copy" class="w-3.5 h-3.5" aria-hidden="true"></i><span>Copy</span>';
+              refreshIcons();
+            }, 1800);
+          }
+          showToast(`${label} copied`);
+        }
+
+        document.getElementById('btn-copy-admin-pin')?.addEventListener('click', (e) => {
+          const meta = masterRegistry.schools[activeSchoolCode];
+          const pin = meta?.adminPin || appState.adminPin || '';
+          copyPinWithFeedback(pin, e.currentTarget, 'Admin PIN');
+        });
+
+        document.getElementById('btn-copy-official-pin')?.addEventListener('click', (e) => {
+          const meta = masterRegistry.schools[activeSchoolCode];
+          const pin = meta?.officialPin || appState.officialPin || '';
+          copyPinWithFeedback(pin, e.currentTarget, 'Ground Official PIN');
+        });
+
+        // School Admin: Save Settings (strictly preserves Admin PIN & Ground Official PIN)
         document.getElementById('form-admin-settings').addEventListener('submit', async (e) => {
           e.preventDefault();
           const schoolName = document.getElementById('admin-school-name').value.trim() || 'Annual Sports & Games Meet';
           const tickerMessage = document.getElementById('admin-ticker-msg').value.trim() || 'Annual Sports Day Live';
-          const newOfficialPin = document.getElementById('admin-official-pin').value.trim();
           const meta = masterRegistry.schools[activeSchoolCode];
 
-          if (!newOfficialPin) {
-            showToast('Ground Official PIN cannot be empty');
-            return;
-          }
-          if (meta && newOfficialPin === meta.adminPin) {
-            showToast('Ground Official PIN must differ from Admin PIN');
-            return;
-          }
+          const preservedAdminPin = meta?.adminPin ?? appState.adminPin;
+          const preservedOfficialPin = meta?.officialPin ?? appState.officialPin;
 
           const nextState = {
             ...appState,
             schoolName,
             tickerMessage,
-            officialPin: newOfficialPin,
+            ...(preservedAdminPin !== undefined ? { adminPin: preservedAdminPin } : {}),
+            ...(preservedOfficialPin !== undefined ? { officialPin: preservedOfficialPin } : {}),
             houses: {
               red: { ...appState.houses.red, name: document.getElementById('house-name-red').value.trim() || 'Red House' },
               blue: { ...appState.houses.blue, name: document.getElementById('house-name-blue').value.trim() || 'Blue House' },
@@ -9282,13 +9379,18 @@
               ...masterRegistry,
               schools: {
                 ...masterRegistry.schools,
-                [activeSchoolCode]: { ...meta, name: schoolName, officialPin: newOfficialPin },
+                [activeSchoolCode]: {
+                  ...meta,
+                  name: schoolName,
+                  adminPin: meta.adminPin,
+                  officialPin: meta.officialPin,
+                },
               },
             });
           }
 
           await persistState(nextState);
-          showToast('Meet settings & Official PIN saved');
+          showToast('Meet settings saved');
         });
 
         // School Admin: Quick Event Creator (1-Tap Sport/Indoor & Category Presets + Submit)

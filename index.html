@@ -199,6 +199,58 @@
         }
       }
 
+      /* Alarm-Clock Dual Scroll Wheel Picker */
+      .field-wheel-drum {
+        height: 220px;
+        overflow-y: auto;
+        scroll-snap-type: y mandatory;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        scrollbar-width: none;
+      }
+
+      .field-wheel-drum::-webkit-scrollbar {
+        display: none;
+      }
+
+      .field-wheel-spacer {
+        height: 88px;
+        flex-shrink: 0;
+      }
+
+      .field-wheel-item {
+        height: 44px;
+        width: 100%;
+        scroll-snap-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+        font-variant-numeric: tabular-nums;
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: #64748b;
+        opacity: 0.62;
+        transition: color 120ms ease, transform 120ms ease, opacity 120ms ease;
+        user-select: none;
+        cursor: pointer;
+        border: 0;
+        background: transparent;
+      }
+
+      .field-wheel-item:hover {
+        color: #1e293b;
+        opacity: 0.9;
+      }
+
+      .field-wheel-item[aria-selected='true'] {
+        color: #0f172a;
+        font-weight: 800;
+        font-size: 1.375rem;
+        opacity: 1;
+        transform: scale(1.06);
+      }
+
       /* A4 Print Stylesheet */
       @media print {
         @page {
@@ -975,11 +1027,11 @@
             >
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h4 class="text-sm sm:text-base font-bold text-slate-900">
+                  <h4 id="field-trials-title" class="text-sm sm:text-base font-bold text-slate-900">
                     Field Trials · Best of 3 Attempts
                   </h4>
-                  <p class="text-xs text-slate-500">
-                    Enter Chest No. and up to 3 distances in meters (or <span class="font-mono font-semibold text-slate-700">F</span> for Foul). Click Auto-Rank Top 3 to fill the podium.
+                  <p id="field-trials-subtitle" class="text-xs text-slate-500">
+                    Enter Chest No. and tap each attempt box to pick the Distance (m) or mark Foul (F). Click Auto-Rank Top 3 to fill the podium.
                   </p>
                 </div>
               </div>
@@ -2820,6 +2872,205 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- ALARM-CLOCK DUAL SCROLL WHEEL PICKER (FIELD HEIGHT / DISTANCE)        -->
+    <!-- ===================================================================== -->
+    <div
+      id="field-wheel-modal"
+      class="hidden no-print fixed inset-0 z-[110] bg-slate-950/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="field-wheel-title"
+    >
+      <div class="bg-white rounded-2xl border border-slate-200 max-w-sm w-full p-5 shadow-2xl space-y-4">
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h3 id="field-wheel-title" class="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+              Distance (m)
+            </h3>
+            <p id="field-wheel-subtitle" class="text-xs text-slate-500 mt-0.5 truncate">
+              1st Place · Range 0–15 m · 00–99 cm
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-field-wheel-close"
+            aria-label="Close measurement picker"
+            class="w-9 h-9 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 inline-flex items-center justify-center shrink-0 transition-colors"
+          >
+            <i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- Live Formatted Preview Banner -->
+        <div class="rounded-xl bg-slate-900 text-white px-4 py-3 flex items-center justify-between gap-3">
+          <span id="field-wheel-readout-label" class="text-xs font-semibold text-slate-300">
+            Selected Distance
+          </span>
+          <span
+            id="field-wheel-preview"
+            class="font-mono text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-white"
+          >
+            0.00m
+          </span>
+        </div>
+
+        <!-- Dual Scroll Wheel Stage -->
+        <div id="field-wheel-drums-stage" class="space-y-2">
+          <!-- Column Headers + Quick Stepper Controls -->
+          <div class="grid grid-cols-[1fr_16px_1fr] sm:grid-cols-[1fr_20px_1fr] items-center gap-1 text-center">
+            <div class="flex items-center justify-between gap-1 px-0.5 sm:px-1">
+              <button
+                type="button"
+                id="btn-wheel-m-dec"
+                aria-label="Decrease meters"
+                class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-base inline-flex items-center justify-center transition-colors"
+              >
+                −
+              </button>
+              <span id="field-wheel-meters-heading" class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide text-slate-500 whitespace-nowrap">
+                Meters
+              </span>
+              <button
+                type="button"
+                id="btn-wheel-m-inc"
+                aria-label="Increase meters"
+                class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-base inline-flex items-center justify-center transition-colors"
+              >
+                +
+              </button>
+            </div>
+            <span aria-hidden="true"></span>
+            <div class="flex items-center justify-between gap-1 px-0.5 sm:px-1">
+              <button
+                type="button"
+                id="btn-wheel-cm-dec"
+                aria-label="Decrease centimeters"
+                class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-base inline-flex items-center justify-center transition-colors"
+              >
+                −
+              </button>
+              <span id="field-wheel-cm-heading" class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wide text-slate-500 whitespace-nowrap">
+                Centimeters
+              </span>
+              <button
+                type="button"
+                id="btn-wheel-cm-inc"
+                aria-label="Increase centimeters"
+                class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-base inline-flex items-center justify-center transition-colors"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          <!-- Alarm-Clock Drums Frame -->
+          <div class="relative rounded-2xl border border-slate-200 bg-slate-50/90 overflow-hidden h-[220px] grid grid-cols-[1fr_20px_1fr] items-center">
+            <!-- Center Selection Band -->
+            <div
+              aria-hidden="true"
+              class="pointer-events-none absolute inset-x-2 top-[88px] h-[44px] rounded-xl bg-white border border-indigo-300/90 shadow-2xs z-0"
+            ></div>
+            <!-- Top & Bottom Fade Masks -->
+            <div
+              aria-hidden="true"
+              class="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-slate-50 via-slate-50/80 to-transparent z-20"
+            ></div>
+            <div
+              aria-hidden="true"
+              class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent z-20"
+            ></div>
+
+            <!-- Meters Wheel -->
+            <div
+              id="field-wheel-meters"
+              role="listbox"
+              aria-label="Meters"
+              tabindex="0"
+              class="field-wheel-drum relative z-10 focus:outline-none"
+            ></div>
+
+            <!-- Decimal Point -->
+            <div
+              aria-hidden="true"
+              class="relative z-10 text-center font-mono text-2xl font-extrabold text-slate-900 select-none"
+            >
+              .
+            </div>
+
+            <!-- Centimeters Wheel -->
+            <div
+              id="field-wheel-cm"
+              role="listbox"
+              aria-label="Centimeters"
+              tabindex="0"
+              class="field-wheel-drum relative z-10 focus:outline-none"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Optional Manual Typing Fallback -->
+        <div id="field-wheel-manual-panel" class="hidden rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+          <label for="field-wheel-manual-input" class="block text-xs font-semibold text-slate-700">
+            Enter value manually
+          </label>
+          <div class="flex items-center gap-2">
+            <input
+              id="field-wheel-manual-input"
+              type="text"
+              inputmode="decimal"
+              placeholder="e.g. 5.62m"
+              class="flex-1 min-w-0 min-h-[42px] px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            />
+            <button
+              type="button"
+              id="btn-field-wheel-manual-apply"
+              class="min-h-[42px] px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold whitespace-nowrap shrink-0"
+            >
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary Confirm Button -->
+        <button
+          type="button"
+          id="btn-field-wheel-confirm"
+          class="w-full min-h-[46px] px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-sm transition-colors"
+        >
+          <span>✓ Confirm</span>
+        </button>
+
+        <!-- Secondary Utility Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
+          <div class="flex items-center gap-1.5">
+            <button
+              type="button"
+              id="btn-field-wheel-foul"
+              class="hidden min-h-[36px] px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold transition-colors whitespace-nowrap"
+            >
+              Mark Foul (F)
+            </button>
+            <button
+              type="button"
+              id="btn-field-wheel-clear"
+              class="min-h-[36px] px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors whitespace-nowrap"
+            >
+              Clear
+            </button>
+          </div>
+          <button
+            type="button"
+            id="btn-field-wheel-manual-toggle"
+            class="min-h-[36px] px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 hover:text-indigo-900 hover:bg-indigo-50 transition-colors whitespace-nowrap"
+          >
+            Type manually
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- PRINTABLE A4 RESULTS REPORT (PRINT ONLY)                              -->
     <!-- ===================================================================== -->
     <div id="print-sheet" class="hidden print-only p-4 text-black space-y-6"></div>
@@ -3377,6 +3628,76 @@
           return `${spacedMeters[1]}m`;
         }
         return trimmed;
+      }
+
+      function getFieldMeasurementConfig(ev) {
+        const name = typeof ev === 'string' ? ev : String(ev?.name || '');
+        if (/(high\s*jump|pole\s*vault|\bvault\b)/i.test(name)) {
+          return {
+            kind: 'height',
+            label: 'Height (m)',
+            shortLabel: 'Height',
+            maxMeters: 5,
+            defaultMeters: 1,
+            example: '1.54m',
+          };
+        }
+        if (/(long\s*jump|triple\s*jump|broad\s*jump|standing\s*jump|\bjump\b)/i.test(name)) {
+          return {
+            kind: 'jump_distance',
+            label: 'Distance (m)',
+            shortLabel: 'Distance',
+            maxMeters: 15,
+            defaultMeters: 4,
+            example: '5.62m',
+          };
+        }
+        return {
+          kind: 'throw_distance',
+          label: 'Distance (m)',
+          shortLabel: 'Distance',
+          maxMeters: 65,
+          defaultMeters: /shot\s*put/i.test(name) ? 8 : 20,
+          example: /shot\s*put/i.test(name) ? '9.45m' : '34.50m',
+        };
+      }
+
+      function parseFieldWheelValue(raw, maxMeters, defaultMeters = 0) {
+        const safeMax = Math.max(0, Math.floor(Number(maxMeters) || 0));
+        const safeDefault = Math.max(0, Math.min(safeMax, Math.floor(Number(defaultMeters) || 0)));
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) {
+          return { meters: safeDefault, centimeters: 0, isFoul: false, hasValue: false };
+        }
+        if (/^(f|foul|x|nm|dns|pass|-)$/i.test(trimmed)) {
+          return { meters: safeDefault, centimeters: 0, isFoul: true, hasValue: false };
+        }
+        const numMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*m?$/i);
+        if (!numMatch) {
+          return { meters: safeDefault, centimeters: 0, isFoul: false, hasValue: false };
+        }
+        const num = Number(numMatch[1]);
+        if (!Number.isFinite(num) || num < 0) {
+          return { meters: safeDefault, centimeters: 0, isFoul: false, hasValue: false };
+        }
+        const totalCm = Math.round(num * 100);
+        const rawMeters = Math.floor(totalCm / 100);
+        const rawCm = totalCm % 100;
+        if (rawMeters > safeMax) {
+          return { meters: safeMax, centimeters: 99, isFoul: false, hasValue: true };
+        }
+        return {
+          meters: Math.max(0, rawMeters),
+          centimeters: Math.max(0, Math.min(99, rawCm)),
+          isFoul: false,
+          hasValue: true,
+        };
+      }
+
+      function formatFieldWheelValue(meters, centimeters) {
+        const safeM = Math.max(0, Math.floor(Number(meters) || 0));
+        const safeCm = Math.max(0, Math.min(99, Math.floor(Number(centimeters) || 0)));
+        return `${safeM}.${String(safeCm).padStart(2, '0')}m`;
       }
 
       function parseFieldAttempt(raw) {
@@ -5349,6 +5670,7 @@
 
           // Close any open modal first
           const openModalIds = [
+            'field-wheel-modal',
             'confirm-modal',
             'pin-modal',
             'edit-event-modal',
@@ -5358,7 +5680,11 @@
           for (const id of openModalIds) {
             const el = document.getElementById(id);
             if (el && !el.classList.contains('hidden')) {
-              el.classList.add('hidden');
+              if (id === 'field-wheel-modal') {
+                closeFieldWheelModal();
+              } else {
+                el.classList.add('hidden');
+              }
               return;
             }
           }
@@ -6159,6 +6485,15 @@
                 <div id="w-metric-wrap-${p.place}" class="sm:col-span-3">
                   <label id="w-metric-label-${p.place}" for="w-metric-${p.place}" class="block text-[11px] font-semibold text-slate-600 mb-1">Time / Distance</label>
                   <input id="w-metric-${p.place}" type="text" placeholder="e.g. 12.4s / 4.85m" class="w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white font-mono text-sm" />
+                  <button
+                    type="button"
+                    id="w-metric-picker-btn-${p.place}"
+                    data-podium-wheel-place="${p.place}"
+                    class="hidden w-full min-h-[44px] px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-indigo-50/50 hover:border-indigo-300 font-mono text-sm items-center justify-between gap-2 transition-colors text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    <span id="w-metric-picker-val-${p.place}" class="truncate tabular-nums text-slate-400">Tap to pick</span>
+                    <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -6186,6 +6521,27 @@
         });
 
         container.addEventListener('click', (e) => {
+          const wheelBtn = e.target.closest('[data-podium-wheel-place]');
+          if (wheelBtn) {
+            const place = Number(wheelBtn.getAttribute('data-podium-wheel-place'));
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            if (ev && isFieldEvent(ev) && place >= 1 && place <= 3) {
+              const metricInput = document.getElementById(`w-metric-${place}`);
+              const placeTitle = place === 1 ? '1st Place' : place === 2 ? '2nd Place' : '3rd Place';
+              openFieldWheelPicker({
+                event: ev,
+                contextLabel: placeTitle,
+                currentValue: metricInput ? metricInput.value : '',
+                allowFoul: false,
+                onApply: (val) => {
+                  if (metricInput) metricInput.value = val;
+                  syncPodiumMetricPickerButtons(ev);
+                },
+              });
+            }
+            return;
+          }
+
           const chipBtn = e.target.closest('[data-podium-place]');
           if (!chipBtn) return;
           const place = chipBtn.getAttribute('data-podium-place');
@@ -6482,6 +6838,7 @@
         const chevronEl = document.getElementById('field-trials-chevron');
         const rowsEl = document.getElementById('field-trials-rows');
         const errEl = document.getElementById('field-trials-error');
+        const subtitleEl = document.getElementById('field-trials-subtitle');
         if (!sectionEl || !panelEl || !rowsEl) return;
 
         const isField = Boolean(ev) && !isHouseGroupPodiumEvent(ev) && isFieldEvent(ev);
@@ -6492,6 +6849,11 @@
           if (chevronEl) chevronEl.textContent = '▼';
           if (errEl) errEl.classList.add('hidden');
           return;
+        }
+
+        const fieldCfg = getFieldMeasurementConfig(ev);
+        if (subtitleEl) {
+          subtitleEl.textContent = `Enter Chest No. and tap each attempt box to pick ${fieldCfg.label} (0–${fieldCfg.maxMeters} m) or mark Foul (F). Click Auto-Rank Top 3 to fill the podium.`;
         }
 
         const isExpanded = Boolean(fieldTrialsExpandedByEvent.get(ev.id));
@@ -6543,23 +6905,41 @@
                   <div id="trial-student-badge-${idx}" class="${badgeCls}">${escapeHtml(badgeText)}</div>
                 </div>
                 ${[0, 1, 2]
-                  .map(
-                    (aIdx) => `
+                  .map((aIdx) => {
+                    const rawVal = String(row.attempts[aIdx] || '').trim();
+                    const parsedAttempt = parseFieldAttempt(rawVal);
+                    const isFoul = parsedAttempt.isFoul;
+                    const displayVal = isFoul
+                      ? 'FOUL'
+                      : parsedAttempt.valid
+                        ? formatFieldMetric(rawVal)
+                        : rawVal
+                          ? rawVal
+                          : '';
+                    const btnCls = isFoul
+                      ? 'w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 font-mono text-xs font-bold text-red-700 inline-flex items-center justify-between gap-1 transition-colors'
+                      : displayVal
+                        ? 'w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-indigo-200 bg-white hover:bg-indigo-50/60 font-mono text-sm font-bold text-slate-900 tabular-nums inline-flex items-center justify-between gap-1 transition-colors'
+                        : 'w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-indigo-50/50 hover:border-indigo-300 font-mono text-xs font-medium text-slate-400 inline-flex items-center justify-between gap-1 transition-colors';
+                    const ariaText = displayVal
+                      ? `Athlete ${idx + 1} Attempt ${aIdx + 1} ${fieldCfg.label}: ${displayVal}`
+                      : `Pick Athlete ${idx + 1} Attempt ${aIdx + 1} ${fieldCfg.label}`;
+                    return `
                   <div class="col-span-1 sm:col-span-2">
-                    <label class="sm:hidden block text-[10px] font-bold uppercase text-slate-500 mb-1">Attempt ${aIdx + 1}</label>
-                    <input
-                      type="text"
-                      inputmode="decimal"
+                    <label class="sm:hidden block text-[10px] font-bold uppercase text-slate-500 mb-1">Attempt ${aIdx + 1} (${fieldCfg.shortLabel})</label>
+                    <button
+                      type="button"
                       data-trial-row="${idx}"
-                      data-trial-attempt="${aIdx}"
-                      value="${escapeHtml(row.attempts[aIdx] || '')}"
-                      placeholder="34.50 or F"
-                      aria-label="Athlete ${idx + 1} Attempt ${aIdx + 1}"
-                      class="w-full min-h-[38px] px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white font-mono text-sm text-slate-900"
-                    />
+                      data-trial-attempt-btn="${aIdx}"
+                      aria-label="${escapeHtml(ariaText)}"
+                      class="${btnCls}"
+                    >
+                      <span class="truncate">${escapeHtml(displayVal || 'Pick')}</span>
+                      <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 shrink-0 ${isFoul ? 'text-red-400' : 'text-slate-400'}" aria-hidden="true"></i>
+                    </button>
                   </div>
-                `
-                  )
+                `;
+                  })
                   .join('')}
                 <div class="col-span-1 sm:col-span-2">
                   <label class="sm:hidden block text-[10px] font-bold uppercase text-slate-500 mb-1">Best</label>
@@ -6579,6 +6959,45 @@
             `;
           })
           .join('');
+        refreshIcons();
+      }
+
+      function syncPodiumMetricPickerButtons(ev) {
+        const isGroupPodium = isHouseGroupPodiumEvent(ev);
+        const isField = Boolean(ev) && !isGroupPodium && isFieldEvent(ev);
+        const fieldCfg = isField ? getFieldMeasurementConfig(ev) : null;
+
+        [1, 2, 3].forEach((place) => {
+          const metricLabel = document.getElementById(`w-metric-label-${place}`);
+          const metricInput = document.getElementById(`w-metric-${place}`);
+          const pickerBtn = document.getElementById(`w-metric-picker-btn-${place}`);
+          const pickerVal = document.getElementById(`w-metric-picker-val-${place}`);
+          if (!metricInput || !pickerBtn || !pickerVal) return;
+
+          if (isField && fieldCfg) {
+            metricInput.classList.add('hidden');
+            pickerBtn.classList.remove('hidden');
+            pickerBtn.classList.add('inline-flex');
+            if (metricLabel) metricLabel.setAttribute('for', `w-metric-picker-btn-${place}`);
+
+            const val = String(metricInput.value || '').trim();
+            const placeTitle = place === 1 ? '1st Place' : place === 2 ? '2nd Place' : '3rd Place';
+            if (val) {
+              pickerVal.textContent = val;
+              pickerVal.className = 'truncate tabular-nums font-bold text-slate-900';
+              pickerBtn.setAttribute('aria-label', `${placeTitle} ${fieldCfg.label}: ${val}`);
+            } else {
+              pickerVal.textContent = `Tap to pick (${fieldCfg.example})`;
+              pickerVal.className = 'truncate tabular-nums font-normal text-slate-400 text-xs';
+              pickerBtn.setAttribute('aria-label', `Pick ${placeTitle} ${fieldCfg.label}`);
+            }
+          } else {
+            metricInput.classList.remove('hidden');
+            pickerBtn.classList.add('hidden');
+            pickerBtn.classList.remove('inline-flex');
+            if (metricLabel) metricLabel.setAttribute('for', `w-metric-${place}`);
+          }
+        });
       }
 
       function updatePodiumModeUI(isGroupPodium, ev) {
@@ -6589,6 +7008,7 @@
         const stopwatchBar = document.getElementById('track-stopwatch-bar');
 
         const isField = !isGroupPodium && isFieldEvent(ev);
+        const fieldCfg = isField ? getFieldMeasurementConfig(ev) : null;
         const isIndoorBoard = !isGroupPodium && isIndoorBoardEvent(ev);
         const showStopwatch = isTimedTrackEvent(ev);
 
@@ -6603,6 +7023,9 @@
         }
         if (fieldBadge) {
           fieldBadge.classList.toggle('hidden', !isField);
+          if (isField && fieldCfg) {
+            fieldBadge.textContent = `Field Event · ${fieldCfg.label}`;
+          }
         }
         if (pointsHint) {
           const [p1, p2, p3] = isGroupPodium
@@ -6631,8 +7054,8 @@
           if (metricLabel) {
             metricLabel.textContent = isGroupPodium
               ? 'Timing / Score Note (Optional)'
-              : isField
-                ? 'Distance / Height (m)'
+              : isField && fieldCfg
+                ? fieldCfg.label
                 : isIndoorBoard
                   ? 'Score / Note (Optional)'
                   : 'Time / Distance';
@@ -6640,8 +7063,8 @@
           if (metricInput) {
             metricInput.placeholder = isGroupPodium
               ? 'e.g. 44.82s or 92 pts'
-              : isField
-                ? 'e.g. 34.50m'
+              : isField && fieldCfg
+                ? `e.g. ${fieldCfg.example}`
                 : isIndoorBoard
                   ? 'e.g. 5/5 pts or Winner'
                   : 'e.g. 12.4s / 4.85m';
@@ -6652,8 +7075,10 @@
           }
         });
 
+        syncPodiumMetricPickerButtons(ev);
         renderFieldTrialsCalculator(ev);
         renderIndividualPodiumParticipantChips(ev, isGroupPodium);
+        refreshIcons();
       }
 
       function renderIndividualPodiumParticipantChips(ev, isGroupPodium = isHouseGroupPodiumEvent(ev)) {
@@ -8768,6 +9193,33 @@
         });
 
         document.getElementById('field-trials-rows')?.addEventListener('click', (e) => {
+          const attemptBtn = e.target.closest('[data-trial-attempt-btn]');
+          if (attemptBtn) {
+            const ev = appState.events.find((x) => x.id === selectedEventId);
+            if (!ev || !isFieldEvent(ev)) return;
+            const rowIdx = Number(attemptBtn.getAttribute('data-trial-row'));
+            const aIdx = Number(attemptBtn.getAttribute('data-trial-attempt-btn'));
+            const rows = getFieldTrialsRowsForEvent(ev);
+            const row = rows[rowIdx];
+            if (!row || aIdx < 0 || aIdx > 2) return;
+            const chestClean = String(row.chestNo || '').trim().replace(/^#+/, '').trim();
+            const contextLabel = chestClean
+              ? `Chest #${chestClean} · Attempt ${aIdx + 1}`
+              : `Athlete ${rowIdx + 1} · Attempt ${aIdx + 1}`;
+            openFieldWheelPicker({
+              event: ev,
+              contextLabel,
+              currentValue: row.attempts[aIdx] || '',
+              allowFoul: true,
+              onApply: (val) => {
+                row.attempts[aIdx] = val;
+                document.getElementById('field-trials-error')?.classList.add('hidden');
+                renderFieldTrialsCalculator(ev);
+              },
+            });
+            return;
+          }
+
           const rmBtn = e.target.closest('[data-trial-remove]');
           if (!rmBtn) return;
           const ev = appState.events.find((x) => x.id === selectedEventId);
@@ -8807,8 +9259,9 @@
           const rows = getFieldTrialsRowsForEvent(ev);
           const ranked = rankFieldTrials(rows, appState.students);
           if (ranked.length === 0) {
+            const fieldCfg = getFieldMeasurementConfig(ev);
             if (errEl) {
-              errEl.textContent = 'Enter at least one Chest No. with a valid distance (in meters) to auto-rank.';
+              errEl.textContent = `Enter at least one Chest No. with a valid ${fieldCfg.shortLabel.toLowerCase()} (in meters) to auto-rank.`;
               errEl.classList.remove('hidden');
             }
             return;
@@ -8843,6 +9296,7 @@
             applyChestAutofill(place);
           });
 
+          syncPodiumMetricPickerButtons(ev);
           renderIndividualPodiumParticipantChips(ev, false);
           showToast(`Auto-ranked Top ${top3.length} into Podium Winners!`);
         });
@@ -10353,11 +10807,349 @@
       }
 
       // =======================================================================
+      // 12C. ALARM-CLOCK DUAL SCROLL WHEEL PICKER (FIELD HEIGHT / DISTANCE)
+      // =======================================================================
+      const FIELD_WHEEL_ITEM_HEIGHT = 44;
+      let fieldWheelState = {
+        open: false,
+        maxMeters: 15,
+        meters: 0,
+        centimeters: 0,
+        allowFoul: false,
+        manualOpen: false,
+        onApply: null,
+        suppressScrollSync: false,
+      };
+      let fieldWheelMetersRaf = null;
+      let fieldWheelCmRaf = null;
+
+      function updateFieldWheelPreviewUI() {
+        const previewEl = document.getElementById('field-wheel-preview');
+        if (previewEl) {
+          previewEl.textContent = formatFieldWheelValue(fieldWheelState.meters, fieldWheelState.centimeters);
+        }
+
+        const metersDrum = document.getElementById('field-wheel-meters');
+        if (metersDrum) {
+          metersDrum.querySelectorAll('.field-wheel-item').forEach((btn) => {
+            const val = Number(btn.getAttribute('data-wheel-val'));
+            btn.setAttribute('aria-selected', val === fieldWheelState.meters ? 'true' : 'false');
+          });
+        }
+
+        const cmDrum = document.getElementById('field-wheel-cm');
+        if (cmDrum) {
+          cmDrum.querySelectorAll('.field-wheel-item').forEach((btn) => {
+            const val = Number(btn.getAttribute('data-wheel-val'));
+            btn.setAttribute('aria-selected', val === fieldWheelState.centimeters ? 'true' : 'false');
+          });
+        }
+      }
+
+      function scrollFieldWheelTo(drumEl, value, smooth = false) {
+        if (!drumEl) return;
+        const targetTop = Math.max(0, value) * FIELD_WHEEL_ITEM_HEIGHT;
+        if (smooth) {
+          drumEl.scrollTo({ top: targetTop, behavior: 'smooth' });
+        } else {
+          drumEl.scrollTop = targetTop;
+        }
+      }
+
+      function populateFieldWheelDrum(drumEl, maxVal, padTwoDigits, unitSuffix) {
+        if (!drumEl) return;
+        const parts = ['<div class="field-wheel-spacer" aria-hidden="true"></div>'];
+        for (let i = 0; i <= maxVal; i += 1) {
+          const text = padTwoDigits ? String(i).padStart(2, '0') : String(i);
+          parts.push(
+            `<button type="button" role="option" aria-selected="false" data-wheel-val="${i}" class="field-wheel-item" aria-label="${text} ${unitSuffix}">${text}</button>`
+          );
+        }
+        parts.push('<div class="field-wheel-spacer" aria-hidden="true"></div>');
+        drumEl.innerHTML = parts.join('');
+      }
+
+      function setFieldWheelManualMode(open) {
+        fieldWheelState.manualOpen = Boolean(open);
+        const manualPanel = document.getElementById('field-wheel-manual-panel');
+        const toggleBtn = document.getElementById('btn-field-wheel-manual-toggle');
+        const manualInput = document.getElementById('field-wheel-manual-input');
+        if (manualPanel) manualPanel.classList.toggle('hidden', !fieldWheelState.manualOpen);
+        if (toggleBtn) {
+          toggleBtn.textContent = fieldWheelState.manualOpen ? 'Hide manual input' : 'Type manually';
+        }
+        if (fieldWheelState.manualOpen && manualInput) {
+          manualInput.value = formatFieldWheelValue(fieldWheelState.meters, fieldWheelState.centimeters);
+          setTimeout(() => {
+            manualInput.focus();
+            manualInput.select();
+          }, 30);
+        }
+      }
+
+      function openFieldWheelPicker({ event, contextLabel = '', currentValue = '', allowFoul = false, onApply }) {
+        const modal = document.getElementById('field-wheel-modal');
+        const titleEl = document.getElementById('field-wheel-title');
+        const subtitleEl = document.getElementById('field-wheel-subtitle');
+        const readoutLabelEl = document.getElementById('field-wheel-readout-label');
+        const metersHeadingEl = document.getElementById('field-wheel-meters-heading');
+        const metersDrum = document.getElementById('field-wheel-meters');
+        const cmDrum = document.getElementById('field-wheel-cm');
+        const foulBtn = document.getElementById('btn-field-wheel-foul');
+        const manualInput = document.getElementById('field-wheel-manual-input');
+        if (!modal || !metersDrum || !cmDrum) return;
+
+        const cfg = getFieldMeasurementConfig(event);
+        const parsed = parseFieldWheelValue(currentValue, cfg.maxMeters, cfg.defaultMeters);
+
+        fieldWheelState = {
+          open: true,
+          maxMeters: cfg.maxMeters,
+          meters: parsed.meters,
+          centimeters: parsed.centimeters,
+          allowFoul: Boolean(allowFoul),
+          manualOpen: false,
+          onApply: typeof onApply === 'function' ? onApply : null,
+          suppressScrollSync: true,
+        };
+
+        if (titleEl) titleEl.textContent = cfg.label;
+        if (subtitleEl) {
+          const prefix = contextLabel ? `${contextLabel} · ` : '';
+          subtitleEl.textContent = `${prefix}Range 0–${cfg.maxMeters} m · 00–99 cm`;
+        }
+        if (readoutLabelEl) readoutLabelEl.textContent = `Selected ${cfg.shortLabel}`;
+        if (metersHeadingEl) metersHeadingEl.textContent = 'Meters';
+        if (foulBtn) foulBtn.classList.toggle('hidden', !allowFoul);
+        if (manualInput) {
+          manualInput.placeholder = allowFoul ? `e.g. ${cfg.example} or F` : `e.g. ${cfg.example}`;
+        }
+
+        populateFieldWheelDrum(metersDrum, cfg.maxMeters, false, 'meters');
+        if (!cmDrum.dataset.populated) {
+          populateFieldWheelDrum(cmDrum, 99, true, 'centimeters');
+          cmDrum.dataset.populated = '1';
+        }
+
+        setFieldWheelManualMode(false);
+        modal.classList.remove('hidden');
+        refreshIcons();
+
+        // Position both drums synchronously after layout is visible
+        requestAnimationFrame(() => {
+          scrollFieldWheelTo(metersDrum, fieldWheelState.meters, false);
+          scrollFieldWheelTo(cmDrum, fieldWheelState.centimeters, false);
+          updateFieldWheelPreviewUI();
+          setTimeout(() => {
+            fieldWheelState.suppressScrollSync = false;
+          }, 80);
+        });
+      }
+
+      function closeFieldWheelModal() {
+        fieldWheelState.open = false;
+        fieldWheelState.onApply = null;
+        document.getElementById('field-wheel-modal')?.classList.add('hidden');
+      }
+
+      function stepFieldWheelMeters(delta) {
+        const next = Math.max(0, Math.min(fieldWheelState.maxMeters, fieldWheelState.meters + delta));
+        fieldWheelState.meters = next;
+        updateFieldWheelPreviewUI();
+        scrollFieldWheelTo(document.getElementById('field-wheel-meters'), next, true);
+      }
+
+      function stepFieldWheelCm(delta) {
+        let nextCm = fieldWheelState.centimeters + delta;
+        let nextM = fieldWheelState.meters;
+        if (nextCm > 99) {
+          if (nextM < fieldWheelState.maxMeters) {
+            nextM += 1;
+            nextCm = 0;
+          } else {
+            nextCm = 99;
+          }
+        } else if (nextCm < 0) {
+          if (nextM > 0) {
+            nextM -= 1;
+            nextCm = 99;
+          } else {
+            nextCm = 0;
+          }
+        }
+        fieldWheelState.meters = nextM;
+        fieldWheelState.centimeters = nextCm;
+        updateFieldWheelPreviewUI();
+        scrollFieldWheelTo(document.getElementById('field-wheel-meters'), nextM, true);
+        scrollFieldWheelTo(document.getElementById('field-wheel-cm'), nextCm, true);
+      }
+
+      function wireFieldWheelPickerListeners() {
+        const modal = document.getElementById('field-wheel-modal');
+        const metersDrum = document.getElementById('field-wheel-meters');
+        const cmDrum = document.getElementById('field-wheel-cm');
+        if (!modal || !metersDrum || !cmDrum) return;
+
+        // Backdrop click closes cleanly
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeFieldWheelModal();
+        });
+
+        document.getElementById('btn-field-wheel-close')?.addEventListener('click', closeFieldWheelModal);
+
+        // Smooth scroll sync on Meters wheel
+        metersDrum.addEventListener(
+          'scroll',
+          () => {
+            if (fieldWheelState.suppressScrollSync) return;
+            if (fieldWheelMetersRaf) cancelAnimationFrame(fieldWheelMetersRaf);
+            fieldWheelMetersRaf = requestAnimationFrame(() => {
+              const idx = Math.round(metersDrum.scrollTop / FIELD_WHEEL_ITEM_HEIGHT);
+              const clamped = Math.max(0, Math.min(fieldWheelState.maxMeters, idx));
+              if (clamped !== fieldWheelState.meters) {
+                fieldWheelState.meters = clamped;
+                updateFieldWheelPreviewUI();
+              }
+            });
+          },
+          { passive: true }
+        );
+
+        // Smooth scroll sync on Centimeters wheel
+        cmDrum.addEventListener(
+          'scroll',
+          () => {
+            if (fieldWheelState.suppressScrollSync) return;
+            if (fieldWheelCmRaf) cancelAnimationFrame(fieldWheelCmRaf);
+            fieldWheelCmRaf = requestAnimationFrame(() => {
+              const idx = Math.round(cmDrum.scrollTop / FIELD_WHEEL_ITEM_HEIGHT);
+              const clamped = Math.max(0, Math.min(99, idx));
+              if (clamped !== fieldWheelState.centimeters) {
+                fieldWheelState.centimeters = clamped;
+                updateFieldWheelPreviewUI();
+              }
+            });
+          },
+          { passive: true }
+        );
+
+        // Click any number on either drum to snap straight to it
+        metersDrum.addEventListener('click', (e) => {
+          const opt = e.target.closest('[data-wheel-val]');
+          if (!opt) return;
+          const val = Math.max(0, Math.min(fieldWheelState.maxMeters, Number(opt.getAttribute('data-wheel-val'))));
+          fieldWheelState.meters = val;
+          updateFieldWheelPreviewUI();
+          scrollFieldWheelTo(metersDrum, val, true);
+        });
+
+        cmDrum.addEventListener('click', (e) => {
+          const opt = e.target.closest('[data-wheel-val]');
+          if (!opt) return;
+          const val = Math.max(0, Math.min(99, Number(opt.getAttribute('data-wheel-val'))));
+          fieldWheelState.centimeters = val;
+          updateFieldWheelPreviewUI();
+          scrollFieldWheelTo(cmDrum, val, true);
+        });
+
+        // Keyboard arrow navigation when drums are focused
+        metersDrum.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            stepFieldWheelMeters(1);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            stepFieldWheelMeters(-1);
+          }
+        });
+        cmDrum.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            stepFieldWheelCm(1);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            stepFieldWheelCm(-1);
+          }
+        });
+
+        // Stepper buttons
+        document.getElementById('btn-wheel-m-dec')?.addEventListener('click', () => stepFieldWheelMeters(-1));
+        document.getElementById('btn-wheel-m-inc')?.addEventListener('click', () => stepFieldWheelMeters(1));
+        document.getElementById('btn-wheel-cm-dec')?.addEventListener('click', () => stepFieldWheelCm(-1));
+        document.getElementById('btn-wheel-cm-inc')?.addEventListener('click', () => stepFieldWheelCm(1));
+
+        // Confirm wheel value
+        document.getElementById('btn-field-wheel-confirm')?.addEventListener('click', () => {
+          const formatted = formatFieldWheelValue(fieldWheelState.meters, fieldWheelState.centimeters);
+          const cb = fieldWheelState.onApply;
+          closeFieldWheelModal();
+          if (cb) cb(formatted);
+        });
+
+        // Mark Foul (F) for Best-of-3 trials
+        document.getElementById('btn-field-wheel-foul')?.addEventListener('click', () => {
+          const cb = fieldWheelState.onApply;
+          closeFieldWheelModal();
+          if (cb) cb('F');
+        });
+
+        // Clear value
+        document.getElementById('btn-field-wheel-clear')?.addEventListener('click', () => {
+          const cb = fieldWheelState.onApply;
+          closeFieldWheelModal();
+          if (cb) cb('');
+        });
+
+        // Manual entry fallback toggle & apply
+        document.getElementById('btn-field-wheel-manual-toggle')?.addEventListener('click', () => {
+          setFieldWheelManualMode(!fieldWheelState.manualOpen);
+        });
+
+        const applyManualFieldValue = () => {
+          const manualInput = document.getElementById('field-wheel-manual-input');
+          const raw = String(manualInput?.value || '').trim();
+          const cb = fieldWheelState.onApply;
+          if (!raw) {
+            closeFieldWheelModal();
+            if (cb) cb('');
+            return;
+          }
+          const parsedAttempt = parseFieldAttempt(raw);
+          let finalVal = '';
+          if (fieldWheelState.allowFoul && parsedAttempt.isFoul) {
+            finalVal = 'F';
+          } else if (parsedAttempt.valid && parsedAttempt.value !== null) {
+            finalVal = `${parsedAttempt.value.toFixed(2)}m`;
+          } else {
+            finalVal = formatFieldMetric(raw);
+          }
+          closeFieldWheelModal();
+          if (cb) cb(finalVal);
+        };
+
+        document.getElementById('btn-field-wheel-manual-apply')?.addEventListener('click', applyManualFieldValue);
+        document.getElementById('field-wheel-manual-input')?.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            applyManualFieldValue();
+          }
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (fieldWheelState.open && e.key === 'Escape') {
+            e.preventDefault();
+            closeFieldWheelModal();
+          }
+        });
+      }
+
+      // =======================================================================
       // 13. BOOTSTRAP
       // =======================================================================
       buildPodiumRowsUI();
       buildQuickEventCreatorPresetsUI();
       wireEventListeners();
+      wireFieldWheelPickerListeners();
       setupHardwareBackSupport();
       refreshIcons();
       setInterval(refreshLiveMatchClockDisplays, 1000);

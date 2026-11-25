@@ -24,6 +24,7 @@ import {
   findQuickEventPreset,
   formatCricketScore,
   formatFieldMetric,
+  formatFieldWheelValue,
   formatLiveMatchStatusDisplay,
   formatMatchClockMMSS,
   formatPlayerChipLabel,
@@ -33,6 +34,7 @@ import {
   getEditablePeriodValue,
   getEventPointRules,
   getEventTypeLabel,
+  getFieldMeasurementConfig,
   getMatchDurationMins,
   groupStudentsByHouseForModal,
   hasAssignedHouseParticipants,
@@ -51,6 +53,7 @@ import {
   normalizeSchoolCode,
   normalizeTimelinePlayer,
   parseFieldAttempt,
+  parseFieldWheelValue,
   parseStudentCsv,
   QUICK_CATEGORY_PRESETS,
   QUICK_EVENT_PRESET_GROUPS,
@@ -1341,6 +1344,78 @@ test('School Admin Save Meet Settings updates meet details while strictly preser
   assert.equal(nextMeta?.adminPin, '9090');
   assert.equal(nextMeta?.officialPin, '2468');
 });
+
+test('Field Event Dual Scroll Wheel Picker: smart labels, auto-ranges (0-5m, 0-15m, 0-65m), parsing & formatting', () => {
+  // 1. Height events: High Jump & Pole Vault -> Height (m), 0-5m
+  for (const name of ['High Jump', 'Senior Boys High Jump', 'Pole Vault']) {
+    const cfg = getFieldMeasurementConfig({ name, type: 'individual' });
+    assert.equal(cfg.kind, 'height', `Expected height kind for ${name}`);
+    assert.equal(cfg.label, 'Height (m)', `Expected Height (m) label for ${name}`);
+    assert.equal(cfg.maxMeters, 5, `Expected 0-5m range for ${name}`);
+  }
+
+  // 2. Horizontal Jump events: Long Jump & Triple Jump -> Distance (m), 0-15m
+  for (const name of ['Long Jump', 'Triple Jump', 'Standing Broad Jump']) {
+    const cfg = getFieldMeasurementConfig({ name, type: 'individual' });
+    assert.equal(cfg.kind, 'jump_distance', `Expected jump_distance kind for ${name}`);
+    assert.equal(cfg.label, 'Distance (m)', `Expected Distance (m) label for ${name}`);
+    assert.equal(cfg.maxMeters, 15, `Expected 0-15m range for ${name}`);
+  }
+
+  // 3. Throwing events: Shot Put, Discus, Javelin -> Distance (m), 0-65m
+  for (const name of ['Shot Put', 'Discus Throw', 'Javelin Throw', 'Hammer Throw']) {
+    const cfg = getFieldMeasurementConfig({ name, type: 'individual' });
+    assert.equal(cfg.kind, 'throw_distance', `Expected throw_distance kind for ${name}`);
+    assert.equal(cfg.label, 'Distance (m)', `Expected Distance (m) label for ${name}`);
+    assert.equal(cfg.maxMeters, 65, `Expected 0-65m range for ${name}`);
+  }
+
+  // 4. Parsing existing values, decimals, fouls, and clamping
+  assert.deepEqual(parseFieldWheelValue('1.54m', 5, 1), {
+    meters: 1,
+    centimeters: 54,
+    isFoul: false,
+    hasValue: true,
+  });
+  assert.deepEqual(parseFieldWheelValue('5.62', 15, 4), {
+    meters: 5,
+    centimeters: 62,
+    isFoul: false,
+    hasValue: true,
+  });
+  assert.deepEqual(parseFieldWheelValue('9.5 m', 65, 8), {
+    meters: 9,
+    centimeters: 50,
+    isFoul: false,
+    hasValue: true,
+  });
+  assert.deepEqual(parseFieldWheelValue('F', 15, 4), {
+    meters: 4,
+    centimeters: 0,
+    isFoul: true,
+    hasValue: false,
+  });
+  assert.deepEqual(parseFieldWheelValue('', 5, 1), {
+    meters: 1,
+    centimeters: 0,
+    isFoul: false,
+    hasValue: false,
+  });
+  assert.deepEqual(parseFieldWheelValue('8.20m', 5, 1), {
+    meters: 5,
+    centimeters: 99,
+    isFoul: false,
+    hasValue: true,
+  });
+
+  // 5. Formatting wheel values consistently as X.XXm
+  assert.equal(formatFieldWheelValue(1, 54), '1.54m');
+  assert.equal(formatFieldWheelValue(5, 62), '5.62m');
+  assert.equal(formatFieldWheelValue(0, 8), '0.08m');
+  assert.equal(formatFieldWheelValue(65, 99), '65.99m');
+  assert.equal(formatFieldWheelValue(-2, 120), '0.99m');
+});
+
 
 
 

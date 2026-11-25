@@ -1567,6 +1567,100 @@ export function formatFieldMetric(raw: string | undefined): string {
   return trimmed;
 }
 
+export type FieldMeasurementKind = 'height' | 'jump_distance' | 'throw_distance';
+
+export interface FieldMeasurementConfig {
+  kind: FieldMeasurementKind;
+  label: 'Height (m)' | 'Distance (m)';
+  shortLabel: 'Height' | 'Distance';
+  maxMeters: number;
+  defaultMeters: number;
+  example: string;
+}
+
+export function getFieldMeasurementConfig(
+  ev: Pick<SportEvent, 'name' | 'type'> | string | null | undefined
+): FieldMeasurementConfig {
+  const name = typeof ev === 'string' ? ev : String(ev?.name || '');
+  if (/(high\s*jump|pole\s*vault|\bvault\b)/i.test(name)) {
+    return {
+      kind: 'height',
+      label: 'Height (m)',
+      shortLabel: 'Height',
+      maxMeters: 5,
+      defaultMeters: 1,
+      example: '1.54m',
+    };
+  }
+  if (/(long\s*jump|triple\s*jump|broad\s*jump|standing\s*jump|\bjump\b)/i.test(name)) {
+    return {
+      kind: 'jump_distance',
+      label: 'Distance (m)',
+      shortLabel: 'Distance',
+      maxMeters: 15,
+      defaultMeters: 4,
+      example: '5.62m',
+    };
+  }
+  return {
+    kind: 'throw_distance',
+    label: 'Distance (m)',
+    shortLabel: 'Distance',
+    maxMeters: 65,
+    defaultMeters: /shot\s*put/i.test(name) ? 8 : 20,
+    example: /shot\s*put/i.test(name) ? '9.45m' : '34.50m',
+  };
+}
+
+export interface ParsedFieldWheelValue {
+  meters: number;
+  centimeters: number;
+  isFoul: boolean;
+  hasValue: boolean;
+}
+
+export function parseFieldWheelValue(
+  raw: string | undefined,
+  maxMeters: number,
+  defaultMeters: number = 0
+): ParsedFieldWheelValue {
+  const safeMax = Math.max(0, Math.floor(Number(maxMeters) || 0));
+  const safeDefault = Math.max(0, Math.min(safeMax, Math.floor(Number(defaultMeters) || 0)));
+  const trimmed = String(raw || '').trim();
+  if (!trimmed) {
+    return { meters: safeDefault, centimeters: 0, isFoul: false, hasValue: false };
+  }
+  if (/^(f|foul|x|nm|dns|pass|-)$/i.test(trimmed)) {
+    return { meters: safeDefault, centimeters: 0, isFoul: true, hasValue: false };
+  }
+  const numMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*m?$/i);
+  if (!numMatch) {
+    return { meters: safeDefault, centimeters: 0, isFoul: false, hasValue: false };
+  }
+  const num = Number(numMatch[1]);
+  if (!Number.isFinite(num) || num < 0) {
+    return { meters: safeDefault, centimeters: 0, isFoul: false, hasValue: false };
+  }
+  const totalCm = Math.round(num * 100);
+  const rawMeters = Math.floor(totalCm / 100);
+  const rawCm = totalCm % 100;
+  if (rawMeters > safeMax) {
+    return { meters: safeMax, centimeters: 99, isFoul: false, hasValue: true };
+  }
+  return {
+    meters: Math.max(0, rawMeters),
+    centimeters: Math.max(0, Math.min(99, rawCm)),
+    isFoul: false,
+    hasValue: true,
+  };
+}
+
+export function formatFieldWheelValue(meters: number, centimeters: number): string {
+  const safeM = Math.max(0, Math.floor(Number(meters) || 0));
+  const safeCm = Math.max(0, Math.min(99, Math.floor(Number(centimeters) || 0)));
+  return `${safeM}.${String(safeCm).padStart(2, '0')}m`;
+}
+
 export interface ParsedFieldAttempt {
   valid: boolean;
   value: number | null;
